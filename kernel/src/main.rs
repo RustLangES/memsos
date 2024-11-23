@@ -5,12 +5,14 @@
 
 mod asm;
 mod drivers;
+mod test;
 mod writer;
 
 use bootloader_api::{config::Mapping, entry_point, BootInfo, BootloaderConfig};
 use drivers::keyboard::{Key, Scanner};
 use heapless::String;
 
+use test::{read_from_memory, test_memory};
 use writer::{FrameBufferWriter, WRITER};
 
 use core::{fmt::Write, panic::PanicInfo};
@@ -25,6 +27,7 @@ entry_point!(kernel_main, config = &CONFIG);
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let memory = &boot_info.memory_regions;
+    let regions = memory.iter();
     let api_version = &boot_info.api_version;
     let framebuffer = boot_info.framebuffer.take().unwrap();
     let info = framebuffer.info();
@@ -38,11 +41,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     println!("Api Info: {:?}", api_version);
     println!("Memsos version: {}", memsos_version);
 
-    let scanner = Scanner;
-
-    scanner.wait_for_key(Key::Space);
-
-    clean!();
+    for region in regions {
+        test_memory(region);
+    }
 
     loop {}
 }

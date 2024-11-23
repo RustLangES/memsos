@@ -3,7 +3,6 @@ mod qemu;
 use qemu::QemuBuilder;
 use structopt::StructOpt;
 
-
 #[derive(StructOpt, Debug)]
 #[structopt(name = "Memsos basic cli")]
 struct Cli {
@@ -19,7 +18,7 @@ struct Cli {
 
 fn main() {
     let cli = Cli::from_args();
-  
+
     if cli.uefi {
         let qemu = QemuBuilder::new()
             .img(env!("UEFI_PATH").to_string())
@@ -34,6 +33,10 @@ fn main() {
             .build();
         qemu.run();
     } else if cli.export {
-        println!("UEFI PATH: {}, BIOS PATH: {}", env!("UEFI_PATH"), env!("BIOS_PATH"));
+        println!(
+            "UEFI PATH: {}, BIOS PATH: {}",
+            env!("UEFI_PATH"),
+            env!("BIOS_PATH")
+        );
     }
 }
