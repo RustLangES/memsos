@@ -8,11 +8,13 @@ mod drivers;
 mod test;
 mod writer;
 
-use bootloader_api::{config::Mapping, entry_point, BootInfo, BootloaderConfig};
+use bootloader_api::{
+    config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
+};
 use drivers::keyboard::{Key, Scanner};
 use heapless::String;
 
-use test::{read_from_memory, test_memory};
+use test::test_memory;
 use writer::{FrameBufferWriter, WRITER};
 
 use core::{fmt::Write, panic::PanicInfo};

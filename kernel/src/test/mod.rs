@@ -7,13 +7,8 @@ use heapless::Vec;
 
 const VEC_MAX_SIZE: usize = 1024;
 
-pub fn read_from_memory(address: *const u32) -> u32 {
-    unsafe {
-        assert!(!address.is_null());
-        assert!(address as usize % core::mem::align_of::<u32>() == 0);
-        core::ptr::read_volatile(address)
-    }
-}
+use core::ptr;
+
 pub fn test_memory(region: &MemoryRegion) -> bool {
     if region.kind != MemoryRegionKind::Usable {
         return true;
@@ -26,27 +21,14 @@ pub fn test_memory(region: &MemoryRegion) -> bool {
         "Checking memory from 0x{:x} to 0x{:x}",
         region.start, region.end
     );
-    for addr in (region.start..region.end + 0x1000).step_by(4) {
-        if addr == 0 {
-            println!("Skipping null address 0x0");
-            continue;
-        }
 
-        if is_memory_address_safe(region, addr) && is_aligned(addr, 4) {
-            //println!("Writing bytes to address: 0x{:x}", addr);
-            unsafe {
-                let addr_ptr = addr as *mut u32;
-                //println!("{}", read_from_memory(addr_ptr));
-                // core::ptr::read_volatile(addr as *mut u8);
-            }
-        } else {
-            //println!(
-            //    "Skipping unsafe, unaligned, or invalid address: 0x{:x}",
-            //    addr
-            //);
+    unsafe {
+        let max_address: u64 = 0xFFFF_FFFF_FFFF_FFFF;
+        for addr in region.start..region.end {
+            let ptr = addr as *const u8;
+            let value = ptr.read_volatile();
         }
     }
-
     false
 }
 

@@ -175,6 +175,7 @@ macro_rules! println {
 macro_rules! clean {
     () => {
         let writer = unsafe { (*$crate::writer::WRITER.get()).as_mut().unwrap() };
+
         writer.clean();
     };
 }
