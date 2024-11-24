@@ -5,20 +5,22 @@
 
 mod asm;
 mod drivers;
-mod test;
+mod mem;
+mod memtest;
+mod power;
 mod writer;
 
 use bootloader_api::{
     config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
 };
 use drivers::keyboard::{Key, Scanner};
-mod mem;
 use heapless::String;
 
-use test::test_memory;
+use memtest::test_memory;
+use power::reboot::reboot;
 use writer::{FrameBufferWriter, WRITER};
 
-use core::{fmt::Write, panic::PanicInfo};
+use core::{arch::asm, fmt::Write, panic::PanicInfo};
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -37,7 +39,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let buffer = framebuffer.into_buffer();
 
     let memsos_version = env!("CARGO_PKG_VERSION");
-
     init_writer!(buffer, info);
     clean!();
 
@@ -64,5 +65,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 fn panic_handler(panic: &PanicInfo) -> ! {
     clean!();
     println!("{}", panic.message());
+    let scanner = Scanner;
+    println!("Press space to reboot your computer!");
+    scanner.wait_for_key(Key::Space);
+    reboot();
     loop {}
 }
