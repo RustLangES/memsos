@@ -1,6 +1,4 @@
-use crate::{asm::inb::inb, println};
-use core::fmt::Write;
-use heapless::String;
+use crate::asm::inb::inb;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Key {

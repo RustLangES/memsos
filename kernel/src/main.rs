@@ -8,19 +8,13 @@ mod drivers;
 mod mem;
 mod memtest;
 mod power;
-mod writer;
+mod ui;
 
-use bootloader_api::{
-    config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
-};
-use drivers::keyboard::{Key, Scanner};
-use heapless::String;
+use bootloader_api::{config::Mapping, entry_point, BootInfo, BootloaderConfig};
+use core::panic::PanicInfo;
 
 use memtest::test_memory;
-use power::reboot::reboot;
-use writer::{FrameBufferWriter, WRITER};
-
-use core::{arch::asm, fmt::Write, panic::PanicInfo};
+use ui::{Color, MemsosUI, MemsosUIWriter, UI};
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -38,36 +32,42 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
 
-    let memsos_version = env!("CARGO_PKG_VERSION");
-    init_writer!(buffer, info);
-    clean!();
+    init_ui!(buffer, info);
+    let ui = get_ui!();
 
     let Some(mem_offset) = physical else { loop {} };
 
-    println!("Api Info: {:?}", api_version);
-    println!("Memsos version: {}", memsos_version);
+    (*ui).new_row();
+    ui.label("Api Info: {:?}");
+
+    (*ui).new_row();
+    ui.label("Memsos version: {:?}");
+    // (*ui).new_row();
+    // TODO: resolve format issue
+    // ui.label(&format!("Api Info: {:?}", api_version));
+    // ui.label(api_version);
+
+    // (*ui).new_row();
+    // ui.label(&format!("Memsos version: ", env!("CARGO_PKG_VERSION")));
 
     let mut test_result = true;
 
     for region in regions.iter() {
-        test_result = test_memory(region, *mem_offset);
+        test_result = test_memory(ui, region, *mem_offset);
     }
 
     if !test_result {
         panic!("Memory test failed");
     }
-    println!("Test passed!");
-
+    ui.show_alert("Test passed!", "");
     loop {}
 }
 
 #[panic_handler]
 fn panic_handler(panic: &PanicInfo) -> ! {
-    clean!();
-    println!("{}", panic.message());
-    let scanner = Scanner;
-    println!("Press space to reboot your computer!");
-    scanner.wait_for_key(Key::Space);
-    reboot();
-    loop {}
+    let ui = get_ui!();
+    ui.show_alert_unrecoverable(
+        "Hubo un error irrecuperable",
+        panic.message().as_str().unwrap(),
+    )
 }
