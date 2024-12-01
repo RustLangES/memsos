@@ -34,15 +34,14 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
 
-    init_ui!(buffer, info);
-    let ui = get_ui!();
+    let ui = init_ui!(buffer, info);
 
     let Some(mem_offset) = physical else { loop {} };
 
-    (*ui).new_row();
+    ui.new_row();
     ui.label(format!(30, "Api Info: {api_version:?}"));
 
-    (*ui).new_row();
+    ui.new_row();
     ui.label(format!(30, "Memsos version: {MEMSOS_VERSION}"));
 
     let mut test_result = true;
@@ -54,7 +53,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     if !test_result {
         panic!("Memory test failed");
     }
-    ui.show_alert("Test passed!", "");
+    // ui.show_alert("Test passed!", "");
     loop {}
 }
 

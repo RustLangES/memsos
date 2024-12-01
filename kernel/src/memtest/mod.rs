@@ -1,3 +1,4 @@
+use crate::format;
 use crate::mem::read::memread;
 use crate::mem::write::memwrite;
 use crate::ui::MemsosUI;
@@ -14,10 +15,11 @@ pub fn test_memory(ui: &mut MemsosUI, region: &MemoryRegion, offset: u64) -> boo
     let mut passed = true;
     let pattern: u64 = 0xFFFFFF;
 
-    // TODO: implement format to no_std
-    (*ui).new_row();
-    ui.label("Checking memory from ");
-    ui.label("to ");
+    ui.new_row();
+    ui.label(format!(
+        256,
+        "Checking memory from 0x{:x} to 0x{:x}", region.start, region.end
+    ));
 
     for addr in region.start + offset..region.end + offset {
         let ptr = addr as *mut u64;
