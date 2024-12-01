@@ -104,18 +104,6 @@ impl<'a> DerefMut for MemsosUI<'a> {
 }
 
 #[macro_export]
-macro_rules! format {
-  ($($t:tt)*) => {{
-    use core::fmt::Write;
-    let args = format_args!($($t)*);
-    let mut buffer = heapless::String::new();
-
-    buffer.write_fmt(args).unwrap();
-    buffer
-  }};
-}
-
-#[macro_export]
 macro_rules! init_ui {
     ($buffer: expr, $info: expr) => {
         unsafe {

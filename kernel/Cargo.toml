@@ -8,3 +8,4 @@ bootloader_api = "0.11.8"
 embedded-graphics = "0.8.1"
 heapless = "0.8.0"
 kolibri-embedded-gui = "0.0.0-alpha.1"
+string_writer = { version = "0.1.0", path = "../string_writer" }

@@ -9,13 +9,15 @@ mod mem;
 mod memtest;
 mod power;
 mod ui;
+mod utils;
 
 use bootloader_api::{config::Mapping, entry_point, BootInfo, BootloaderConfig};
 use core::panic::PanicInfo;
 
 use memtest::test_memory;
-use ui::{Color, MemsosUI, MemsosUIWriter, UI};
+use ui::{MemsosUI, MemsosUIWriter, UI};
 
+const MEMSOS_VERSION: &str = env!("CARGO_PKG_VERSION");
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
 
@@ -38,17 +40,10 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let Some(mem_offset) = physical else { loop {} };
 
     (*ui).new_row();
-    ui.label("Api Info: {:?}");
+    ui.label(format!(30, "Api Info: {api_version:?}"));
 
     (*ui).new_row();
-    ui.label("Memsos version: {:?}");
-    // (*ui).new_row();
-    // TODO: resolve format issue
-    // ui.label(&format!("Api Info: {:?}", api_version));
-    // ui.label(api_version);
-
-    // (*ui).new_row();
-    // ui.label(&format!("Memsos version: ", env!("CARGO_PKG_VERSION")));
+    ui.label(format!(30, "Memsos version: {MEMSOS_VERSION}"));
 
     let mut test_result = true;
 
