@@ -21,11 +21,7 @@ impl<const N: usize> StringWriter<N> {
 
     /// Converts the written portion of the buffer into a string slice, if possible.
     pub fn as_str<'a>(&'a self) -> Option<&'a str> {
-        if self.len <= self.buf.len() {
-            from_utf8(self.buf.as_ref()).ok()
-        } else {
-            None
-        }
+        from_utf8(self.buf.as_ref()).ok()
     }
 
     /// Get the number of bytes written to buffer, unless there where errors.

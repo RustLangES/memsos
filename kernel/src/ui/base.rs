@@ -6,7 +6,6 @@ use embedded_graphics::prelude::Size;
 use kolibri_embedded_gui::label::Label;
 use kolibri_embedded_gui::style::{Spacing, Style};
 
-use bootloader_api::info::FrameBufferInfo;
 use kolibri_embedded_gui::ui::Ui;
 
 mod color;
@@ -22,19 +21,19 @@ pub static UI: SyncUnsafeCell<Option<MemsosUI<'static>>> = SyncUnsafeCell::new(N
 
 pub fn memsos_ui_style() -> Style<Color> {
     Style {
-        background_color: Color::RGB_BLACK,
-        item_background_color: Color::RGB_BLACK,
-        highlight_item_background_color: Color::RGB_BLACK,
-        border_color: Color::RGB_GREEN,
-        highlight_border_color: Color::RGB_GREEN,
-        primary_color: Color::RGB_GREEN,
-        secondary_color: Color::RGB_YELLOW,
-        icon_color: Color::RGB_GREEN,
-        text_color: Color::RGB_GREEN,
+        background_color: Color::BLACK,
+        item_background_color: Color::BLACK,
+        highlight_item_background_color: Color::BLACK,
+        border_color: Color::GREEN,
+        highlight_border_color: Color::GREEN,
+        primary_color: Color::GREEN,
+        secondary_color: Color::YELLOW,
+        icon_color: Color::GREEN,
+        text_color: Color::GREEN,
         default_widget_height: 17,
         border_width: 1,
         highlight_border_width: 3,
-        default_font: mono_font::ascii::FONT_10X20,
+        default_font: mono_font::ascii::FONT_9X18,
         spacing: Spacing {
             item_spacing: Size::new(8, 4),
             button_padding: Size::new(5, 5),
@@ -45,7 +44,6 @@ pub fn memsos_ui_style() -> Style<Color> {
 }
 
 pub struct MemsosUI<'a> {
-    info: FrameBufferInfo,
     ui: Ui<'a, MemsosUIWriter<Color>, Color>,
 }
 
@@ -53,10 +51,10 @@ unsafe impl<'a> Send for MemsosUI<'a> {}
 unsafe impl<'a> Sync for MemsosUI<'a> {}
 
 impl<'a> MemsosUI<'a> {
-    pub fn new(buffer: &'a mut MemsosUIWriter<Color>, info: FrameBufferInfo) -> Self {
+    pub fn new(buffer: &'a mut MemsosUIWriter<Color>) -> Self {
         let ui = Ui::new_fullscreen(buffer, memsos_ui_style());
 
-        Self { info, ui }
+        Self { ui }
     }
 
     pub fn clear(&mut self) {
@@ -99,32 +97,4 @@ impl<'a> DerefMut for MemsosUI<'a> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.ui
     }
-}
-
-#[macro_export]
-macro_rules! init_ui {
-    ($buffer: expr, $info: expr) => {
-        unsafe {
-            let buff = core::mem::transmute::<
-                &'_ mut $crate::ui::MemsosUIWriter<$crate::ui::Color>,
-                &'static mut $crate::ui::MemsosUIWriter<$crate::ui::Color>,
-            >(&mut MemsosUIWriter::new(
-                $info.width.try_into().unwrap(),
-                $info.height.try_into().unwrap(),
-                $info.stride.try_into().unwrap(),
-                $info.bytes_per_pixel.try_into().unwrap(),
-                $buffer,
-            ));
-            (*UI.get()).get_or_insert_with(|| MemsosUI::new(buff, $info))
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! get_ui {
-    () => {{
-        let ui = unsafe { (*$crate::ui::UI.get()).as_mut().unwrap() };
-        ui.clear();
-        ui
-    }};
 }

@@ -39,10 +39,10 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let Some(mem_offset) = physical else { loop {} };
 
     ui.new_row();
-    ui.label(format!(30, "Api Info: {api_version:?}"));
+    ui.label(format!(128, "Api Info: {api_version:?}"));
 
     ui.new_row();
-    ui.label(format!(30, "Memsos version: {MEMSOS_VERSION}"));
+    ui.label(format!(64, "Memsos version: {MEMSOS_VERSION}"));
 
     let mut test_result = true;
 

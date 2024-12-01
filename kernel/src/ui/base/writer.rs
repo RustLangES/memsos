@@ -1,14 +1,17 @@
 use core::marker::PhantomData;
 
-use embedded_graphics::pixelcolor::raw::ToBytes;
+use bootloader_api::info::PixelFormat;
 use embedded_graphics::prelude::{Dimensions, DrawTarget, PixelColor, Point, Size};
 use embedded_graphics::primitives::Rectangle;
 use embedded_graphics::Pixel;
+
+use super::color::ToBytes;
 
 pub struct MemsosUIWriter<C: PixelColor> {
     width: u32,
     height: u32,
     stride: u32,
+    format: PixelFormat,
     bytes_per_pixel: u32,
     pixels: &'static mut [u8],
     area: Rectangle,
@@ -25,6 +28,7 @@ where
         height: u32,
         stride: u32,
         bytes_per_pixel: u32,
+        format: PixelFormat,
         pixels: &'static mut [u8],
     ) -> Self {
         let area = Rectangle::new(Point::zero(), Size::new(width, height));
@@ -34,6 +38,7 @@ where
             pixels,
             height,
             stride,
+            format,
             bytes_per_pixel,
             _color: PhantomData::default(),
         }
@@ -42,7 +47,7 @@ where
     fn point_to_index(&self, point: Point) -> Option<usize> {
         if let Ok((x, y)) = <(u32, u32)>::try_from(point) {
             if x < self.width && y < self.height {
-                return Some((y * self.stride + x) as usize);
+                return Some(((y * self.stride) + (x * self.bytes_per_pixel)) as usize);
             }
         }
 
@@ -73,9 +78,16 @@ where
         I: IntoIterator<Item = Pixel<Self::Color>>,
     {
         for Pixel(point, color) in pixels.into_iter() {
-            if let Some(index) = self.point_to_index(point) {
-                self.pixels[index..index + self.bytes_per_pixel as usize]
-                    .copy_from_slice(color.to_be_bytes().as_ref());
+            let Some(index) = self.point_to_index(point) else {
+                continue;
+            };
+            let color_bytes = color.to_bytes(self.format);
+            let bytes = color_bytes.as_ref();
+            let end = index + self.bytes_per_pixel as usize;
+
+            // Ensure we don't write out of bounds
+            if end <= self.pixels.len() {
+                self.pixels[index..end].copy_from_slice(&bytes[..self.bytes_per_pixel as usize]);
             }
         }
         Ok(())
