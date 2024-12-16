@@ -94,7 +94,7 @@ impl FrameBufferWriter {
         self.x_pos += rendered_char.width() + LETTER_SPACING;
     }
 
-    fn write_pixel(&mut self, x: usize, y: usize, intensity: u8) {
+    pub fn write_pixel(&mut self, x: usize, y: usize, intensity: u8) {
         let pixel_offset = y * self.info.stride + x;
         let color = match self.info.pixel_format {
             PixelFormat::Rgb => [intensity, intensity, intensity / 2, 0],

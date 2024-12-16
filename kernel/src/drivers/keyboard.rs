@@ -1,64 +1,84 @@
-use crate::{asm::inb::inb, println};
-use core::fmt::Write;
-use heapless::String;
+use crate::{drivers::driver::Driver, asm::port::Port};
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum Key {
-    Space,
+const KEYBOARD_CTRL: Port = Port(0x64);
+const KEYBOARD_PORT: Port = Port(0x60);
+
+pub struct Keyboard;
+
+impl Driver for Keyboard {
+    type ReadOutput = Event; 
+    fn read(&self) -> Self::ReadOutput {
+         while KEYBOARD_CTRL.read() & 0x01 == 0 {}
+        let scancode = KEYBOARD_PORT.read();
+
+        Event::from(scancode)
+    }
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum State {
-    Pressed,
-    Released,
+impl Keyboard {
+    pub fn wait_key(&self, key: Key) {
+       let event = self.read();
+        if event.key != key {
+            self.wait_key(key);
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum ResponseCodes {
+    Ack,
+    Error,
+    Echo,
+    InvalidCode,
+}
+
+impl From<u8> for ResponseCodes {
+    fn from(value: u8) -> Self {
+        match value {
+            0xFA => ResponseCodes::Ack,
+            0xFE => ResponseCodes::Error,
+            0xEE => ResponseCodes::Echo,
+            _ => ResponseCodes::InvalidCode,
+        }
+    }
 }
 
 #[derive(Debug)]
 pub struct Event {
     pub key: Key,
-    pub state: State,
+    pub state: KeyState,
 }
 
-pub struct ScanCode {
-    code: u8,
-}
-
-impl ScanCode {
-    pub fn new(code: u8) -> Self {
-        ScanCode { code }
-    }
-    pub fn to_event(&self) -> Event {
-        match self.code {
-            0x39 => Event {
-                key: Key::Space,
-                state: State::Pressed,
-            },
-            0xF0 => Event {
-                key: Key::Space,
-                state: State::Released,
-            },
-
-            scan_code => panic!("Scan Code {} not recognized", scan_code),
+impl From<u8> for Event {
+    fn from(value: u8) -> Self {
+        match value {
+          0x39 => Event {
+            key: Key::Space,
+            state: KeyState::Press,
+          },
+          0xB9 => Event {
+            key: Key::Space,
+            state: KeyState::Release
+          },
+          _ => Event {
+            key: Key::Unknown(value),
+            state: KeyState::None,
+          }
         }
     }
 }
 
-pub struct Scanner;
 
-impl Scanner {
-    // Warning! potentially unsafe function, be careful adventurer
-    pub fn read(&self) -> ScanCode {
-        while (inb(0x64) & 0x01) == 0 {}
-
-        let code = inb(0x60);
-
-        ScanCode::new(code)
-    }
-    pub fn wait_for_key(&self, target_key: Key) {
-        let event = self.read().to_event();
-
-        if event.key != target_key {
-            self.wait_for_key(target_key);
-        }
-    }
+#[derive(Debug, PartialEq, Eq)]
+pub enum KeyState {
+    Press,
+    Release,
+    None,
 }
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Key {
+   Space,
+   Unknown(u8),
+}
+

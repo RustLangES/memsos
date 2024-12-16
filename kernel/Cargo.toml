@@ -7,3 +7,4 @@ edition = "2021"
 bootloader_api = "0.11.8"
 heapless = "0.8.0"
 noto-sans-mono-bitmap = "0.3.0"
+

@@ -5,11 +5,6 @@ use bootloader_api::info::MemoryRegion;
 use bootloader_api::info::MemoryRegionKind;
 use core::fmt::Write;
 use heapless::String;
-use heapless::Vec;
-
-const VEC_MAX_SIZE: usize = 1024;
-
-use core::ptr;
 
 pub fn test_memory(region: &MemoryRegion, offset: u64) -> bool {
     if region.kind != MemoryRegionKind::Usable {

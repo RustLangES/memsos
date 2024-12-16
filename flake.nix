@@ -4,7 +4,7 @@
     crane.url = "github:ipetkov/crane";
     fenix.url = "github:nix-community/fenix";
   };
-
+  
   outputs = { self, fenix, nixpkgs, ... }@inputs:
     let
       system = "x86_64-linux";

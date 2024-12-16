@@ -13,14 +13,12 @@ mod writer;
 use bootloader_api::{
     config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
 };
-use drivers::keyboard::{Key, Scanner};
+use drivers::keyboard::{Key, Keyboard, KeyState};
 use heapless::String;
-
+use core::{arch::asm, fmt::Write, panic::PanicInfo};
 use memtest::test_memory;
 use power::reboot::reboot;
 use writer::{FrameBufferWriter, WRITER};
-
-use core::{arch::asm, fmt::Write, panic::PanicInfo};
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -56,6 +54,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     if !test_result {
         panic!("Memory test failed");
     }
+
     println!("Test passed!");
 
     loop {}
@@ -64,10 +63,11 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 #[panic_handler]
 fn panic_handler(panic: &PanicInfo) -> ! {
     clean!();
-    println!("{}", panic.message());
-    let scanner = Scanner;
+    println!("{:?}", panic);
+    let keyboard = Keyboard;
     println!("Press space to reboot your computer!");
-    scanner.wait_for_key(Key::Space);
+    keyboard.wait_key(Key::Space);
+
     reboot();
     loop {}
 }
