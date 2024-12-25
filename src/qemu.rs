@@ -1,4 +1,4 @@
-use std::{process::Command, env};
+use std::{env, process::Command};
 
 #[derive(Debug)]
 pub struct Qemu {

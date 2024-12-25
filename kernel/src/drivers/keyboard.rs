@@ -1,4 +1,4 @@
-use crate::{drivers::driver::Driver, asm::port::Port};
+use crate::{asm::port::Port, drivers::driver::Driver};
 
 const KEYBOARD_CTRL: Port = Port(0x64);
 const KEYBOARD_PORT: Port = Port(0x60);
@@ -6,9 +6,9 @@ const KEYBOARD_PORT: Port = Port(0x60);
 pub struct Keyboard;
 
 impl Driver for Keyboard {
-    type ReadOutput = Event; 
+    type ReadOutput = Event;
     fn read(&self) -> Self::ReadOutput {
-         while KEYBOARD_CTRL.read() & 0x01 == 0 {}
+        while KEYBOARD_CTRL.read() & 0x01 == 0 {}
         let scancode = KEYBOARD_PORT.read();
 
         Event::from(scancode)
@@ -17,7 +17,7 @@ impl Driver for Keyboard {
 
 impl Keyboard {
     pub fn wait_key(&self, key: Key) {
-       let event = self.read();
+        let event = self.read();
         if event.key != key {
             self.wait_key(key);
         }
@@ -52,22 +52,21 @@ pub struct Event {
 impl From<u8> for Event {
     fn from(value: u8) -> Self {
         match value {
-          0x39 => Event {
-            key: Key::Space,
-            state: KeyState::Press,
-          },
-          0xB9 => Event {
-            key: Key::Space,
-            state: KeyState::Release
-          },
-          _ => Event {
-            key: Key::Unknown(value),
-            state: KeyState::None,
-          }
+            0x39 => Event {
+                key: Key::Space,
+                state: KeyState::Press,
+            },
+            0xB9 => Event {
+                key: Key::Space,
+                state: KeyState::Release,
+            },
+            _ => Event {
+                key: Key::Unknown(value),
+                state: KeyState::None,
+            },
         }
     }
 }
-
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum KeyState {
@@ -78,7 +77,6 @@ pub enum KeyState {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Key {
-   Space,
-   Unknown(u8),
+    Space,
+    Unknown(u8),
 }
-

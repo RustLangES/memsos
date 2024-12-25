@@ -1,7 +1,4 @@
-use crate::asm::{
-    inb::inb,
-    outb::outb,
-};
+use crate::asm::{inb::inb, outb::outb};
 
 #[derive(Debug)]
 pub struct Port(pub u16);

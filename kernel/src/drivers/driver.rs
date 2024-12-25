@@ -1,8 +1,5 @@
 pub trait Driver {
-    type ReadOutput; 
+    type ReadOutput;
 
-    fn read(&self) -> Self::ReadOutput; 
- }
-
-
-
+    fn read(&self) -> Self::ReadOutput;
+}

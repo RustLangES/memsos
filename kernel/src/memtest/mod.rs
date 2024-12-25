@@ -1,6 +1,5 @@
 use crate::mem::read::memread;
 use crate::mem::write::memwrite;
-use crate::println;
 use bootloader_api::info::MemoryRegion;
 use bootloader_api::info::MemoryRegionKind;
 use core::fmt::Write;
@@ -14,10 +13,10 @@ pub fn test_memory(region: &MemoryRegion, offset: u64) -> bool {
     let mut passed = true;
     let pattern: u64 = 0xFFFFFF;
 
-    println!(
-        "Checking memory from 0x{:x} to 0x{:x}",
-        region.start, region.end
-    );
+    //println!(
+    //    "Checking memory from 0x{:x} to 0x{:x}",
+    //    region.start, region.end
+    //);
 
     for addr in region.start + offset..region.end + offset {
         let ptr = addr as *mut u64;

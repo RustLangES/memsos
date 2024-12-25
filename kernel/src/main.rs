@@ -8,17 +8,18 @@ mod drivers;
 mod mem;
 mod memtest;
 mod power;
-mod writer;
+mod ui;
 
 use bootloader_api::{
     config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
 };
-use drivers::keyboard::{Key, Keyboard, KeyState};
-use heapless::String;
 use core::{arch::asm, fmt::Write, panic::PanicInfo};
+use drivers::keyboard::{Key, KeyState, Keyboard};
+use heapless::String;
 use memtest::test_memory;
 use power::reboot::reboot;
-use writer::{FrameBufferWriter, WRITER};
+use ui::{text::Text, writer::UiWriter};
+
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -35,9 +36,17 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let framebuffer = boot_info.framebuffer.take().unwrap();
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
+ 
+    init_ui!(buffer, info);
+      
+    let text = text!((20, 20), "Welcome to memsos!");
+    clear!(); 
+    render!(text);
+    /*
+     *
 
     let memsos_version = env!("CARGO_PKG_VERSION");
-    init_writer!(buffer, info);
+   
     clean!();
 
     let Some(mem_offset) = physical else { loop {} };
@@ -56,16 +65,16 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     }
 
     println!("Test passed!");
-
+    */
     loop {}
 }
 
 #[panic_handler]
 fn panic_handler(panic: &PanicInfo) -> ! {
-    clean!();
-    println!("{:?}", panic);
+    clear!();
+
     let keyboard = Keyboard;
-    println!("Press space to reboot your computer!");
+
     keyboard.wait_key(Key::Space);
 
     reboot();
