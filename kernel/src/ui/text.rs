@@ -29,28 +29,31 @@ impl Widget for Text {
     }
 }
 
-pub fn args<'a>(arg: Arguments<'a>, buf: &'a mut String<STRING_SIZE>) -> &'a str {
-    buf.clear();
-    buf.write_fmt(arg).unwrap();
-    buf.as_str()
-}
-
-
 #[macro_export]
 macro_rules! text {
   ($pos: expr, $($arg:tt)*) => {{
-     let mut buf = heapless::String::<256>::new();
-      buf.clear();
-      buf.write_fmt(format_args!($($arg)*)).unwrap();
-      Text {
-         pos: $pos,
-         text: buf,
-      }
+      Text::new_from_args(format_args!($($arg)*), $pos)
   }}
 }
 
 
 impl Text {
+    pub fn new(text: String<STRING_SIZE>, pos: (usize, usize)) -> Self {
+        Self {
+            text,
+            pos
+        }
+    }
+    pub fn new_from_args<'a>(args: Arguments<'a>, pos: (usize, usize)) -> Self {
+        let mut buffer = String::<STRING_SIZE>::new();
+        buffer.clear();
+        buffer.write_fmt(args).unwrap();
+
+        Self {
+            text: buffer,
+            pos,
+        }
+    }
     fn newline(&self, pos: (usize, usize)) -> (usize, usize) {
         let y = pos.1 + CHAR_RASTER_HEIGHT.val() + LINE_SPACING;
         (BORDER_PADDING, y)
