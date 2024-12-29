@@ -46,16 +46,15 @@ impl UiWriter {
 unsafe impl Send for UiWriter {}
 unsafe impl Sync for UiWriter {}
 
-#[macro_export]
-macro_rules! init_ui {
-   ($buffer: expr, $info: expr) => {
-    let ui = UiWriter {
-      buffer: $buffer,
-      info: $info,
-    };         
-    unsafe {
-      *$crate::ui::writer::UI_WRITER.get() = Some(ui);
-    }
+#[inline]
+pub fn init_ui(buffer: &'static mut [u8], info: FrameBufferInfo) {
+   let ui = UiWriter {
+       buffer,
+       info,
+   };
+
+   unsafe {
+      *UI_WRITER.get() = Some(ui);
    }
 }
 

@@ -13,12 +13,11 @@ mod ui;
 use bootloader_api::{
     config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
 };
-use core::{arch::asm, fmt::Write, panic::PanicInfo};
-use drivers::keyboard::{Key, KeyState, Keyboard};
-use heapless::String;
+use core::{fmt::Write, panic::PanicInfo};
+use drivers::keyboard::{Key, Keyboard};
 use memtest::test_memory;
 use power::reboot::reboot;
-use ui::{text::Text, writer::UiWriter};
+use ui::{text::Text, writer::init_ui};
 
 
 const CONFIG: BootloaderConfig = {
@@ -37,9 +36,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
  
-    init_ui!(buffer, info);
+    init_ui(buffer, info);
       
-    let text = text!((20, 20), "Welcome to memsos!");
+    let text = text!((20, 20), "Welcome to memsos!"); 
     clear!(); 
     render!(text);
     /*
