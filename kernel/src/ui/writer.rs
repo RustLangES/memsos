@@ -58,17 +58,17 @@ pub fn init_ui(buffer: &'static mut [u8], info: FrameBufferInfo) {
    }
 }
 
-#[macro_export]
-macro_rules! get_ui {
-    () => {{
-        unsafe { $crate::ui::writer::UI_WRITER.get().clone().read().expect("UI_WRITER is empty") }
-    }};
+#[inline]
+pub fn get_ui() -> UiWriter {
+    unsafe {
+        UI_WRITER.get().clone().read().expect("UI_WRITER Is empty")
+    }
 }
 
 #[macro_export]
 macro_rules! render {
    ($widget: expr) => {
-      let mut ui = get_ui!();
+      let mut ui = $crate::ui::writer::get_ui();
       ui.render($widget);
     }
 }
@@ -76,7 +76,7 @@ macro_rules! render {
 #[macro_export]
 macro_rules! clear {
     () => {
-        let mut ui = get_ui!();
+        let mut ui = $crate::ui::writer::get_ui();
 
         ui.clear();
     };

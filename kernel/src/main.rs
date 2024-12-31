@@ -72,6 +72,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 fn panic_handler(panic: &PanicInfo) -> ! {
     clear!();
 
+    let text = text!((0, 0), "{:?}", panic);
+    render!(text);
+
     let keyboard = Keyboard;
 
     keyboard.wait_key(Key::Space);
