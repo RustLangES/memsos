@@ -15,6 +15,7 @@ const BORDER_PADDING: usize = 1;
 
 const STRING_SIZE: usize = 256;
 
+#[derive(Clone, Debug)]
 pub struct Text {
     pub text: String<STRING_SIZE>,
     pub pos: (usize, usize),
@@ -25,6 +26,12 @@ impl Widget for Text {
         let mut pos = self.pos;
         for c in self.text.chars() {
             pos = self.write_char(c, writer, pos);
+        }
+    }
+    fn erase(&self, writer: &mut UiWriter) {
+        let mut pos = self.pos;
+        for _c in self.text.chars() {
+            pos = self.write_char(' ', writer, pos);
         }
     }
 }

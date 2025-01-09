@@ -37,10 +37,10 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let buffer = framebuffer.into_buffer();
  
     init_ui(buffer, info);
-      
+   
     let text = text!((20, 20), "Welcome to memsos!"); 
-    clear!(); 
     render!(text);
+
     /*
      *
 

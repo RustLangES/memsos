@@ -41,6 +41,9 @@ impl UiWriter {
     pub fn render<T: Widget>(&mut self, widget: T) {
         widget.render(self);
     }
+    pub fn erase<T: Widget>(&mut self, widget: T) {
+        widget.erase(self);
+    }
 }
 
 unsafe impl Send for UiWriter {}
@@ -70,6 +73,14 @@ macro_rules! render {
    ($widget: expr) => {
       let mut ui = $crate::ui::writer::get_ui();
       ui.render($widget);
+    }
+}
+
+#[macro_export]
+macro_rules! erase {
+    ($widget: expr) => {
+        let mut ui = $crate::ui::writer::get_ui(); 
+        ui.erase($widget);
     }
 }
 
