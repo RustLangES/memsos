@@ -37,8 +37,12 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let buffer = framebuffer.into_buffer();
  
     init_ui(buffer, info);
-   
+
+    clear!();
+
     let text = text!((20, 20), "Welcome to memsos!"); 
+    let line = crate::ui::line::line((200, 200), (300, 200));
+    render!(line);
     render!(text);
 
     /*
