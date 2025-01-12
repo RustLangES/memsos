@@ -23,16 +23,10 @@ pub struct Text {
 
 impl Widget for Text {
     fn render(&self, writer: &mut UiWriter) {
-        let mut pos = self.pos;
-        for c in self.text.chars() {
-            pos = self.write_char(c, writer, pos);
-        }
+        self.text.chars().fold(self.pos, |acc, c| self.write_char(c, writer, acc)); 
     }
     fn erase(&self, writer: &mut UiWriter) {
-        let mut pos = self.pos;
-        for _c in self.text.chars() {
-            pos = self.write_char(' ', writer, pos);
-        }
+        self.text.chars().fold(self.pos, |acc, _c| self.write_char(' ', writer, acc));
     }
 }
 
