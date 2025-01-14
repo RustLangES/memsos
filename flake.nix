@@ -97,7 +97,7 @@
       };
 
       devShells.${system}.default = craneLib.devShell {
-        packages = with pkgs; [ qemu toolchain runvm memfile gdb rust-analyzer rustfmt ];
+        packages = with pkgs; [ qemu toolchain runvm memfile rustfmt ];
       };
     };
 }

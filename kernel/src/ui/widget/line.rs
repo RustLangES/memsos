@@ -8,17 +8,13 @@ pub struct Line {
 
 #[inline]
 pub fn line(from: (isize, isize), to: (isize, isize)) -> Line {
-   Line {
-     from,
-     to,
-   } 
+    Line { from, to }
 }
 
 impl Widget for Line {
     fn render(&self, writer: &mut UiWriter) {
         let mut p = (self.from.0, self.from.1);
 
-        
         let (x_inc, y_inc, steps) = self.calculate_distance();
 
         core::iter::repeat(()).take(steps + 1).for_each(|_| {
@@ -26,11 +22,10 @@ impl Widget for Line {
             p.0 += x_inc;
             p.1 += y_inc;
         });
-     }
+    }
     fn erase(&self, writer: &mut UiWriter) {
-         let mut p = (self.from.0, self.from.1);
+        let mut p = (self.from.0, self.from.1);
 
-        
         let (x_inc, y_inc, steps) = self.calculate_distance();
 
         core::iter::repeat(()).take(steps + 1).for_each(|_| {
@@ -51,10 +46,9 @@ impl Line {
 
         let steps = isize::abs(dx).max(isize::abs(dy));
 
-
         let x_inc = dx / steps;
         let y_inc = dy / steps;
 
         (x_inc, y_inc, steps.try_into().unwrap())
-    } 
+    }
 }

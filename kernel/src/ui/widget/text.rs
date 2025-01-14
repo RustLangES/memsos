@@ -1,10 +1,9 @@
-use crate::ui::{widget::Widget, writer::UiWriter};
+use crate::ui::{layout::LayoutChild, widget::Widget, writer::UiWriter};
 use core::fmt::{Arguments, Write};
 use heapless::String;
 use noto_sans_mono_bitmap::{
     get_raster, get_raster_width, FontWeight, RasterHeight, RasterizedChar,
 };
-
 
 const CHAR_RASTER_HEIGHT: RasterHeight = RasterHeight::Size16;
 const CHAR_RASTER_WIDTH: usize = get_raster_width(FontWeight::Regular, CHAR_RASTER_HEIGHT);
@@ -23,10 +22,29 @@ pub struct Text {
 
 impl Widget for Text {
     fn render(&self, writer: &mut UiWriter) {
-        self.text.chars().fold(self.pos, |acc, c| self.write_char(c, writer, acc)); 
+        self.text
+            .chars()
+            .fold(self.pos, |acc, c| self.write_char(c, writer, acc));
     }
     fn erase(&self, writer: &mut UiWriter) {
-        self.text.chars().fold(self.pos, |acc, _c| self.write_char(' ', writer, acc));
+        self.text
+            .chars()
+            .fold(self.pos, |acc, _c| self.write_char(' ', writer, acc));
+    }
+}
+
+impl LayoutChild for Text {
+    fn render_child(
+        &self,
+        writer: &mut UiWriter,
+        args: crate::ui::layout::LayoutArgs,
+    ) -> (usize, usize) {
+        self.text
+            .chars()
+            .fold(args.pos, |acc, c| self.write_char(c, writer, acc))
+    }
+    fn spacing(&self) -> usize {
+        self.pos.1 + CHAR_RASTER_HEIGHT.val() + LINE_SPACING
     }
 }
 
@@ -34,26 +52,22 @@ impl Widget for Text {
 macro_rules! text {
   ($pos: expr, $($arg:tt)*) => {{
       $crate::ui::widget::text::Text::new_from_args(format_args!($($arg)*), $pos)
+  }};
+  ($($arg:tt)*) => {{
+      $crate::ui::widget::text::Text::new_from_args(format_args!($($arg)*), (0, 0))
   }}
 }
 
-
 impl Text {
     pub fn new(text: String<STRING_SIZE>, pos: (usize, usize)) -> Self {
-        Self {
-            text,
-            pos
-        }
+        Self { text, pos }
     }
     pub fn new_from_args<'a>(args: Arguments<'a>, pos: (usize, usize)) -> Self {
         let mut buffer = String::<STRING_SIZE>::new();
         buffer.clear();
-        buffer.write_fmt(args).unwrap();
+        write!(&mut buffer, "{args}").expect("Could not format args");
 
-        Self {
-            text: buffer,
-            pos,
-        }
+        Self { text: buffer, pos }
     }
     fn newline(&self, pos: (usize, usize)) -> (usize, usize) {
         let y = pos.1 + CHAR_RASTER_HEIGHT.val() + LINE_SPACING;
@@ -83,8 +97,6 @@ impl Text {
         (pos.0 + CHAR_RASTER_WIDTH, pos.1)
     }
 }
-
-
 
 fn get_char_raster(c: char) -> RasterizedChar {
     fn get(c: char) -> Option<RasterizedChar> {

@@ -1,5 +1,4 @@
-use crate::ui::widget::Widget;
+mod def;
+pub mod vertical;
 
-pub trait Layout {
-    fn spawn<T: Widget>(&self, widget: &T);
-}
+pub use crate::ui::layout::def::{Layout, LayoutArgs, LayoutChild};

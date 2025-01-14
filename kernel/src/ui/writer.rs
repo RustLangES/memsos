@@ -1,6 +1,6 @@
 use crate::ui::widget::Widget;
 use bootloader_api::info::{FrameBufferInfo, PixelFormat};
-use core::{ptr, cell::SyncUnsafeCell};
+use core::{cell::SyncUnsafeCell, ptr};
 
 pub static UI_WRITER: SyncUnsafeCell<Option<UiWriter>> = SyncUnsafeCell::new(None);
 
@@ -51,37 +51,32 @@ unsafe impl Sync for UiWriter {}
 
 #[inline]
 pub fn init_ui(buffer: &'static mut [u8], info: FrameBufferInfo) {
-   let ui = UiWriter {
-       buffer,
-       info,
-   };
+    let ui = UiWriter { buffer, info };
 
-   unsafe {
-      *UI_WRITER.get() = Some(ui);
-   }
+    unsafe {
+        *UI_WRITER.get() = Some(ui);
+    }
 }
 
 #[inline]
 pub fn get_ui() -> UiWriter {
-    unsafe {
-        UI_WRITER.get().clone().read().expect("UI_WRITER Is empty")
-    }
+    unsafe { UI_WRITER.get().clone().read().expect("UI_WRITER Is empty") }
 }
 
 #[macro_export]
 macro_rules! render {
-   ($widget: expr) => {
-      let mut ui = $crate::ui::writer::get_ui();
-      ui.render($widget);
-    }
+    ($widget: expr) => {
+        let mut ui = $crate::ui::writer::get_ui();
+        ui.render($widget);
+    };
 }
 
 #[macro_export]
 macro_rules! erase {
     ($widget: expr) => {
-        let mut ui = $crate::ui::writer::get_ui(); 
+        let mut ui = $crate::ui::writer::get_ui();
         ui.erase($widget);
-    }
+    };
 }
 
 #[macro_export]
@@ -92,4 +87,3 @@ macro_rules! clear {
         ui.clear();
     };
 }
-

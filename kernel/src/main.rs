@@ -18,8 +18,11 @@ use drivers::keyboard::{Key, Keyboard};
 use memtest::test_memory;
 use power::reboot::reboot;
 
-use ui::{widget::line::line, writer::init_ui};
-
+use ui::{
+    layout::{vertical::VerticalLayout, Layout},
+    widget::line::line,
+    writer::init_ui,
+};
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -29,6 +32,8 @@ const CONFIG: BootloaderConfig = {
 };
 entry_point!(kernel_main, config = &CONFIG);
 
+static TEXT_LAYOUT: VerticalLayout = VerticalLayout::new((10, 10), 0);
+
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
     let regions = &boot_info.memory_regions;
@@ -36,20 +41,23 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let framebuffer = boot_info.framebuffer.take().unwrap();
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
- 
+
     init_ui(buffer, info);
 
     clear!();
 
-    let text = text!((20, 20), "Welcome to memsos!"); 
-    let line = line((200, 200), (300, 200));
-    render!(&line);
-    render!(&text);
+    let text = text!("Welcome to memsos!");
+
+    let text2 = text!("mem-sos!");
+
+    TEXT_LAYOUT.spawn(&text);
+
+    TEXT_LAYOUT.spawn(&text2);
     /*
      *
 
     let memsos_version = env!("CARGO_PKG_VERSION");
-   
+
     clean!();
 
     let Some(mem_offset) = physical else { loop {} };
