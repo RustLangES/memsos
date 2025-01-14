@@ -38,10 +38,10 @@ impl UiWriter {
             .copy_from_slice(&color[..bytes_per_pixel]);
         let _ = unsafe { ptr::read_volatile(&self.buffer[byte_offset]) };
     }
-    pub fn render<T: Widget>(&mut self, widget: T) {
+    pub fn render<T: Widget>(&mut self, widget: &T) {
         widget.render(self);
     }
-    pub fn erase<T: Widget>(&mut self, widget: T) {
+    pub fn erase<T: Widget>(&mut self, widget: &T) {
         widget.erase(self);
     }
 }
