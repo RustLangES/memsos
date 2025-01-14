@@ -1,3 +1,6 @@
+pub mod text;
+pub mod line;
+
 use crate::ui::writer::UiWriter;
 
 pub trait Widget {

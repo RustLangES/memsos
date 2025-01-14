@@ -1,4 +1,5 @@
 use crate::ui::widget::Widget;
+use crate::ui::writer::UiWriter;
 
 pub struct Line {
     from: (isize, isize),
@@ -14,7 +15,7 @@ pub fn line(from: (isize, isize), to: (isize, isize)) -> Line {
 }
 
 impl Widget for Line {
-    fn render(&self, writer: &mut super::writer::UiWriter) {
+    fn render(&self, writer: &mut UiWriter) {
         let mut p = (self.from.0, self.from.1);
 
         
@@ -26,7 +27,7 @@ impl Widget for Line {
             p.1 += y_inc;
         });
      }
-    fn erase(&self, writer: &mut super::writer::UiWriter) {
+    fn erase(&self, writer: &mut UiWriter) {
          let mut p = (self.from.0, self.from.1);
 
         

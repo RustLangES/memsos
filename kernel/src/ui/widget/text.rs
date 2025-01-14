@@ -33,7 +33,7 @@ impl Widget for Text {
 #[macro_export]
 macro_rules! text {
   ($pos: expr, $($arg:tt)*) => {{
-      Text::new_from_args(format_args!($($arg)*), $pos)
+      $crate::ui::widget::text::Text::new_from_args(format_args!($($arg)*), $pos)
   }}
 }
 

@@ -17,7 +17,8 @@ use core::{fmt::Write, panic::PanicInfo};
 use drivers::keyboard::{Key, Keyboard};
 use memtest::test_memory;
 use power::reboot::reboot;
-use ui::{text::Text, writer::init_ui};
+
+use ui::{widget::line::line, writer::init_ui};
 
 
 const CONFIG: BootloaderConfig = {
@@ -41,7 +42,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     clear!();
 
     let text = text!((20, 20), "Welcome to memsos!"); 
-    let line = crate::ui::line::line((200, 200), (300, 200));
+    let line = line((200, 200), (300, 200));
     render!(&line);
     render!(&text);
     /*
