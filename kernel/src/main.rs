@@ -32,8 +32,9 @@ const CONFIG: BootloaderConfig = {
 };
 entry_point!(kernel_main, config = &CONFIG);
 
-static TEXT_LAYOUT: VerticalLayout = VerticalLayout::new((10, 10), 0);
+const PADDING: isize = 20;
 
+static TEXT_LAYOUT: VerticalLayout = VerticalLayout::new((10, 10), 0);
 
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
@@ -49,20 +50,19 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     let h: isize = info.height.try_into().unwrap();
     let w: isize = info.width.try_into().unwrap();
-    let padding = 20;
 
     clear!();
 
     render!(
-        &line((padding, padding), (padding, h - padding)),
-        &line((padding, h - padding), (w - padding, h - padding)),
-        &line((w - padding, padding), (w - padding, h - padding)),
-        &line((padding, padding), (w - padding, padding)),
-        &line((padding, h / 2), (w - padding, h / 2)),
-        &line((w / 2, padding), (w / 2, h / 2))
+        &line((PADDING, PADDING), (PADDING, h - PADDING)),
+        &line((PADDING, h - PADDING), (w - PADDING, h - PADDING)),
+        &line((w - PADDING, PADDING), (w - PADDING, h - PADDING)),
+        &line((PADDING, PADDING), (w - PADDING, PADDING)),
+        &line((PADDING, h / 2), (w - PADDING, h / 2)),
+        &line((w / 2, PADDING), (w / 2, h / 2))
     );
 
-    render!(&text!((padding.try_into().unwrap(), 0), "memsos v{}", memsos_version));
+    render!(&text!((PADDING.try_into().unwrap(), 0), "memsos v{}", memsos_version));
     
 
     /*
