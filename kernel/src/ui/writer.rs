@@ -36,7 +36,6 @@ impl UiWriter {
         let byte_offset = pixel_offset * bytes_per_pixel;
         self.buffer[byte_offset..(byte_offset + bytes_per_pixel)]
             .copy_from_slice(&color[..bytes_per_pixel]);
-        let _ = unsafe { ptr::read_volatile(&self.buffer[byte_offset]) };
     }
     pub fn render<T: Widget>(&mut self, widget: &T) {
         widget.render(self);
@@ -69,6 +68,9 @@ macro_rules! render {
         let mut ui = $crate::ui::writer::get_ui();
         ui.render($widget);
     };
+    ($widget: expr, $layout: expr) => {
+        $layout.spawn($widget);
+    }
 }
 
 #[macro_export]

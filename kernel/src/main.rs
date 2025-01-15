@@ -50,9 +50,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     let text2 = text!("mem-sos!");
 
-    TEXT_LAYOUT.spawn(&text);
+    render!(&text, TEXT_LAYOUT);
 
-    TEXT_LAYOUT.spawn(&text2);
+    render!(&text2, TEXT_LAYOUT);
     /*
      *
 
