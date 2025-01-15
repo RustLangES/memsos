@@ -34,6 +34,8 @@ entry_point!(kernel_main, config = &CONFIG);
 
 static TEXT_LAYOUT: VerticalLayout = VerticalLayout::new((10, 10), 0);
 
+
+
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
     let regions = &boot_info.memory_regions;
@@ -41,32 +43,35 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let framebuffer = boot_info.framebuffer.take().unwrap();
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
+    let memsos_version = env!("CARGO_PKG_VERSION");
 
     init_ui(buffer, info);
 
     let h: isize = info.height.try_into().unwrap();
     let w: isize = info.width.try_into().unwrap();
+    let padding = 20;
 
     clear!();
 
     render!(
-        &line((10, 10), (10, h-10)),
-        &line((10, h-10), (w-10, h-10)),
-        &line((w-10, 10), (w-10, h-10)),
-        &line((10, 10), (w-10, 10)),
-        &line((10, h / 2), (w - 10, h / 2)),
-        &line((w / 2, 10), (w / 2, h / 2))
+        &line((padding, padding), (padding, h - padding)),
+        &line((padding, h - padding), (w - padding, h - padding)),
+        &line((w - padding, padding), (w - padding, h - padding)),
+        &line((padding, padding), (w - padding, padding)),
+        &line((padding, h / 2), (w - padding, h / 2)),
+        &line((w / 2, padding), (w / 2, h / 2))
     );
+
+    render!(&text!((padding.try_into().unwrap(), 0), "memsos v{}", memsos_version));
     
 
     /*
      *
-
-    let memsos_version = env!("CARGO_PKG_VERSION");
-
+    let Some(mem_offset) = physical else { loop {} };
+   
     clean!();
 
-    let Some(mem_offset) = physical else { loop {} };
+   
 
     println!("Api Info: {:?}", api_version);
     println!("Memsos version: {}", memsos_version);
