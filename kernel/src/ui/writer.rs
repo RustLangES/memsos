@@ -23,6 +23,10 @@ impl UiWriter {
         self.buffer.fill(0);
     }
     pub fn write_pixel(&mut self, x: usize, y: usize, intensity: u8) {
+        if x >= self.info.width || y >= self.info.height {
+            return;
+        }
+
         let pixel_offset = y * self.info.stride + x;
         let color = match self.info.pixel_format {
             PixelFormat::Rgb => [intensity, intensity, intensity / 2, 0],
@@ -34,9 +38,11 @@ impl UiWriter {
         };
         let bytes_per_pixel = self.info.bytes_per_pixel;
         let byte_offset = pixel_offset * bytes_per_pixel;
+
         self.buffer[byte_offset..(byte_offset + bytes_per_pixel)]
             .copy_from_slice(&color[..bytes_per_pixel]);
     }
+
     pub fn render<T: Widget>(&mut self, widget: &T) {
         widget.render(self);
     }
@@ -68,9 +74,20 @@ macro_rules! render {
         let mut ui = $crate::ui::writer::get_ui();
         ui.render($widget);
     };
+    ( $( $widget:expr ),* ) => {
+        let mut ui = $crate::ui::writer::get_ui();
+        $(
+            ui.render($widget);
+        )*
+    };
+}
+
+#[macro_export]
+macro_rules! layout {
     ($widget: expr, $layout: expr) => {
         $layout.spawn($widget);
-    }
+    };
+
 }
 
 #[macro_export]

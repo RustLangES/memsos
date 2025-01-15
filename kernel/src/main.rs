@@ -44,15 +44,16 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     init_ui(buffer, info);
 
+    let h: isize = info.height.try_into().unwrap();
+    let w: isize = info.width.try_into().unwrap();
+
     clear!();
 
-    let text = text!("Welcome to memsos!");
+    render!(
+        &line((10, 10), (10, h-10)), &text!("memsos!")
+    );
+    
 
-    let text2 = text!("mem-sos!");
-
-    render!(&text, TEXT_LAYOUT);
-
-    render!(&text2, TEXT_LAYOUT);
     /*
      *
 
