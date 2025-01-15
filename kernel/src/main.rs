@@ -50,7 +50,12 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     clear!();
 
     render!(
-        &line((10, 10), (10, h-10)), &text!("memsos!")
+        &line((10, 10), (10, h-10)),
+        &line((10, h-10), (w-10, h-10)),
+        &line((w-10, 10), (w-10, h-10)),
+        &line((10, 10), (w-10, 10)),
+        &line((10, h / 2), (w - 10, h / 2)),
+        &line((w / 2, 10), (w / 2, h / 2))
     );
     
 
