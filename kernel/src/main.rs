@@ -35,7 +35,7 @@ entry_point!(kernel_main, config = &CONFIG);
 const PADDING: isize = 20;
 
 static TEXT_LAYOUT: VerticalLayout = VerticalLayout::new((10, 10), 0);
-
+static INFO_LAYOUT: VerticalLayout = VerticalLayout::new((30, 30), 0);
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
@@ -62,8 +62,15 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
 
-    render!(&text!((PADDING.try_into().unwrap(), 0), "memsos v{}", memsos_version));
-    
+    layout!(
+        &text!("memsos v{memsos_version}"),
+        INFO_LAYOUT
+    );
+
+    layout!(
+        &text!((0, 0), "bootloader v{}.{}.{}", api_version.version_major(), api_version.version_minor(), api_version.version_patch()),
+        INFO_LAYOUT
+    );
 
     /*
      *
