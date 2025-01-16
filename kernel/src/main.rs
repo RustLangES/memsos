@@ -71,6 +71,16 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         INFO_LAYOUT
     );
 
+    layout!(
+        &text!((0, 0), "Mem Regions: {:?}", regions),
+        INFO_LAYOUT
+    );
+
+    layout!(
+        &text!("Made with love by Rust Lang Es"),
+        INFO_LAYOUT
+    );
+
     loop {}
 }
 
