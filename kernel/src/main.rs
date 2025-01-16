@@ -34,7 +34,6 @@ entry_point!(kernel_main, config = &CONFIG);
 
 const PADDING: isize = 20;
 
-static TEXT_LAYOUT: VerticalLayout = VerticalLayout::new((10, 10), 0);
 static INFO_LAYOUT: VerticalLayout = VerticalLayout::new((30, 30), 0);
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
@@ -72,29 +71,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         INFO_LAYOUT
     );
 
-    /*
-     *
-    let Some(mem_offset) = physical else { loop {} };
-   
-    clean!();
-
-   
-
-    println!("Api Info: {:?}", api_version);
-    println!("Memsos version: {}", memsos_version);
-
-    let mut test_result = true;
-
-    for region in regions.iter() {
-        test_result = test_memory(region, *mem_offset);
-    }
-
-    if !test_result {
-        panic!("Memory test failed");
-    }
-
-    println!("Test passed!");
-    */
     loop {}
 }
 
