@@ -1,52 +1,45 @@
 mod qemu;
-
 use qemu::QemuBuilder;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "Memsos basic cli")]
 struct Cli {
-    #[structopt(short, long)]
-    bios: bool,
+    #[structopt(subcommand)]
+    command: Option<Command>,
+}
 
-    #[structopt(short, long)]
-    uefi: bool,
-
-    #[structopt(short, long)]
-    export: bool,
+#[derive(StructOpt, Debug)]
+enum Command {
+    Uefi,
+    Bios,
+    Dist
 }
 
 fn main() {
     let cli = Cli::from_args();
 
-    if cli.uefi {
-        let qemu = QemuBuilder::new()
-            .img(env!("UEFI_PATH").to_string())
-            .uefi(true)
-            .build();
-
-        qemu.run();
-    } else if cli.bios {
-        let qemu = QemuBuilder::new()
-            .img(env!("BIOS_PATH").to_string())
-            .uefi(false)
-            .build();
-        qemu.run();
-    } else if cli.export {
-        println!(
-            "UEFI PATH: {}, BIOS PATH: {}",
-            env!("UEFI_PATH"),
-            env!("BIOS_PATH")
-        );
-    } else {
-        println!("No option selected, running on UEFI");
-
-        let qemu = QemuBuilder::new()
-            .img(env!("UEFI_PATH").to_string())
-            .uefi(true)
-            .build();
-
-        qemu.run();
-
+    match cli.command.unwrap_or(Command::Uefi) {
+        Command::Uefi => {
+            let qemu = QemuBuilder::new()
+                .img(env!("UEFI_PATH").to_string())
+                .uefi(true)
+                .build();
+            qemu.run();
+        },
+        Command::Bios => {
+            let qemu = QemuBuilder::new()
+                .img(env!("BIOS_PATH").to_string())
+                .uefi(false)
+                .build();
+            qemu.run();
+        },
+        Command::Dist => {
+            println!(
+                "UEFI PATH: {}, BIOS PATH: {}",
+                env!("UEFI_PATH"),
+                env!("BIOS_PATH")
+            );
+        }, 
     }
 }
+
