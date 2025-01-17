@@ -38,7 +38,6 @@ impl Qemu {
         let mut cmd = Command::new("qemu-system-x86_64");
         let binding = env::var("QEMU_FLAGS").unwrap_or(String::new());
         let extra_flags: Vec<&str> = binding.split_whitespace().collect();
-        println!("{}", extra_flags.is_empty());
         if !extra_flags.is_empty() {
             for flag in extra_flags {
                 cmd.arg(flag);

@@ -38,5 +38,15 @@ fn main() {
             env!("UEFI_PATH"),
             env!("BIOS_PATH")
         );
+    } else {
+        println!("No option selected, running on UEFI");
+
+        let qemu = QemuBuilder::new()
+            .img(env!("UEFI_PATH").to_string())
+            .uefi(true)
+            .build();
+
+        qemu.run();
+
     }
 }
