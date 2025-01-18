@@ -98,6 +98,12 @@ macro_rules! erase {
         let mut ui = $crate::ui::writer::get_ui();
         ui.erase($widget);
     };
+    ( $( $widget:expr ),* ) => {
+        let mut ui = $crate::ui::writer::get_ui();
+        $(
+            ui.erase($widget);
+        )*
+    };
 }
 
 #[inline]
