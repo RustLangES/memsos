@@ -98,6 +98,13 @@ macro_rules! erase {
     };
 }
 
+#[inline]
+pub fn clear() {
+    let mut ui = get_ui();
+
+    ui.clear();
+}
+
 #[macro_export]
 macro_rules! clear {
     () => {

@@ -21,7 +21,7 @@ use power::reboot::reboot;
 use ui::{
     layout::{vertical::VerticalLayout, Layout},
     widget::line::line,
-    writer::init_ui,
+    writer::{clear, init_ui},
 };
 
 const CONFIG: BootloaderConfig = {
@@ -50,7 +50,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let h: isize = info.height.try_into().unwrap();
     let w: isize = info.width.try_into().unwrap();
 
-    clear!();
+    clear();
 
     render!(
         &line((PADDING, PADDING), (PADDING, h - PADDING)),
@@ -86,7 +86,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
 #[panic_handler]
 fn panic_handler(panic: &PanicInfo) -> ! {
-    clear!();
+    clear();
 
     let text = text!((0, 0), "{:?}", panic);
     render!(&text);
