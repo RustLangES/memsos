@@ -20,7 +20,9 @@ impl UiWriter {
         self.info.height
     }
     pub fn clear(&mut self) {
-        self.buffer.fill(0);
+        unsafe {
+            ptr::write_bytes(self.buffer.as_mut_ptr(), 0, self.buffer.len());
+        }
     }
     pub fn write_pixel(&mut self, x: usize, y: usize, intensity: u8) {
         if x >= self.info.width || y >= self.info.height {
@@ -105,11 +107,3 @@ pub fn clear() {
     ui.clear();
 }
 
-#[macro_export]
-macro_rules! clear {
-    () => {
-        let mut ui = $crate::ui::writer::get_ui();
-
-        ui.clear();
-    };
-}
