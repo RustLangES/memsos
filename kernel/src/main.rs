@@ -24,6 +24,8 @@ use ui::{
     writer::{clear, init_ui},
 };
 
+use mem::init_mem;
+
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
 
@@ -45,7 +47,10 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let buffer = framebuffer.into_buffer();
     let memsos_version = env!("CARGO_PKG_VERSION");
 
+    let Some(mem_offset) = physical else { loop {} };
+
     init_ui(buffer, info);
+    init_mem(*mem_offset);
 
     let h: isize = info.height.try_into().unwrap();
     let w: isize = info.width.try_into().unwrap();
@@ -61,25 +66,22 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
 
+    layout!(&text!("memsos v{memsos_version}"), INFO_LAYOUT);
+
     layout!(
-        &text!("memsos v{memsos_version}"),
+        &text!(
+            (0, 0),
+            "bootloader v{}.{}.{}",
+            api_version.version_major(),
+            api_version.version_minor(),
+            api_version.version_patch()
+        ),
         INFO_LAYOUT
     );
 
-    layout!(
-        &text!((0, 0), "bootloader v{}.{}.{}", api_version.version_major(), api_version.version_minor(), api_version.version_patch()),
-        INFO_LAYOUT
-    );
+    layout!(&text!((0, 0), "Mem Regions: {:?}", regions), INFO_LAYOUT);
 
-    layout!(
-        &text!((0, 0), "Mem Regions: {:?}", regions),
-        INFO_LAYOUT
-    );
-
-    layout!(
-        &text!("Made with love by Rust Lang Es"),
-        INFO_LAYOUT
-    );
+    layout!(&text!("Made with love by Rust Lang Es"), INFO_LAYOUT);
 
     loop {}
 }

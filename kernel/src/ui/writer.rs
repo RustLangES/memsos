@@ -89,7 +89,6 @@ macro_rules! layout {
     ($widget: expr, $layout: expr) => {
         $layout.spawn($widget);
     };
-
 }
 
 #[macro_export]
@@ -112,4 +111,3 @@ pub fn clear() {
 
     ui.clear();
 }
-

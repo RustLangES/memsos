@@ -12,7 +12,7 @@ struct Cli {
 enum Command {
     Uefi,
     Bios,
-    Dist
+    Dist,
 }
 
 fn main() {
@@ -25,21 +25,20 @@ fn main() {
                 .uefi(true)
                 .build();
             qemu.run();
-        },
+        }
         Command::Bios => {
             let qemu = QemuBuilder::new()
                 .img(env!("BIOS_PATH").to_string())
                 .uefi(false)
                 .build();
             qemu.run();
-        },
+        }
         Command::Dist => {
             println!(
                 "UEFI PATH: {}, BIOS PATH: {}",
                 env!("UEFI_PATH"),
                 env!("BIOS_PATH")
             );
-        }, 
+        }
     }
 }
-

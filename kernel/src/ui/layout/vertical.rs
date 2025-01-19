@@ -26,12 +26,7 @@ impl Layout for VerticalLayout {
 
         let y = self.y.load(Ordering::SeqCst);
 
-        widget.render_child(
-            &mut writer,
-            LayoutArgs {
-                pos: (self.x, y),
-            },
-        );
+        widget.render_child(&mut writer, LayoutArgs { pos: (self.x, y) });
 
         self.y.fetch_add(widget.spacing(), Ordering::SeqCst);
     }
