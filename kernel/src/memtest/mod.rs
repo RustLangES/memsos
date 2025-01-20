@@ -6,5 +6,5 @@ use core::fmt::Write;
 use heapless::String;
 
 pub fn test_memory(region: &MemoryRegion, offset: u64) -> bool {
-   unimplemented!() 
+    unimplemented!()
 }

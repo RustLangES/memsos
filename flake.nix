@@ -5,7 +5,7 @@
     fenix.url = "github:nix-community/fenix";
   };
   
-  outputs = { self, fenix, nixpkgs, ... }@inputs:
+  outputs = { fenix, nixpkgs, ... }@inputs:
     let
       system = "x86_64-linux";
       lib = pkgs.lib;
@@ -19,14 +19,6 @@
       };
       # crane: cargo and artifacts manager
       craneLib = crane.overrideToolchain toolchain;
-
-      # create memfile binary
-      memfile = pkgs.writeShellScriptBin "memfile" ''
-        #!/usr/bin/env bash
-      
-        dd if=/dev/zero of=memfile bs=1M count=512
-        printf '\xFF' | dd of=memfile bs=1 seek=100 count=1 conv=notrunc
-      '';
 
       # Create the runvm binary
       runvm = pkgs.writeShellScriptBin "runvm" ''
@@ -97,7 +89,7 @@
       };
 
       devShells.${system}.default = craneLib.devShell {
-        packages = with pkgs; [ qemu toolchain runvm memfile rustfmt ];
+        packages = with pkgs; [ qemu toolchain runvm ];
       };
     };
 }
