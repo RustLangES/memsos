@@ -6,6 +6,8 @@ pub struct LayoutArgs {
 
 pub trait Layout {
     fn spawn<T: LayoutChild>(&self, widget: &T);
+    fn gen_pos(&self) -> (usize, usize);
+    fn margin(&self, size: usize);
 }
 
 pub trait LayoutChild {

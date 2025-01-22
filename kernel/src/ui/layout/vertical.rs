@@ -3,8 +3,8 @@ use crate::ui::writer::get_ui;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 pub struct VerticalLayout {
-    pub y: AtomicUsize,
-    pub x: usize,
+    y: AtomicUsize,
+    x: usize,
     pub padding: usize,
 }
 
@@ -22,12 +22,20 @@ impl Layout for VerticalLayout {
     fn spawn<T: super::LayoutChild>(&self, widget: &T) {
         let mut writer = get_ui();
 
-        self.y.fetch_add(self.padding, Ordering::SeqCst);
-
-        let y = self.y.load(Ordering::SeqCst);
+        let (_, y) = self.gen_pos();
 
         widget.render_child(&mut writer, LayoutArgs { pos: (self.x, y) });
 
         self.y.fetch_add(widget.spacing(), Ordering::SeqCst);
     }
+    fn gen_pos(&self) -> (usize, usize) {
+        self.y.fetch_add(self.padding, Ordering::SeqCst);
+
+        let y = self.y.load(Ordering::SeqCst);
+
+        (self.x, y)
+    }
+    fn margin(&self, size: usize) {
+        self.y.fetch_add(size, Ordering::SeqCst);
+    } 
 }
