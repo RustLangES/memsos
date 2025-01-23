@@ -26,7 +26,13 @@ impl Layout for VerticalLayout {
 
         let (_, y) = self.gen_pos();
 
-         widget.render_child(&mut writer, LayoutArgs { pos: (self.x, y), line_size: self.line_size });
+        widget.render_child(
+            &mut writer,
+            LayoutArgs {
+                pos: (self.x, y),
+                line_size: self.line_size,
+            },
+        );
 
         self.y.fetch_add(widget.spacing(), Ordering::SeqCst);
     }
@@ -39,5 +45,5 @@ impl Layout for VerticalLayout {
     }
     fn margin(&self, size: usize) {
         self.y.fetch_add(size, Ordering::SeqCst);
-    } 
+    }
 }

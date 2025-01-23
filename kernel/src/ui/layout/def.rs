@@ -1,5 +1,5 @@
-use crate::ui::writer::UiWriter;
 use crate::ui::widget::Widget;
+use crate::ui::writer::UiWriter;
 
 pub struct LayoutArgs {
     pub pos: (usize, usize),
@@ -13,6 +13,6 @@ pub trait Layout {
 }
 
 pub trait LayoutChild {
-    fn render_child(&self, writer: &mut UiWriter, args: LayoutArgs); 
+    fn render_child(&self, writer: &mut UiWriter, args: LayoutArgs);
     fn spacing(&self) -> usize;
 }

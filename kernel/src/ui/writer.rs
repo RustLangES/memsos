@@ -67,7 +67,7 @@ pub fn init_ui(buffer: &'static mut [u8], info: FrameBufferInfo) {
 
 #[inline]
 pub fn get_ui() -> UiWriter {
-    unsafe { UI_WRITER.get().clone().read().expect("UI_WRITER Is empty") }
+    unsafe { UI_WRITER.get().clone().read().expect("UI_WRITER is empty") }
 }
 
 #[macro_export]
@@ -86,8 +86,10 @@ macro_rules! render {
 
 #[macro_export]
 macro_rules! layout {
-    ($widget: expr, $layout: expr) => {
-        $layout.spawn($widget);
+    ( $layout: expr, $( $widget:expr ),* )  => {
+        $(
+            $layout.spawn($widget);
+        )*
     };
 }
 
