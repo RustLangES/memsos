@@ -6,13 +6,15 @@ pub struct VerticalLayout {
     y: AtomicUsize,
     x: usize,
     pub padding: usize,
+    pub line_size: usize,
 }
 
 impl VerticalLayout {
-    pub const fn new(start_pos: (usize, usize), padding: usize) -> Self {
+    pub const fn new(start_pos: (usize, usize), padding: usize, line_size: usize) -> Self {
         Self {
             y: AtomicUsize::new(start_pos.1),
             x: start_pos.0,
+            line_size,
             padding,
         }
     }
@@ -24,7 +26,7 @@ impl Layout for VerticalLayout {
 
         let (_, y) = self.gen_pos();
 
-        widget.render_child(&mut writer, LayoutArgs { pos: (self.x, y) });
+         widget.render_child(&mut writer, LayoutArgs { pos: (self.x, y), line_size: self.line_size });
 
         self.y.fetch_add(widget.spacing(), Ordering::SeqCst);
     }

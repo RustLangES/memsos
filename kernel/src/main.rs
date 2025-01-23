@@ -36,7 +36,8 @@ entry_point!(kernel_main, config = &CONFIG);
 
 const PADDING: isize = 20;
 
-static INFO_LAYOUT: VerticalLayout = VerticalLayout::new((30, 30), 0);
+// TODO: make this dinamyc
+static INFO_LAYOUT: VerticalLayout = VerticalLayout::new((30, 30), 0, 620);
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
@@ -82,6 +83,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     layout!(&text!((0, 0), "Mem Regions: {:?}", regions), INFO_LAYOUT);
 
     layout!(&text!("Made with love by Rust Lang Es"), INFO_LAYOUT);
+
+    layout!(&text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :("), INFO_LAYOUT);
 
     loop {}
 }
