@@ -16,6 +16,7 @@ use bootloader_api::{
 use core::{fmt::Write, panic::PanicInfo};
 use drivers::keyboard::{Key, Keyboard};
 use memtest::test_memory;
+use ui::widget::input::input;
 use power::reboot::reboot;
 
 use ui::{
@@ -82,6 +83,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :(")
     );
 
+    panic!("Oh no, i'm another test in memsos, help me i will be removed in the code!");
+
     loop {}
 }
 
@@ -89,13 +92,11 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 fn panic_handler(panic: &PanicInfo) -> ! {
     clear();
 
-    let text = text!((0, 0), "{:?}", panic);
-    render!(&text);
+    let panic_layout = VerticalLayout::new((0,0), 0, 1500);
 
-    let keyboard = Keyboard;
-
-    keyboard.wait_key(Key::Space);
+    layout!(&panic_layout, &text!((0, 0), "Panic! {}", panic.message()), &input(&text!((0, 10), "Press space to reboot your computer")));
 
     reboot();
+
     loop {}
 }

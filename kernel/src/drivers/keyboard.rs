@@ -3,6 +3,8 @@ use crate::{asm::port::Port, drivers::driver::Driver};
 const KEYBOARD_CTRL: Port = Port(0x64);
 const KEYBOARD_PORT: Port = Port(0x60);
 
+pub static KEYBOARD: Keyboard = Keyboard {};
+
 pub struct Keyboard;
 
 impl Driver for Keyboard {
@@ -17,10 +19,13 @@ impl Driver for Keyboard {
 
 impl Keyboard {
     pub fn wait_key(&self, key: Key) {
-        let event = self.read();
-        if event.key != key {
-            self.wait_key(key);
-        }
+       loop {
+           let event = self.read();
+
+           if event.key == key {
+                break;
+           }
+       } 
     }
 }
 

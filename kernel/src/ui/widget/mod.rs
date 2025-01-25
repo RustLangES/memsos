@@ -1,5 +1,6 @@
 pub mod line;
 pub mod text;
+pub mod input;
 
 use crate::ui::writer::UiWriter;
 
