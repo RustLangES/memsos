@@ -10,11 +10,18 @@ pub struct VerticalLayout {
 }
 
 impl VerticalLayout {
-    pub const fn new(start_pos: (usize, usize), padding: usize, line_size: usize) -> Self {
+    pub const fn new(start_pos: (usize, usize), padding: usize, line_size: Option<usize>) -> Self {
+        let size = match line_size {
+            Some(val) => val,
+            None => {  
+                let ui = get_ui();
+                ui.width()
+            },
+        };
         Self {
             y: AtomicUsize::new(start_pos.1),
             x: start_pos.0,
-            line_size,
+            line_size: size,
             padding,
         }
     }

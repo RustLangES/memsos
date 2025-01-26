@@ -13,10 +13,10 @@ impl UiWriter {
     pub fn new(buffer: &'static mut [u8], info: FrameBufferInfo) -> Self {
         Self { buffer, info }
     }
-    pub fn width(&self) -> usize {
+    pub const fn width(&self) -> usize {
         self.info.width
     }
-    pub fn height(&self) -> usize {
+    pub const fn height(&self) -> usize {
         self.info.height
     }
     pub fn clear(&mut self) {
@@ -66,8 +66,8 @@ pub fn init_ui(buffer: &'static mut [u8], info: FrameBufferInfo) {
 }
 
 #[inline]
-pub fn get_ui() -> UiWriter {
-    unsafe { UI_WRITER.get().clone().read().expect("UI_WRITER is empty") }
+pub const fn get_ui() -> UiWriter {
+    unsafe { UI_WRITER.get().read().expect("UI_WRITER is empty") }
 }
 
 #[macro_export]

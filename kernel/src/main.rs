@@ -38,7 +38,7 @@ entry_point!(kernel_main, config = &CONFIG);
 const PADDING: isize = 20;
 
 // TODO: make this dinamyc
-static INFO_LAYOUT: VerticalLayout = VerticalLayout::new((30, 30), 0, 640);
+static INFO_LAYOUT: VerticalLayout = VerticalLayout::new((30, 30), 0, Some(640));
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
@@ -83,8 +83,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :(")
     );
 
-    panic!("Oh no, i'm another test in memsos, help me i will be removed in the code!");
-
     loop {}
 }
 
@@ -92,7 +90,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 fn panic_handler(panic: &PanicInfo) -> ! {
     clear();
 
-    let panic_layout = VerticalLayout::new((0,0), 0, 1500);
+    let panic_layout = VerticalLayout::new((0,0), 0, None);
 
     layout!(&panic_layout, &text!((0, 0), "Panic! {}", panic.message()), &input(&text!((0, 10), "Press space to reboot your computer")));
 
