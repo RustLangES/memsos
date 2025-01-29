@@ -83,6 +83,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :(")
     );
 
+    let mut ui = crate::ui::writer::get_ui();
+    ui.clear_zone((100, 100), (300, 200)); 
+
     loop {}
 }
 

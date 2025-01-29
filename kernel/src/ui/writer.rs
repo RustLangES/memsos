@@ -10,7 +10,7 @@ pub struct UiWriter {
 }
 
 impl UiWriter {
-    pub fn new(buffer: &'static mut [u8], info: FrameBufferInfo) -> Self {
+    pub const fn new(buffer: &'static mut [u8], info: FrameBufferInfo) -> Self {
         Self { buffer, info }
     }
     pub const fn width(&self) -> usize {
@@ -18,6 +18,13 @@ impl UiWriter {
     }
     pub const fn height(&self) -> usize {
         self.info.height
+    }
+    pub fn clear_zone(&mut self, from: (usize, usize), to: (usize, usize)) {
+        for x in from.0..to.0 {
+            for y in from.1..to.1 {
+                self.write_pixel(x, y, 0);
+            }
+        }
     }
     pub fn clear(&mut self) {
         unsafe {
@@ -44,7 +51,6 @@ impl UiWriter {
         self.buffer[byte_offset..(byte_offset + bytes_per_pixel)]
             .copy_from_slice(&color[..bytes_per_pixel]);
     }
-
     pub fn render<T: Widget>(&mut self, widget: &T) {
         widget.render(self);
     }
