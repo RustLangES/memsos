@@ -22,7 +22,7 @@ use power::reboot::reboot;
 use ui::{
     layout::{vertical::VerticalLayout, Layout},
     widget::line::line,
-    writer::{clear, init_ui},
+    writer::{clear, init_ui, clear_zone},
 };
 
 use mem::init_mem;
@@ -82,9 +82,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es"),
         &text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :(")
     );
-
-    let mut ui = crate::ui::writer::get_ui();
-    ui.clear_zone((100, 100), (300, 200)); 
+ 
+    clear_zone((100, 100), (300, 200));
 
     loop {}
 }

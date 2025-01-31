@@ -119,3 +119,10 @@ pub fn clear() {
 
     ui.clear();
 }
+
+#[inline]
+pub fn clear_zone(from: (usize, usize), to: (usize, usize)) {
+    let mut ui = get_ui();
+
+    ui.clear_zone(from, to);
+}
