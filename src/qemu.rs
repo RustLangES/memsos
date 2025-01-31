@@ -15,7 +15,7 @@ impl QemuBuilder {
     pub fn new() -> Self {
         QemuBuilder {
             qemu: Qemu {
-                img: String::from(""),
+                img: String::new(),
                 use_uefi: false,
             },
         }
@@ -36,7 +36,7 @@ impl QemuBuilder {
 impl Qemu {
     pub fn run(&self) {
         let mut cmd = Command::new("qemu-system-x86_64");
-        let binding = env::var("QEMU_FLAGS").unwrap_or(String::new());
+        let binding = env::var("QEMU_FLAGS").unwrap_or_default();
         let extra_flags: Vec<&str> = binding.split_whitespace().collect();
         if !extra_flags.is_empty() {
             for flag in extra_flags {

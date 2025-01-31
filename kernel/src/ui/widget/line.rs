@@ -17,7 +17,7 @@ impl Widget for Line {
 
         let (x_inc, y_inc, steps) = self.calculate_distance();
 
-        core::iter::repeat(()).take(steps + 1).for_each(|_| {
+        core::iter::repeat(()).take(steps + 1).for_each(|()| {
             writer.write_pixel(p.0.try_into().unwrap(), p.1.try_into().unwrap(), 255);
             p.0 += x_inc;
             p.1 += y_inc;
@@ -28,7 +28,7 @@ impl Widget for Line {
 
         let (x_inc, y_inc, steps) = self.calculate_distance();
 
-        core::iter::repeat(()).take(steps + 1).for_each(|_| {
+        core::iter::repeat(()).take(steps + 1).for_each(|()| {
             writer.write_pixel(p.0.try_into().unwrap(), p.1.try_into().unwrap(), 0);
             p.0 += x_inc;
             p.1 += y_inc;

@@ -16,7 +16,7 @@ impl Widget for Input<'_> {
     fn render(&self, writer: &mut crate::ui::writer::UiWriter) {
         self.text.render(writer);
         
-        KEYBOARD.wait_key(Key::Space);
+        KEYBOARD.wait_key(&Key::Space);
     }
 }
 

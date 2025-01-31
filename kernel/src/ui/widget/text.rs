@@ -22,12 +22,12 @@ pub struct Text {
 impl Widget for Text {
     fn render(&self, writer: &mut UiWriter) {
         self.text.chars().fold(self.pos, |acc, c| {
-            self.write_char(c, writer, acc, writer.width())
+            Text::write_char(c, writer, acc, writer.width())
         });
     }
     fn erase(&self, writer: &mut UiWriter) {
         self.text.chars().fold(self.pos, |acc, _c| {
-            self.write_char(' ', writer, acc, writer.width())
+            Text::write_char(' ', writer, acc, writer.width())
         });
     }
 }
@@ -35,7 +35,7 @@ impl Widget for Text {
 impl LayoutChild for Text {
     fn render_child(&self, writer: &mut UiWriter, args: crate::ui::layout::LayoutArgs) {
         self.text.chars().fold(args.pos, |acc, c| {
-            self.write_char(c, writer, acc, args.line_size)
+            Text::write_char(c, writer, acc, args.line_size)
         });
     }
     fn spacing(&self) -> usize {
@@ -57,27 +57,26 @@ impl Text {
     pub fn new(text: String<STRING_SIZE>, pos: (usize, usize)) -> Self {
         Self { text, pos }
     }
-    pub fn new_from_args<'a>(args: Arguments<'a>, pos: (usize, usize)) -> Self {
+    pub fn new_from_args(args: Arguments<'_>, pos: (usize, usize)) -> Self {
         let mut buffer = String::<STRING_SIZE>::new();
         buffer.clear();
         write!(&mut buffer, "{args}").expect("Could not format args");
 
         Self { text: buffer, pos }
     }
-    fn newline(&self, pos: (usize, usize)) -> (usize, usize) {
+    fn newline(pos: (usize, usize)) -> (usize, usize) {
         let y = pos.1 + CHAR_RASTER_HEIGHT.val() + LINE_SPACING;
         (23, y)
     }
 
     fn write_char(
-        &self,
         c: char,
         writer: &mut UiWriter,
         p: (usize, usize),
         line_size: usize,
     ) -> (usize, usize) {
         let mut pos = match c {
-            '\n' => self.newline(p),
+            '\n' => Text::newline(p),
             _ => p,
         };
 
@@ -87,7 +86,7 @@ impl Text {
             writer.clear();
         }
         if new_xpos >= line_size {
-            pos = self.newline(pos);
+            pos = Text::newline(pos);
         }
 
         for (y, row) in get_char_raster(c).raster().iter().enumerate() {

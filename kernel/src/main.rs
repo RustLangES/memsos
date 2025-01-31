@@ -11,11 +11,9 @@ mod power;
 mod ui;
 
 use bootloader_api::{
-    config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
+    config::Mapping, entry_point, BootInfo, BootloaderConfig,
 };
-use core::{fmt::Write, panic::PanicInfo};
-use drivers::keyboard::{Key, Keyboard};
-use memtest::test_memory;
+use core::panic::PanicInfo;
 use ui::widget::input::input;
 use power::reboot::reboot;
 
