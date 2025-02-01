@@ -19,13 +19,13 @@ impl Driver for Keyboard {
 
 impl Keyboard {
     pub fn wait_key(&self, key: &Key) {
-       loop {
-           let event = self.read();
+        loop {
+            let event = self.read();
 
-           if &event.key == key {
+            if &event.key == key {
                 break;
-           }
-       } 
+            }
+        }
     }
 }
 

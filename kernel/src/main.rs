@@ -10,17 +10,15 @@ mod memtest;
 mod power;
 mod ui;
 
-use bootloader_api::{
-    config::Mapping, entry_point, BootInfo, BootloaderConfig,
-};
+use bootloader_api::{config::Mapping, entry_point, BootInfo, BootloaderConfig};
 use core::panic::PanicInfo;
-use ui::widget::input::input;
 use power::reboot::reboot;
+use ui::widget::input::input;
 
 use ui::{
-    layout::{vertical::VerticalLayout, Layout},
+    layout::{vertical::VerticalLayout, Layout, LayoutParams},
     widget::line::line,
-    writer::{clear, init_ui, clear_zone},
+    writer::{clear, clear_zone, init_ui},
 };
 
 use mem::init_mem;
@@ -35,8 +33,11 @@ entry_point!(kernel_main, config = &CONFIG);
 
 const PADDING: isize = 20;
 
-// TODO: make this dinamyc
-static INFO_LAYOUT: VerticalLayout = VerticalLayout::new((30, 30), 0, Some(640));
+static INFO_LAYOUT: VerticalLayout = VerticalLayout::new(LayoutParams {
+    padding: 0,
+    line_size: Some(640),
+    start_pos: (30, 30)
+});
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
@@ -80,7 +81,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es"),
         &text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :(")
     );
- 
+
     clear_zone((100, 100), (300, 200));
 
     loop {}
@@ -90,9 +91,19 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 fn panic_handler(panic: &PanicInfo) -> ! {
     clear();
 
-    let panic_layout = VerticalLayout::new((0,0), 0, None);
+    let panic_layout = VerticalLayout::new(LayoutParams {
+        start_pos: (0, 0),
+        padding: 0,
+        line_size: None,
+    });    
 
-    layout!(&panic_layout, &text!((0, 0), "Panic! {}", panic.message()), &input(&text!((0, 10), "Press space to reboot your computer")));
+
+
+    layout!(
+        &panic_layout,
+        &text!((0, 0), "Panic! {}", panic.message()),
+        &input(&text!((0, 10), "Press space to reboot your computer"))
+    );
 
     reboot();
 

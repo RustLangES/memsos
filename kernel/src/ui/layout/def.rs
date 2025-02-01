@@ -6,6 +6,13 @@ pub struct LayoutArgs {
     pub line_size: usize,
 }
 
+#[derive(Debug)]
+pub struct LayoutParams {
+    pub padding: usize,
+    pub start_pos: (usize, usize),
+    pub line_size: Option<usize> 
+}
+
 pub trait Layout {
     fn spawn<T: LayoutChild + Widget>(&self, widget: &T);
     fn gen_pos(&self) -> (usize, usize);

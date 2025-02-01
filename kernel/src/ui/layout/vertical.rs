@@ -1,4 +1,4 @@
-use crate::ui::layout::{Layout, LayoutArgs};
+use crate::ui::layout::{Layout, LayoutArgs, LayoutParams};
 use crate::ui::writer::get_ui;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
@@ -10,16 +10,18 @@ pub struct VerticalLayout {
 }
 
 impl VerticalLayout {
-    pub const fn new(start_pos: (usize, usize), padding: usize, line_size: Option<usize>) -> Self {
-        let size = if let Some(val) = line_size { val } else {
+    pub const fn new(params: LayoutParams) -> Self {
+        let size = if let Some(val) = params.line_size {
+            val
+        } else {
             let ui = get_ui();
             ui.width()
         };
         Self {
-            y: AtomicUsize::new(start_pos.1),
-            x: start_pos.0,
+            y: AtomicUsize::new(params.start_pos.1),
+            x: params.start_pos.0,
             line_size: size,
-            padding,
+            padding: params.padding,
         }
     }
 }
