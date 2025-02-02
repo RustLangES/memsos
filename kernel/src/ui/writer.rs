@@ -1,4 +1,5 @@
 use crate::ui::widget::Widget;
+use crate::PADDING;
 use bootloader_api::info::{FrameBufferInfo, PixelFormat};
 use core::{cell::SyncUnsafeCell, ptr};
 
@@ -20,12 +21,22 @@ impl UiWriter {
         self.info.height
     }
     pub fn clear_zone(&mut self, from: (usize, usize), to: (usize, usize)) {
-        for x in from.0..to.0 {
-            for y in from.1..to.1 {
+        let padding: usize = PADDING.try_into().unwrap();
+        for x in from.0..=to.0 {
+            for y in from.1..=to.1 {
+                if x < padding
+                    || x >= self.width() - padding
+                    || y < padding
+                    || y >= self.height() - padding
+                {
+                    continue;
+                }
+
                 self.write_pixel(x, y, 0);
             }
         }
     }
+
     pub fn clear(&mut self) {
         unsafe {
             ptr::write_bytes(self.buffer.as_mut_ptr(), 0, self.buffer.len());

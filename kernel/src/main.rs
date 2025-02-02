@@ -33,12 +33,6 @@ entry_point!(kernel_main, config = &CONFIG);
 
 const PADDING: isize = 20;
 
-static INFO_LAYOUT: VerticalLayout = VerticalLayout::new(LayoutParams {
-    padding: 0,
-    line_size: Some(640),
-    start_pos: (30, 30)
-});
-
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
     let regions = &boot_info.memory_regions;
@@ -46,20 +40,31 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let framebuffer = boot_info.framebuffer.take().unwrap();
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
-    let memsos_version = env!("CARGO_PKG_VERSION");
-    let h: isize = info.height.try_into().unwrap();
-    let w: isize = info.width.try_into().unwrap();
-
 
     let Some(mem_offset) = physical else { loop {} };
 
     init_ui(buffer, info);
     init_mem(*mem_offset);
 
+    let memsos_version = env!("CARGO_PKG_VERSION");
+    let h: isize = info.height.try_into().unwrap();
+    let w: isize = info.width.try_into().unwrap();
+
     let debug_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
-        start_pos: ((PADDING + 2).try_into().unwrap(), (h - (h / 2) + 4).try_into().unwrap()),
-        line_size: Some((w - PADDING).try_into().unwrap()),
+        start_pos: (
+            (PADDING + 2).try_into().unwrap(),
+            (h - (h / 2) + 4).try_into().unwrap(),
+        ),
+        line_size: Some((w - 2).try_into().unwrap()),
+        max_y: Some((h - PADDING).try_into().unwrap()),
+    });
+
+    let info_layout = VerticalLayout::new(LayoutParams {
+        padding: 0,
+        line_size: Some(640),
+        start_pos: (30, 30),
+        max_y: None,
     });
 
     clear();
@@ -74,7 +79,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     );
 
     layout!(
-        INFO_LAYOUT,
+        info_layout,
         &text!("memsos v{memsos_version}"),
                 &text!(
             (0, 0),
@@ -87,11 +92,10 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es"),
         &text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :(")
     );
-    layout!(
-        debug_layout,
-        &text!("Test!"),
-        &text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :(")
-    );
+
+    for i in 0..35 {
+        layout!(debug_layout, &text!("Text {i}"));
+    }
 
     loop {}
 }
@@ -104,9 +108,8 @@ fn panic_handler(panic: &PanicInfo) -> ! {
         start_pos: (0, 0),
         padding: 0,
         line_size: None,
-    });    
-
-
+        max_y: None,
+    });
 
     layout!(
         &panic_layout,

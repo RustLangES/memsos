@@ -10,7 +10,8 @@ pub struct LayoutArgs {
 pub struct LayoutParams {
     pub padding: usize,
     pub start_pos: (usize, usize),
-    pub line_size: Option<usize> 
+    pub line_size: Option<usize>, // If None line_size would be writer.x
+    pub max_y: Option<usize>,     // If None max_pos would be writer.y
 }
 
 pub trait Layout {
