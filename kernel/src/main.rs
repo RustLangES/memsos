@@ -47,14 +47,20 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
     let memsos_version = env!("CARGO_PKG_VERSION");
+    let h: isize = info.height.try_into().unwrap();
+    let w: isize = info.width.try_into().unwrap();
+
 
     let Some(mem_offset) = physical else { loop {} };
 
     init_ui(buffer, info);
     init_mem(*mem_offset);
 
-    let h: isize = info.height.try_into().unwrap();
-    let w: isize = info.width.try_into().unwrap();
+    let debug_layout = VerticalLayout::new(LayoutParams {
+        padding: 0,
+        start_pos: ((PADDING + 2).try_into().unwrap(), (h - (h / 2) + 4).try_into().unwrap()),
+        line_size: Some((w - PADDING).try_into().unwrap()),
+    });
 
     clear();
 
@@ -81,8 +87,11 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es"),
         &text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :(")
     );
-
-    clear_zone((100, 100), (300, 200));
+    layout!(
+        debug_layout,
+        &text!("Test!"),
+        &text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :(")
+    );
 
     loop {}
 }
