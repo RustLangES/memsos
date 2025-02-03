@@ -18,11 +18,12 @@ use ui::widget::input::input;
 use ui::{
     layout::{vertical::VerticalLayout, Layout, LayoutParams},
     widget::line::line,
+    logger::DebugLogger,
     writer::{clear, init_ui},
 };
 
 use mem::init_mem;
-use memtest::run_test;
+use memsos_core::{run_test, MemoryRegion};
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -61,6 +62,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: Some((h - PADDING).try_into().unwrap()),
     });
 
+    let logger = DebugLogger::new(debug_layout); 
+
     let info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
         line_size: Some(640),
@@ -93,14 +96,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es")
     );
 
-    for region in regions.iter() {
-        run_test(&debug_layout, *region);
+    for _ in regions.iter() {
+        run_test(&logger, &mem::MEMORY_WRITER, MemoryRegion {});
     }
-   
-    layout!(
-        debug_layout,
-        &text!("Test completed")
-    );
 
     loop {}
 }

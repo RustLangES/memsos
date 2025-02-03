@@ -667,6 +667,7 @@ version = "0.1.0"
 dependencies = [
  "bootloader_api",
  "heapless",
+ "memsos_core",
  "noto-sans-mono-bitmap",
 ]
 
@@ -756,6 +757,10 @@ dependencies = [
  "ovmf-prebuilt",
  "structopt",
 ]
+
+[[package]]
+name = "memsos_core"
+version = "0.1.0"
 
 [[package]]
 name = "noto-sans-mono-bitmap"
