@@ -18,10 +18,11 @@ use ui::widget::input::input;
 use ui::{
     layout::{vertical::VerticalLayout, Layout, LayoutParams},
     widget::line::line,
-    writer::{clear, clear_zone, init_ui},
+    writer::{clear, init_ui},
 };
 
 use mem::init_mem;
+use memtest::run_test;
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -81,7 +82,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     layout!(
         info_layout,
         &text!("memsos v{memsos_version}"),
-                &text!(
+        &text!(
             (0, 0),
             "bootloader v{}.{}.{}",
             api_version.version_major(),
@@ -89,13 +90,17 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             api_version.version_patch()
         ),
         &text!((0, 0), "Mem regions: {:?}", regions),
-        &text!("Made with love by Rust Lang Es"),
-        &text!("memsos is a very interesting program, but it is even more interesting to know that this text is long and will serve as a test for the layouts unfortunately at some point I will be removed from the code :(")
+        &text!("Made with love by Rust Lang Es")
     );
 
-    for i in 0..35 {
-        layout!(debug_layout, &text!("Text {i}"));
+    for region in regions.iter() {
+        run_test(&debug_layout, *region);
     }
+   
+    layout!(
+        debug_layout,
+        &text!("Test completed")
+    );
 
     loop {}
 }
