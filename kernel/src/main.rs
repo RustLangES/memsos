@@ -10,15 +10,17 @@ mod memtest;
 mod power;
 mod ui;
 
-use bootloader_api::{config::Mapping, entry_point, BootInfo, BootloaderConfig, info::MemoryRegionKind};
+use bootloader_api::{
+    config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
+};
 use core::panic::PanicInfo;
 use power::reboot::reboot;
 use ui::widget::input::input;
 
 use ui::{
     layout::{vertical::VerticalLayout, Layout, LayoutParams},
-    widget::line::line,
     logger::DebugLogger,
+    widget::line::line,
     writer::{clear, init_ui},
 };
 
@@ -42,13 +44,13 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let framebuffer = boot_info.framebuffer.take().unwrap();
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
-    
+
     let Some(mem_offset) = physical else { loop {} };
 
     let memory_writer = MemWriter::create(*mem_offset);
 
     init_ui(buffer, info);
- 
+
     let memsos_version = env!("CARGO_PKG_VERSION");
     let h: isize = info.height.try_into().unwrap();
     let w: isize = info.width.try_into().unwrap();
@@ -63,7 +65,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: Some((h - PADDING).try_into().unwrap()),
     });
 
-    let logger = DebugLogger::new(&debug_layout); 
+    let logger = DebugLogger::new(&debug_layout);
 
     let info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
@@ -97,16 +99,22 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es")
     );
 
-    
     for region in regions.iter() {
         if region.kind != MemoryRegionKind::Usable {
-                layout!(
-                    &debug_layout,
-                    &text!((0, 0), "Omitting region of memory {:?}", region)
-                );
-                continue;
+            layout!(
+                &debug_layout,
+                &text!((0, 0), "Omitting region of memory {:?}", region)
+            );
+            continue;
         }
-        run_test(&logger, &memory_writer, MemoryRegion { start: region.start, end: region.end });
+        run_test(
+            &logger,
+            &memory_writer,
+            MemoryRegion {
+                start: region.start,
+                end: region.end,
+            },
+        );
     }
 
     loop {}
