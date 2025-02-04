@@ -3,19 +3,19 @@ use memsos_core::Logger;
 use crate::ui::layout::{vertical::VerticalLayout, Layout};
 use crate::{text, layout};
 
-pub struct DebugLogger {
-    pub debug_layout: VerticalLayout,
+pub struct DebugLogger<'a> {
+    pub debug_layout: &'a VerticalLayout,
 }
 
-impl DebugLogger {
-    pub fn new(layout: VerticalLayout) -> Self {
+impl<'a> DebugLogger<'a> {
+    pub fn new(layout: &'a VerticalLayout) -> Self {
         Self {
             debug_layout: layout
         }
     }
 }
 
-impl Logger for DebugLogger {
+impl Logger for DebugLogger<'_> {
     fn log(&self, message: core::fmt::Arguments<'_>) {
         layout!(
             self.debug_layout,

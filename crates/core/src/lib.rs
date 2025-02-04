@@ -4,10 +4,20 @@ use core::fmt::Arguments;
 use core::result::Result;
 
 pub fn run_test<M: Mem, L: Logger>(logger: &L, mem: &M, region: MemoryRegion) {
-    logger.log(format_args!("Welcome in the memsos {}!", "core"));
+    // Simulating a test this should be a real test in the future
+
+    logger.log(format_args!("Checking region {:?}", region));
+    for _addr in region.start..region.end {
+        
+    }
 }
 
-pub struct MemoryRegion {}
+#[derive(Debug)]
+pub struct MemoryRegion {
+    pub start: u64,
+    pub end: u64
+}
+
 
 pub trait Mem {
     fn read(&self, addr: u64) -> Result<u64, MemError>;
@@ -21,6 +31,6 @@ pub trait Logger {
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum MemError {
     NullPtr,
-    MisalignedPtr,
+    MisalignedPtr(u64),
     NoMoreMemory
 }

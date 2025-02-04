@@ -1,39 +1,40 @@
 use memsos_core::{Mem, MemError};
 use core::sync::atomic::{AtomicU64, Ordering};
 
-pub static MEMORY_WRITER: MemWriter = MemWriter::create();
-
-
-
+#[derive(Debug)]
 pub struct MemWriter {
     offset: AtomicU64,
 }
 
 impl Mem for MemWriter {
     fn read(&self, addr: u64) -> Result<u64, MemError> {
-         let offset = self.offset.load(Ordering::SeqCst);
-        let ptr = (addr + offset) as *const u64;
-
-        if ptr.is_null() {
-            return Err(MemError::NullPtr);
-        }
-
-        if ptr as usize % core::mem::align_of::<u64>() != 0 {
-            return Err(MemError::MisalignedPtr);
-        }
-
-        let value = unsafe { ptr.read() };
-
-        Ok(value)
+    let offset = self.offset.load(Ordering::SeqCst);
+    let ptr_addr = addr + offset;
+    
+    if ptr_addr as usize % core::mem::align_of::<u64>() != 0 {
+        return Err(MemError::MisalignedPtr(ptr_addr));
     }
+
+    let ptr = ptr_addr as *const u64;
+
+    if ptr.is_null() {
+        return Err(MemError::NullPtr);
+    }
+
+    let value = unsafe { ptr.read() };
+
+    Ok(value)
+}
+
     fn write(&self, addr: u64, value: u64) -> Result<(), MemError> {
         let offset = self.offset.load(Ordering::SeqCst);
+            let ptr_addr = addr + offset;
 
-        let ptr = (addr + offset) as *mut u64;
+         if ptr_addr as usize % core::mem::align_of::<u64>() != 0 {
+            return Err(MemError::MisalignedPtr(ptr_addr));
+            }
 
-        if ptr as usize % core::mem::align_of::<u64>() != 0 {
-            return Err(MemError::MisalignedPtr);
-        }
+        let ptr = (addr + offset) as *mut u64; 
 
         unsafe {
             ptr.write(value);
@@ -45,16 +46,10 @@ impl Mem for MemWriter {
 }
 
 impl MemWriter {
-    pub const fn create() -> Self {
+    pub const fn create(offset: u64) -> Self {
         Self {
-            offset: AtomicU64::new(0),
+            offset: AtomicU64::new(offset),
         }
-    }
-    pub fn init(&self, offset: u64) {
-        self.offset.store(offset, Ordering::SeqCst);
     }
 }
 
-pub fn init_mem(offset: u64) {
-    MEMORY_WRITER.init(offset);
-}

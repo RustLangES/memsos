@@ -10,7 +10,7 @@ mod memtest;
 mod power;
 mod ui;
 
-use bootloader_api::{config::Mapping, entry_point, BootInfo, BootloaderConfig};
+use bootloader_api::{config::Mapping, entry_point, BootInfo, BootloaderConfig, info::MemoryRegionKind};
 use core::panic::PanicInfo;
 use power::reboot::reboot;
 use ui::widget::input::input;
@@ -22,7 +22,7 @@ use ui::{
     writer::{clear, init_ui},
 };
 
-use mem::init_mem;
+use mem::MemWriter;
 use memsos_core::{run_test, MemoryRegion};
 
 const CONFIG: BootloaderConfig = {
@@ -42,12 +42,13 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let framebuffer = boot_info.framebuffer.take().unwrap();
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
-
+    
     let Some(mem_offset) = physical else { loop {} };
 
-    init_ui(buffer, info);
-    init_mem(*mem_offset);
+    let memory_writer = MemWriter::create(*mem_offset);
 
+    init_ui(buffer, info);
+ 
     let memsos_version = env!("CARGO_PKG_VERSION");
     let h: isize = info.height.try_into().unwrap();
     let w: isize = info.width.try_into().unwrap();
@@ -62,7 +63,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: Some((h - PADDING).try_into().unwrap()),
     });
 
-    let logger = DebugLogger::new(debug_layout); 
+    let logger = DebugLogger::new(&debug_layout); 
 
     let info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
@@ -96,8 +97,16 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es")
     );
 
-    for _ in regions.iter() {
-        run_test(&logger, &mem::MEMORY_WRITER, MemoryRegion {});
+    
+    for region in regions.iter() {
+        if region.kind != MemoryRegionKind::Usable {
+                layout!(
+                    &debug_layout,
+                    &text!((0, 0), "Omitting region of memory {:?}", region)
+                );
+                continue;
+        }
+        run_test(&logger, &memory_writer, MemoryRegion { start: region.start, end: region.end });
     }
 
     loop {}
