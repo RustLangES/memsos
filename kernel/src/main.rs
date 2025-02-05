@@ -1,28 +1,28 @@
 #![no_std]
 #![no_main]
-#![allow(clippy::similar_names)]
-#![feature(sync_unsafe_cell)]
 
-mod asm;
-mod drivers;
-mod mem;
-mod memtest;
-mod power;
-mod ui;
-
-use bootloader_api::{config::Mapping, entry_point, BootInfo, BootloaderConfig};
-use core::panic::PanicInfo;
-use power::reboot::reboot;
-use ui::widget::input::input;
-
-use ui::{
-    layout::{vertical::VerticalLayout, Layout, LayoutParams},
-    widget::line::line,
-    writer::{clear, init_ui},
+use bootloader_api::{
+    config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
 };
+use core::panic::PanicInfo;
 
-use mem::init_mem;
-use memtest::run_test;
+use os::{
+   power::reboot::reboot,
+   ui::{
+      widget::{
+        line::line,
+        input::input
+      },
+      layout::{vertical::VerticalLayout, Layout, LayoutParams},
+      logger::DebugLogger,
+      writer::{clear, init_ui},
+   },
+   mem::MemWriter,
+   PADDING
+};
+use os::{text, layout, render};
+
+use memsos_core::{run_test, MemoryRegion};
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -31,8 +31,6 @@ const CONFIG: BootloaderConfig = {
     config
 };
 entry_point!(kernel_main, config = &CONFIG);
-
-const PADDING: isize = 20;
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
@@ -44,8 +42,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     let Some(mem_offset) = physical else { loop {} };
 
+    let memory_writer = MemWriter::create(*mem_offset);
+
     init_ui(buffer, info);
-    init_mem(*mem_offset);
 
     let memsos_version = env!("CARGO_PKG_VERSION");
     let h: isize = info.height.try_into().unwrap();
@@ -60,6 +59,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         line_size: Some((w - 2).try_into().unwrap()),
         max_y: Some((h - PADDING).try_into().unwrap()),
     });
+
+    let logger = DebugLogger::new(&debug_layout);
 
     let info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
@@ -94,13 +95,22 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     );
 
     for region in regions.iter() {
-        run_test(&debug_layout, *region);
+        if region.kind != MemoryRegionKind::Usable {
+            layout!(
+                &debug_layout,
+                &text!((0, 0), "Omitting region of memory {:?}", region)
+            );
+            continue;
+        }
+        run_test(
+            &logger,
+            &memory_writer,
+            MemoryRegion {
+                start: region.start,
+                end: region.end,
+            },
+        );
     }
-   
-    layout!(
-        debug_layout,
-        &text!("Test completed")
-    );
 
     loop {}
 }

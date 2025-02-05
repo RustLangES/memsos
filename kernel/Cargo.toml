@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+os = { path = "../crates/os" }
 bootloader_api = "0.11.8"
-heapless = "0.8.0"
-noto-sans-mono-bitmap = "0.3.0"
-
+memsos_core = { path = "../crates/core" }

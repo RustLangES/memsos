@@ -12,4 +12,4 @@ ovmf-prebuilt = "0.1.0-alpha.1"
 structopt = "0.3.26"
 
 [workspace]
-members = ["kernel"]
+members = [ "crates/core", "crates/os", "kernel"]
