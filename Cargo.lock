@@ -237,9 +237,9 @@ dependencies = [
 
 [[package]]
 name = "bootloader_api"
-version = "0.11.8"
+version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99adba6d383d3b4b367b9ae41e8347ffe4d88efe247af76d00fd029e4fbb3076"
+checksum = "57a08a674787a3711ea0ba3bd730e6ffeb74832dcf6c51caf553528b33b54f73"
 
 [[package]]
 name = "byteorder"
@@ -666,9 +666,8 @@ name = "kernel"
 version = "0.1.0"
 dependencies = [
  "bootloader_api",
- "heapless",
  "memsos_core",
- "noto-sans-mono-bitmap",
+ "os",
 ]
 
 [[package]]
@@ -764,9 +763,9 @@ version = "0.1.0"
 
 [[package]]
 name = "noto-sans-mono-bitmap"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9aa163ae3f5d28f11e4906fac432e39937daee74920caec72a4962810646e0fb"
+checksum = "1064d564ae026ae123bf5d607318b42a5b31d70a3c48e6ea7ee44cce4cdb095e"
 
 [[package]]
 name = "nu-ansi-term"
@@ -783,6 +782,16 @@ name = "once_cell"
 version = "1.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1261fe7e33c73b354eab43b1273a57c8f967d0391e80353e51f764ac02cf6775"
+
+[[package]]
+name = "os"
+version = "0.1.0"
+dependencies = [
+ "bootloader_api",
+ "heapless",
+ "memsos_core",
+ "noto-sans-mono-bitmap",
+]
 
 [[package]]
 name = "overload"

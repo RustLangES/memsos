@@ -1,30 +1,27 @@
 #![no_std]
 #![no_main]
-#![allow(clippy::similar_names)]
-#![feature(sync_unsafe_cell)]
-
-mod asm;
-mod drivers;
-mod mem;
-mod memtest;
-mod power;
-mod ui;
 
 use bootloader_api::{
     config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
 };
 use core::panic::PanicInfo;
-use power::reboot::reboot;
-use ui::widget::input::input;
 
-use ui::{
-    layout::{vertical::VerticalLayout, Layout, LayoutParams},
-    logger::DebugLogger,
-    widget::line::line,
-    writer::{clear, init_ui},
+use os::{
+   power::reboot::reboot,
+   ui::{
+      widget::{
+        line::line,
+        input::input
+      },
+      layout::{vertical::VerticalLayout, Layout, LayoutParams},
+      logger::DebugLogger,
+      writer::{clear, init_ui},
+   },
+   mem::MemWriter,
+   PADDING
 };
+use os::{text, layout, render};
 
-use mem::MemWriter;
 use memsos_core::{run_test, MemoryRegion};
 
 const CONFIG: BootloaderConfig = {
@@ -34,8 +31,6 @@ const CONFIG: BootloaderConfig = {
     config
 };
 entry_point!(kernel_main, config = &CONFIG);
-
-const PADDING: isize = 20;
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
