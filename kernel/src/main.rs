@@ -6,21 +6,18 @@ use bootloader_api::{
 };
 use core::panic::PanicInfo;
 
+use os::{layout, render, text};
 use os::{
-   power::reboot::reboot,
-   ui::{
-      widget::{
-        line::line,
-        input::input
-      },
-      layout::{vertical::VerticalLayout, Layout, LayoutParams},
-      logger::DebugLogger,
-      writer::{clear, init_ui},
-   },
-   mem::MemWriter,
-   PADDING
+    mem::MemWriter,
+    power::reboot::reboot,
+    ui::{
+        layout::{vertical::VerticalLayout, Layout, LayoutParams},
+        logger::DebugLogger,
+        widget::{input::input, line::line},
+        writer::{clear, init_ui},
+    },
+    PADDING,
 };
-use os::{text, layout, render};
 
 use memsos_core::{run_test, MemoryRegion};
 
@@ -105,7 +102,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         run_test(
             &logger,
             &memory_writer,
-            MemoryRegion {
+            &MemoryRegion {
                 start: region.start,
                 end: region.end,
             },

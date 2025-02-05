@@ -12,9 +12,7 @@ impl Mem for MemWriter {
     fn read(&self, addr: u64) -> u64 {
         let ptr = addr as *mut u64;
 
-        unsafe {
-            ptr.read()
-        }
+        unsafe { ptr.read() }
     }
     fn write(&self, addr: u64, value: u64) {
         let ptr = addr as *mut u64;
@@ -24,14 +22,14 @@ impl Mem for MemWriter {
         }
     }
     fn check(&self, addr: u64) -> bool {
-       let ptr = addr as *mut u64;
-       addr as usize % ALIGNMENT == 0 && !ptr.is_null()
+        let ptr = addr as *mut u64;
+        addr as usize % ALIGNMENT == 0 && !ptr.is_null()
     }
-    fn parse(&self, region: memsos_core::MemoryRegion) -> memsos_core::MemoryRegion {
+    fn parse(&self, region: &memsos_core::MemoryRegion) -> memsos_core::MemoryRegion {
         let offset = self.offset.load(Ordering::SeqCst);
         memsos_core::MemoryRegion {
             start: region.start + offset,
-            end: region.end + offset
+            end: region.end + offset,
         }
     }
 }
