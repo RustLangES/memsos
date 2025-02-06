@@ -11,7 +11,7 @@ use os::{
     mem::MemWriter,
     power::reboot::reboot,
     ui::{
-        layout::{vertical::VerticalLayout, Layout, LayoutParams, LayoutChild},
+        layout::{vertical::VerticalLayout, Layout, LayoutParams},
         logger::DebugLogger,
         widget::{input::input, line::line},
         writer::{clear, init_ui},
@@ -19,7 +19,7 @@ use os::{
     PADDING,
 };
 
-use memsos_core::{run_test, MemoryRegion};
+use memsos_core::{run_test, MemoryRegion, TestResult};
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -111,6 +111,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es")
     );
 
+    let mut test_result = TestResult::new(); 
+
     for region in regions.iter() {
         if region.kind != MemoryRegionKind::Usable {
             layout!(
@@ -119,7 +121,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             );
             continue;
         }
-        run_test(
+        test_result += run_test(
             &logger,
             &memory_writer,
             &MemoryRegion {
@@ -128,7 +130,13 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             },
         );
     }
-
+    
+    layout!(
+        &test_info_layout,
+        &text!("Test Completed..."),
+        &text!((0,0), "Number of faulty memory addrs {}", test_result.bad_addrs)
+    );
+        
     loop {}
 }
 

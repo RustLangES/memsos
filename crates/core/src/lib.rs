@@ -10,6 +10,14 @@ pub struct TestResult {
     pub bad_addrs: u64,
 }
 
+impl TestResult {
+    pub fn new() -> Self {
+        Self {
+            bad_addrs: 0,
+        }
+    }
+}
+
 impl Add for TestResult {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
