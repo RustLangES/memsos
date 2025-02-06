@@ -86,7 +86,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     layout!(
         test_info_layout,
-        &text!("Memtest info")
+        &text!("Memtest info\n test")
     );
 
     layout!(
