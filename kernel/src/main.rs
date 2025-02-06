@@ -66,6 +66,13 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: None,
     });
 
+    let test_info_layout = VerticalLayout::new(LayoutParams {
+        padding: 0,
+        line_size: None,
+        start_pos: (info.width - (info.width / 2) + 6, 30),
+        max_y: None,
+    });
+
     clear();
 
     render!(
@@ -75,6 +82,11 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &line((PADDING, PADDING), (w - PADDING, PADDING)),
         &line((PADDING, h / 2), (w - PADDING, h / 2)),
         &line((w / 2, PADDING), (w / 2, h / 2))
+    );
+
+    layout!(
+        test_info_layout,
+        &text!("Memtest info")
     );
 
     layout!(
