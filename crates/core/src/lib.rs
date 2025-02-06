@@ -38,7 +38,11 @@ pub fn run_test<M: Mem, L: Logger>(logger: &L, mem: &M, region: &MemoryRegion) -
         bad_addrs: 0
     };
 
+    logger.ui_change_test("March-C");
+
     result += marchc::run_march_c(mem, region);
+
+    logger.ui_change_test("Pattern test, own address");
 
     result
     
@@ -59,4 +63,5 @@ pub trait Mem {
 
 pub trait Logger {
     fn log(&self, message: Arguments<'_>);
+    fn ui_change_test(&self, test: &str);
 }

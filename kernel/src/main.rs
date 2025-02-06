@@ -67,8 +67,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     });
 
     let memtest_message = text!((info.width - (info.width / 2) + 6, 30), "Memtest");
-    let mut test_text = text!((info.width - (info.width / 2) + 6, 50), "Test: March-C");
-
+  
     let test_info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
         line_size: None,
@@ -88,8 +87,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     );
     
     render!(
-        &memtest_message,
-        &test_text
+        &memtest_message
     );
 
     layout!(
