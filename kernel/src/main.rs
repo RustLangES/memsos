@@ -11,7 +11,7 @@ use os::{
     mem::MemWriter,
     power::reboot::reboot,
     ui::{
-        layout::{vertical::VerticalLayout, Layout, LayoutParams},
+        layout::{vertical::VerticalLayout, Layout, LayoutParams, LayoutChild},
         logger::DebugLogger,
         widget::{input::input, line::line},
         writer::{clear, init_ui},
@@ -66,10 +66,13 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: None,
     });
 
+    let memtest_message = text!((info.width - (info.width / 2) + 6, 30), "Memtest");
+    let mut test_text = text!((info.width - (info.width / 2) + 6, 50), "Test: March-C");
+
     let test_info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
         line_size: None,
-        start_pos: (info.width - (info.width / 2) + 6, 30),
+        start_pos: (info.width - (info.width / 2) + 6, 70),
         max_y: None,
     });
 
@@ -83,10 +86,15 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &line((PADDING, h / 2), (w - PADDING, h / 2)),
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
+    
+    render!(
+        &memtest_message,
+        &test_text
+    );
 
     layout!(
         test_info_layout,
-        &text!("Memtest info\n test")
+        &text!("here you should see information about the processor ram and others")
     );
 
     layout!(
