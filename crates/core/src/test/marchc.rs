@@ -1,7 +1,8 @@
-use crate::{Mem, MemoryRegion};
+use crate::{Mem, MemoryRegion, TestResult};
 
-pub fn run_march_c<M: Mem>(mem: &M, region: &MemoryRegion) {
+pub fn run_march_c<M: Mem>(mem: &M, region: &MemoryRegion) -> TestResult {
     let offset_region = mem.parse(region);
+    let mut bad_addrs = 0;
 
     for addr in offset_region.start..offset_region.end {
         if !mem.check(addr) {
@@ -15,7 +16,7 @@ pub fn run_march_c<M: Mem>(mem: &M, region: &MemoryRegion) {
             continue;
         }
         if mem.read(addr) != 0 {
-            panic!("Test failed at address 1 {:?}", addr);
+            bad_addrs += 1;   
         }
         mem.write(addr, 1);
     }
@@ -25,7 +26,7 @@ pub fn run_march_c<M: Mem>(mem: &M, region: &MemoryRegion) {
             continue;
         }
         if mem.read(addr) != 1 {
-            panic!("Test failed at address 2 {:?}", addr);
+           bad_addrs += 1; 
         }
         mem.write(addr, 0);
     }
@@ -35,8 +36,10 @@ pub fn run_march_c<M: Mem>(mem: &M, region: &MemoryRegion) {
             continue;
         }
         if mem.read(addr) != 0 {
-            panic!("Test failed at address 3 {:?}", addr);
+            bad_addrs += 1;    
         }
         mem.write(addr, 1);
     }
+
+    TestResult { bad_addrs }
 }
