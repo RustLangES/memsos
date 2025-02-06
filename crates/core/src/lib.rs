@@ -4,6 +4,7 @@ mod test;
 
 use core::fmt::Arguments;
 use crate::test::marchc;
+use crate::test::pattern;
 use core::ops::{Add, AddAssign};
 
 pub struct TestResult {
@@ -43,6 +44,8 @@ pub fn run_test<M: Mem, L: Logger>(logger: &L, mem: &M, region: &MemoryRegion) -
     result += marchc::run_march_c(mem, region);
 
     logger.ui_change_test("Pattern test, own address");
+
+    result += pattern::run_test_own_address(mem, region);
 
     result
     
