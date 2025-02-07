@@ -47,6 +47,10 @@ pub fn run_test<M: Mem, L: Logger>(logger: &L, mem: &M, region: &MemoryRegion) -
 
     result += pattern::run_test_own_address(mem, region);
 
+    logger.ui_change_test("Pattern test, rand number");
+
+    result += pattern::run_test_rand_num(mem, region);
+
     result
     
 }
