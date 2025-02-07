@@ -2,7 +2,7 @@
 #![no_main]
 
 use bootloader_api::{
-    config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
+    config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig, info::MemoryRegions
 };
 use core::panic::PanicInfo;
 
@@ -66,7 +66,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: None,
     });
 
-    let memtest_message = text!((info.width - (info.width / 2) + 6, 30), "Memtest");
+    let memtest_message = text!((info.width - (info.width / 2) + 6, 30), "Memtest Info");
   
     let test_info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
@@ -111,6 +111,10 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     let mut test_result = TestResult::new(); 
 
+    layout!(
+        &test_info_layout, 
+    );
+
     for region in regions.iter() {
         if region.kind != MemoryRegionKind::Usable {
             layout!(
@@ -126,6 +130,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                 start: region.start,
                 end: region.end,
             },
+            memsos_core::MemTestKind::Basic, // TODO: ask the user for this option
         );
     }
     

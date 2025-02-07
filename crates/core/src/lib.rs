@@ -33,23 +33,26 @@ impl AddAssign for TestResult {
 }
 
 
-pub fn run_test<M: Mem, L: Logger>(logger: &mut L, mem: &M, region: &MemoryRegion) -> TestResult {
+pub fn run_test<M: Mem, L: Logger>(logger: &mut L, mem: &M, region: &MemoryRegion, kind: MemTestKind) -> TestResult {
     logger.log(format_args!("Checking region {:?}", region));
+    
     let mut result = TestResult {
         bad_addrs: 0
     };
 
-    logger.ui_change_test("March-C");
+    if kind == MemTestKind::Basic || kind == MemTestKind::Advanced {
+        logger.ui_change_test("March-C");
 
-    result += marchc::run_march_c(mem, region);
+        result += marchc::run_march_c(mem, region);
 
-    logger.ui_change_test("Pattern test, own address");
+        logger.ui_change_test("Pattern test, own address");
 
-    result += pattern::run_test_own_address(mem, region);
+        result += pattern::run_test_own_address(mem, region);
+    } else { 
+        logger.ui_change_test("Pattern test, rand number");
 
-    logger.ui_change_test("Pattern test, rand number");
-
-    result += pattern::run_test_rand_num(mem, region);
+        result += pattern::run_test_rand_num(mem, region);
+    }
 
     result
     
@@ -71,4 +74,10 @@ pub trait Mem {
 pub trait Logger {
     fn log(&self, message: Arguments<'_>);
     fn ui_change_test(&mut self, test: &str);
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum MemTestKind {
+    Basic,
+    Advanced
 }
