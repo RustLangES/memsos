@@ -57,7 +57,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: Some((h - PADDING).try_into().unwrap()),
     });
 
-    let logger = DebugLogger::new(&debug_layout);
+    let mut logger = DebugLogger::new(&debug_layout);
 
     let info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
@@ -120,7 +120,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             continue;
         }
         test_result += run_test(
-            &logger,
+            &mut logger,
             &memory_writer,
             &MemoryRegion {
                 start: region.start,

@@ -33,7 +33,7 @@ impl AddAssign for TestResult {
 }
 
 
-pub fn run_test<M: Mem, L: Logger>(logger: &L, mem: &M, region: &MemoryRegion) -> TestResult {
+pub fn run_test<M: Mem, L: Logger>(logger: &mut L, mem: &M, region: &MemoryRegion) -> TestResult {
     logger.log(format_args!("Checking region {:?}", region));
     let mut result = TestResult {
         bad_addrs: 0
@@ -70,5 +70,5 @@ pub trait Mem {
 
 pub trait Logger {
     fn log(&self, message: Arguments<'_>);
-    fn ui_change_test(&self, test: &str);
+    fn ui_change_test(&mut self, test: &str);
 }
