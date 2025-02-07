@@ -1,24 +1,58 @@
 #![no_std]
 
-use core::fmt::Arguments; 
+mod test;
 
-pub fn run_test<M: Mem, L: Logger>(logger: &L, mem: &M, region: MemoryRegion) {
-    // Simulating a test this should be a real test in the future
+use core::fmt::Arguments;
+use crate::test::marchc;
+use crate::test::pattern;
+use core::ops::{Add, AddAssign};
 
-    logger.log(format_args!("Checking region {:?}", region));
-    let offset_region = mem.parse(region);
+pub struct TestResult {
+    pub bad_addrs: u64,
+}
 
-    for addr in offset_region.start..offset_region.end {
-        if !mem.check(addr) {
-            continue;
-        }        
-
-        mem.write(addr, 2);
-
-        if mem.read(addr) != 2 {
-            panic!("Oh no!");
+impl TestResult {
+    pub fn new() -> Self {
+        Self {
+            bad_addrs: 0,
         }
     }
+}
+
+impl Add for TestResult {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        TestResult { bad_addrs: self.bad_addrs + rhs.bad_addrs  }
+    }
+}
+
+impl AddAssign for TestResult {
+    fn add_assign(&mut self, rhs: Self) {
+        self.bad_addrs += rhs.bad_addrs;
+    }
+}
+
+
+pub fn run_test<M: Mem, L: Logger>(logger: &mut L, mem: &M, region: &MemoryRegion) -> TestResult {
+    logger.log(format_args!("Checking region {:?}", region));
+    let mut result = TestResult {
+        bad_addrs: 0
+    };
+
+    logger.ui_change_test("March-C");
+
+    result += marchc::run_march_c(mem, region);
+
+    logger.ui_change_test("Pattern test, own address");
+
+    result += pattern::run_test_own_address(mem, region);
+
+    logger.ui_change_test("Pattern test, rand number");
+
+    result += pattern::run_test_rand_num(mem, region);
+
+    result
+    
 }
 
 #[derive(Debug)]
@@ -28,7 +62,7 @@ pub struct MemoryRegion {
 }
 
 pub trait Mem {
-    fn parse(&self, region: MemoryRegion) -> MemoryRegion;
+    fn parse(&self, region: &MemoryRegion) -> MemoryRegion;
     fn check(&self, addr: u64) -> bool;
     fn read(&self, addr: u64) -> u64;
     fn write(&self, addr: u64, value: u64);
@@ -36,5 +70,5 @@ pub trait Mem {
 
 pub trait Logger {
     fn log(&self, message: Arguments<'_>);
+    fn ui_change_test(&mut self, test: &str);
 }
-

@@ -6,23 +6,20 @@ use bootloader_api::{
 };
 use core::panic::PanicInfo;
 
+use os::{layout, render, text};
 use os::{
-   power::reboot::reboot,
-   ui::{
-      widget::{
-        line::line,
-        input::input
-      },
-      layout::{vertical::VerticalLayout, Layout, LayoutParams},
-      logger::DebugLogger,
-      writer::{clear, init_ui},
-   },
-   mem::MemWriter,
-   PADDING
+    mem::MemWriter,
+    power::reboot::reboot,
+    ui::{
+        layout::{vertical::VerticalLayout, Layout, LayoutParams},
+        logger::DebugLogger,
+        widget::{input::input, line::line},
+        writer::{clear, init_ui},
+    },
+    PADDING,
 };
-use os::{text, layout, render};
 
-use memsos_core::{run_test, MemoryRegion};
+use memsos_core::{run_test, MemoryRegion, TestResult};
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -60,12 +57,21 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: Some((h - PADDING).try_into().unwrap()),
     });
 
-    let logger = DebugLogger::new(&debug_layout);
+    let mut logger = DebugLogger::new(&debug_layout);
 
     let info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
         line_size: Some(640),
         start_pos: (30, 30),
+        max_y: None,
+    });
+
+    let memtest_message = text!((info.width - (info.width / 2) + 6, 30), "Memtest");
+  
+    let test_info_layout = VerticalLayout::new(LayoutParams {
+        padding: 0,
+        line_size: None,
+        start_pos: (info.width - (info.width / 2) + 6, 70),
         max_y: None,
     });
 
@@ -78,6 +84,15 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &line((PADDING, PADDING), (w - PADDING, PADDING)),
         &line((PADDING, h / 2), (w - PADDING, h / 2)),
         &line((w / 2, PADDING), (w / 2, h / 2))
+    );
+    
+    render!(
+        &memtest_message
+    );
+
+    layout!(
+        test_info_layout,
+        &text!("here you should see information about the processor ram and others")
     );
 
     layout!(
@@ -94,6 +109,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es")
     );
 
+    let mut test_result = TestResult::new(); 
+
     for region in regions.iter() {
         if region.kind != MemoryRegionKind::Usable {
             layout!(
@@ -102,16 +119,22 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             );
             continue;
         }
-        run_test(
-            &logger,
+        test_result += run_test(
+            &mut logger,
             &memory_writer,
-            MemoryRegion {
+            &MemoryRegion {
                 start: region.start,
                 end: region.end,
             },
         );
     }
-
+    
+    layout!(
+        &test_info_layout,
+        &text!("Test Completed..."),
+        &text!((0,0), "Number of faulty memory addrs {}", test_result.bad_addrs)
+    );
+        
     loop {}
 }
 

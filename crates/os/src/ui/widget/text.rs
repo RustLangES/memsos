@@ -80,6 +80,10 @@ impl Text {
             _ => p,
         };
 
+        if c == '\n' {
+            return pos;
+        }
+
         let new_xpos = pos.0 + CHAR_RASTER_WIDTH;
         let new_ypos = pos.1 + CHAR_RASTER_HEIGHT.val() + BORDER_PADDING;
         if new_ypos >= writer.height() {

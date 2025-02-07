@@ -10,6 +10,7 @@ pub struct Keyboard;
 impl Driver for Keyboard {
     type ReadOutput = Event;
     fn read(&self) -> Self::ReadOutput {
+        KEYBOARD_CTRL.write(0xFF);
         while KEYBOARD_CTRL.read() & 0x01 == 0 {}
         let scancode = KEYBOARD_PORT.read();
 
