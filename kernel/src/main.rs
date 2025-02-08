@@ -37,7 +37,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
 
-    let Some(mem_offset) = physical else { loop {} };
+    let Some(mem_offset) = physical else {
+        panic!("no physical memory")
+    };
 
     let memory_writer = MemWriter::create(*mem_offset);
 
@@ -67,7 +69,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     });
 
     let memtest_message = text!((info.width - (info.width / 2) + 6, 30), "Memtest");
-  
+
     let test_info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
         line_size: None,
@@ -85,10 +87,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &line((PADDING, h / 2), (w - PADDING, h / 2)),
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
-    
-    render!(
-        &memtest_message
-    );
+
+    render!(&memtest_message);
 
     layout!(
         test_info_layout,
@@ -109,7 +109,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es")
     );
 
-    let mut test_result = TestResult::new(); 
+    let mut test_result = TestResult::default();
 
     for region in regions.iter() {
         if region.kind != MemoryRegionKind::Usable {
@@ -128,13 +128,18 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             },
         );
     }
-    
+
     layout!(
         &test_info_layout,
         &text!("Test Completed..."),
-        &text!((0,0), "Number of faulty memory addrs {}", test_result.bad_addrs)
+        &text!(
+            (0, 0),
+            "Number of faulty memory addrs {}",
+            test_result.bad_addrs
+        )
     );
-        
+
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 
