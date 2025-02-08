@@ -666,6 +666,7 @@ name = "kernel"
 version = "0.1.0"
 dependencies = [
  "bootloader_api",
+ "heapless",
  "memsos_core",
  "os",
 ]

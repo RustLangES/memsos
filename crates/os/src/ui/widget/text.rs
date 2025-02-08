@@ -87,7 +87,11 @@ impl Text {
         buffer.clear();
         write!(&mut buffer, "{args}").expect("Could not format args");
 
-        Self { text: buffer, pos, style }
+        Self {
+            text: buffer,
+            pos,
+            style,
+        }
     }
     fn newline(pos: (usize, usize)) -> (usize, usize) {
         let y = pos.1 + CHAR_RASTER_HEIGHT.val() + LINE_SPACING;
