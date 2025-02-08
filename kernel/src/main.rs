@@ -37,7 +37,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
 
-    let Some(mem_offset) = physical else { loop {} };
+    let Some(mem_offset) = physical else {
+        panic!("no physical memory")
+    };
 
     let memory_writer = MemWriter::create(*mem_offset);
 
@@ -137,6 +139,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         )
     );
 
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 
