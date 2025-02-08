@@ -7,14 +7,9 @@ use crate::test::pattern;
 use core::fmt::Arguments;
 use core::ops::{Add, AddAssign};
 
+#[derive(Default)]
 pub struct TestResult {
     pub bad_addrs: u64,
-}
-
-impl TestResult {
-    pub fn new() -> Self {
-        Self { bad_addrs: 0 }
-    }
 }
 
 impl Add for TestResult {

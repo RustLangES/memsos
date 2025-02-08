@@ -107,7 +107,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &text!("Made with love by Rust Lang Es")
     );
 
-    let mut test_result = TestResult::new();
+    let mut test_result = TestResult::default();
 
     for region in regions.iter() {
         if region.kind != MemoryRegionKind::Usable {
