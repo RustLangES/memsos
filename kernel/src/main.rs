@@ -6,7 +6,7 @@ use bootloader_api::{
 };
 use core::panic::PanicInfo;
 
-use os::{layout, render, text};
+use os::{layout, render, text, styled_text};
 use os::{
     mem::MemWriter,
     power::reboot::reboot,
@@ -66,7 +66,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: None,
     });
 
-    let memtest_message = text!((info.width - (info.width / 2) + 6, 30), "Memtest Info");
+    let memtest_message = styled_text!((info.width - (info.width / 2) + 6, 30), os::ui::widget::text::TextStyle {
+        invert: true,
+    }, "Memtest Info");
   
     let test_info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,

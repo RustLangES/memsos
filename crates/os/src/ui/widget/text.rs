@@ -13,21 +13,39 @@ const LINE_SPACING: usize = 2;
 const BORDER_PADDING: usize = 1;
 const STRING_SIZE: usize = 256;
 
+#[derive(Debug, Clone, Default)]
+pub struct TextStyle {
+    pub invert: bool,
+}
+
+impl TextStyle {
+    pub fn apply(&self, byte: u8) -> u8 {
+        let mut final_byte = byte;
+
+        if self.invert {
+            final_byte = byte ^ 0xFF;
+        }
+
+        final_byte
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Text {
     pub text: String<STRING_SIZE>,
     pub pos: (usize, usize),
+    pub style: TextStyle,
 }
 
 impl Widget for Text {
     fn render(&self, writer: &mut UiWriter) {
         self.text.chars().fold(self.pos, |acc, c| {
-            Text::write_char(c, writer, acc, writer.width())
+            self.write_char(c, writer, acc, writer.width())
         });
     }
     fn erase(&self, writer: &mut UiWriter) {
         self.text.chars().fold(self.pos, |acc, _c| {
-            Text::write_char(' ', writer, acc, writer.width())
+            self.write_char(' ', writer, acc, writer.width())
         });
     }
 }
@@ -35,7 +53,7 @@ impl Widget for Text {
 impl LayoutChild for Text {
     fn render_child(&self, writer: &mut UiWriter, args: crate::ui::layout::LayoutArgs) {
         self.text.chars().fold(args.pos, |acc, c| {
-            Text::write_char(c, writer, acc, args.line_size)
+            self.write_char(c, writer, acc, args.line_size)
         });
     }
     fn spacing(&self) -> usize {
@@ -46,23 +64,30 @@ impl LayoutChild for Text {
 #[macro_export]
 macro_rules! text {
   ($pos: expr, $($arg:tt)*) => {{
-      $crate::ui::widget::text::Text::new_from_args(format_args!($($arg)*), $pos)
+      $crate::ui::widget::text::Text::new_from_args(format_args!($($arg)*), $pos, $crate::ui::widget::text::TextStyle { invert: false })
   }};
   ($($arg:tt)*) => {{
-      $crate::ui::widget::text::Text::new_from_args(format_args!($($arg)*), (0, 0))
+      $crate::ui::widget::text::Text::new_from_args(format_args!($($arg)*), (0, 0), $crate::ui::widget::text::TextStyle { invert: false })
   }}
 }
 
+#[macro_export]
+macro_rules! styled_text {
+  ($pos: expr, $style: expr, $($arg:tt)*) => {{
+      $crate::ui::widget::text::Text::new_from_args(format_args!($($arg)*), $pos, $style)
+  }};
+}
+
 impl Text {
-    pub fn new(text: String<STRING_SIZE>, pos: (usize, usize)) -> Self {
-        Self { text, pos }
+    pub fn new(text: String<STRING_SIZE>, pos: (usize, usize), style: TextStyle) -> Self {
+        Self { text, pos, style }
     }
-    pub fn new_from_args(args: Arguments<'_>, pos: (usize, usize)) -> Self {
+    pub fn new_from_args(args: Arguments<'_>, pos: (usize, usize), style: TextStyle) -> Self {
         let mut buffer = String::<STRING_SIZE>::new();
         buffer.clear();
         write!(&mut buffer, "{args}").expect("Could not format args");
 
-        Self { text: buffer, pos }
+        Self { text: buffer, pos, style }
     }
     fn newline(pos: (usize, usize)) -> (usize, usize) {
         let y = pos.1 + CHAR_RASTER_HEIGHT.val() + LINE_SPACING;
@@ -70,6 +95,7 @@ impl Text {
     }
 
     fn write_char(
+        &self,
         c: char,
         writer: &mut UiWriter,
         p: (usize, usize),
@@ -95,7 +121,8 @@ impl Text {
 
         for (y, row) in get_char_raster(c).raster().iter().enumerate() {
             for (x, byte) in row.iter().enumerate() {
-                writer.write_pixel(pos.0 + x, pos.1 + y, *byte);
+                let pixel = self.style.apply(*byte);
+                writer.write_pixel(pos.0 + x, pos.1 + y, pixel);
             }
         }
 
