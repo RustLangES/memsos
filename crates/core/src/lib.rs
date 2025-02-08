@@ -2,9 +2,9 @@
 
 mod test;
 
-use core::fmt::Arguments;
 use crate::test::marchc;
 use crate::test::pattern;
+use core::fmt::Arguments;
 use core::ops::{Add, AddAssign};
 
 pub struct TestResult {
@@ -13,16 +13,16 @@ pub struct TestResult {
 
 impl TestResult {
     pub fn new() -> Self {
-        Self {
-            bad_addrs: 0,
-        }
+        Self { bad_addrs: 0 }
     }
 }
 
 impl Add for TestResult {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
-        TestResult { bad_addrs: self.bad_addrs + rhs.bad_addrs  }
+        TestResult {
+            bad_addrs: self.bad_addrs + rhs.bad_addrs,
+        }
     }
 }
 
@@ -32,12 +32,9 @@ impl AddAssign for TestResult {
     }
 }
 
-
 pub fn run_test<M: Mem, L: Logger>(logger: &mut L, mem: &M, region: &MemoryRegion) -> TestResult {
     logger.log(format_args!("Checking region {:?}", region));
-    let mut result = TestResult {
-        bad_addrs: 0
-    };
+    let mut result = TestResult { bad_addrs: 0 };
 
     logger.ui_change_test("March-C");
 
@@ -52,7 +49,6 @@ pub fn run_test<M: Mem, L: Logger>(logger: &mut L, mem: &M, region: &MemoryRegio
     result += pattern::run_test_rand_num(mem, region);
 
     result
-    
 }
 
 #[derive(Debug)]

@@ -16,7 +16,7 @@ pub fn run_march_c<M: Mem>(mem: &M, region: &MemoryRegion) -> TestResult {
             continue;
         }
         if mem.read(addr) != 0 {
-            bad_addrs += 1;   
+            bad_addrs += 1;
         }
         mem.write(addr, 1);
     }
@@ -26,7 +26,7 @@ pub fn run_march_c<M: Mem>(mem: &M, region: &MemoryRegion) -> TestResult {
             continue;
         }
         if mem.read(addr) != 1 {
-           bad_addrs += 1; 
+            bad_addrs += 1;
         }
         mem.write(addr, 0);
     }
@@ -36,7 +36,7 @@ pub fn run_march_c<M: Mem>(mem: &M, region: &MemoryRegion) -> TestResult {
             continue;
         }
         if mem.read(addr) != 0 {
-            bad_addrs += 1;    
+            bad_addrs += 1;
         }
         mem.write(addr, 1);
     }

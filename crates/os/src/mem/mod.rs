@@ -34,8 +34,6 @@ impl Mem for MemWriter {
 
 impl MemWriter {
     pub const fn create(offset: u64) -> Self {
-        Self {
-            offset,
-        }
+        Self { offset }
     }
 }
