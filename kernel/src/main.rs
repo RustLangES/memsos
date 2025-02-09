@@ -7,6 +7,7 @@ use bootloader_api::{
 };
 use core::panic::PanicInfo;
 use heapless::String;
+use os::drivers::driver::Driver;
 use os::{layout, render, styled_text, text};
 use os::{
     mem::MemWriter,

@@ -58,12 +58,28 @@ pub struct Event {
 impl From<u8> for Event {
     fn from(value: u8) -> Self {
         match value {
-            0x39 => Event {
+            39 => Event {
                 key: Key::Space,
                 state: KeyState::Press,
             },
             0xB9 => Event {
                 key: Key::Space,
+                state: KeyState::Release,
+            },
+            72 => Event {
+                key: Key::Up,
+                state: KeyState::Press,
+            },
+            200 => Event {
+                key: Key::Up,
+                state: KeyState::Release,
+            },
+            80 => Event {
+                key: Key::Down,
+                state: KeyState::Press,
+            },
+            208 => Event {
+                key: Key::Down,
                 state: KeyState::Release,
             },
             _ => Event {
@@ -84,5 +100,7 @@ pub enum KeyState {
 #[derive(Debug, PartialEq, Eq)]
 pub enum Key {
     Space,
+    Up,
+    Down,
     Unknown(u8),
 }
