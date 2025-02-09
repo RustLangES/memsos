@@ -79,7 +79,7 @@ macro_rules! styled_text {
 }
 
 impl Text {
-    pub fn new(text: String<STRING_SIZE>, pos: (usize, usize), style: TextStyle) -> Self {
+    pub const fn new(text: String<STRING_SIZE>, pos: (usize, usize), style: TextStyle) -> Self {
         Self { text, pos, style }
     }
     pub fn new_from_args(args: Arguments<'_>, pos: (usize, usize), style: TextStyle) -> Self {

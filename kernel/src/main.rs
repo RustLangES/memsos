@@ -8,7 +8,7 @@ use bootloader_api::{
 use core::panic::PanicInfo;
 use heapless::String;
 use os::drivers::driver::Driver;
-use os::{layout, render, styled_text, text};
+use os::{layout, render, styled_text, text, ask};
 use os::{
     mem::MemWriter,
     power::reboot::reboot,
@@ -21,7 +21,10 @@ use os::{
     PADDING,
 };
 
+
+
 use memsos_core::{run_test, MemoryRegion, TestResult};
+
 
 const CONFIG: BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();
@@ -83,11 +86,12 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: None,
     });
 
-    let asks = Ask::new(&["Option 1", "Option 2"]);
+    let question = ask!("Opt 1", "Opt 2");
+
 
     clear();
 
-    render!(&asks);
+    render!(&question);
 
     loop {}
     render!(

@@ -1,19 +1,19 @@
 use crate::ui::layout::{vertical::VerticalLayout, Layout, LayoutChild, LayoutParams};
-use crate::ui::widget::text::TextStyle;
+use crate::ui::widget::text::{Text, TextStyle};
 use crate::ui::widget::Widget;
 use crate::{render, styled_text, text};
 
-pub struct Ask {
-    pub options: &'static [&'static str],
+pub struct Ask<'a> {
+    pub options: &'a [Text],
 }
 
-impl Ask {
-    pub fn new(opts: &'static [&'static str]) -> Self {
+impl<'a> Ask<'a> {
+    pub fn new(opts: &'a [Text]) -> Self {
         Self { options: opts }
     }
 }
 
-impl Widget for Ask {
+impl Widget for Ask<'_> {
     fn render(&self, _writer: &mut crate::ui::writer::UiWriter) {
         let current = 0;
         let layout = VerticalLayout::new(LayoutParams {
@@ -26,9 +26,9 @@ impl Widget for Ask {
             let w = &self.options[i];
             let t = {
                 if current == i {
-                    styled_text!(layout.gen_pos(), TextStyle { invert: true }, "{w}")
+                    styled_text!(layout.gen_pos(), TextStyle { invert: true }, "{}", w.text)
                 } else {
-                    text!(layout.gen_pos(), "{w}")
+                    text!(layout.gen_pos(), "{}", w.text)
                 }
             };
             layout.margin(t.spacing());
@@ -39,3 +39,24 @@ impl Widget for Ask {
         unimplemented!();
     }
 }
+
+#[macro_export]
+macro_rules! ask {
+    ($($text:expr),*) => {{
+        unsafe {
+            let texts: &[$crate::ui::widget::text::Text] = &[
+                $(
+                    $crate::ui::widget::text::Text::new(
+                        String::try_from($text).unwrap(),
+                        (0, 0),
+                        $crate::ui::widget::text::TextStyle { invert: false }
+                    )
+                ),*
+            ];
+            
+            let options: &'static [$crate::ui::widget::text::Text] = ::core::mem::transmute(texts);
+            Ask::new(options)
+        }
+    }};
+}
+
