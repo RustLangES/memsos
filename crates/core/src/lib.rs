@@ -7,6 +7,7 @@ use crate::test::pattern;
 use core::fmt::Arguments;
 use core::ops::{Add, AddAssign};
 
+#[derive(Default)]
 pub struct TestResult {
     pub bad_addrs: u64,
 }
@@ -39,8 +40,7 @@ pub fn run_test<M: Mem, L: Logger>(
     kind: MemTestKind,
 ) -> TestResult {
     logger.log(format_args!("Checking region {:?}", region));
-
-    let mut result = TestResult { bad_addrs: 0 };
+    let mut result = TestResult::new();
 
     if kind == MemTestKind::Basic || kind == MemTestKind::Advanced {
         logger.ui_change_test("March-C");
@@ -82,3 +82,4 @@ pub enum MemTestKind {
     Basic,
     Advanced,
 }
+

@@ -39,7 +39,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let info = framebuffer.info();
     let buffer = framebuffer.into_buffer();
 
-    let Some(mem_offset) = physical else { loop {} };
+    let Some(mem_offset) = physical else {
+        panic!("no physical memory")
+    };
 
     let memory_writer = MemWriter::create(*mem_offset);
 
@@ -99,8 +101,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
 
-    //render!(&asks);
-
     render!(&memtest_message);
 
     layout!(
@@ -155,6 +155,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         )
     );
 
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 
@@ -162,7 +163,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 fn panic_handler(panic: &PanicInfo) -> ! {
     clear();
 
-    let panic_layout = VerticalLayout::new(LayoutParams {
+    let panic_layout = VerticalLayout::new(LayoutParams{
         start_pos: (0, 0),
         padding: 0,
         line_size: None,
@@ -179,3 +180,4 @@ fn panic_handler(panic: &PanicInfo) -> ! {
 
     loop {}
 }
+
