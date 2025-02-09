@@ -72,7 +72,7 @@
         pname = "memsos";
         version = "0.1.0";
         cargoArtifacts = memsosDeps;
-        buildPhaseCargoCommand = "cargo run -r -- export";
+        buildPhaseCargoCommand = "cargo run -r -- dist";
 
         postInstall = ''
           mkdir -p $out/bin
@@ -84,12 +84,12 @@
     in {
       packages.${system} = rec {
         default = memsosBIOS;
-        memsosBIOS = memsos "-b"; # BIOS package with runvm and bios.img
-        memsosUEFI = memsos "-u"; # UEFI package with runvm and uefi.img
+        memsosBIOS = memsos "bios"; # BIOS package with runvm and bios.img
+        memsosUEFI = memsos "uefi"; # UEFI package with runvm and uefi.img
       };
 
       devShells.${system}.default = craneLib.devShell {
-        packages = with pkgs; [ qemu toolchain runvm ];
+        packages = with pkgs; [ qemu toolchain runvm gnumake ];
       };
     };
 }
