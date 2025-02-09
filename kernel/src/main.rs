@@ -83,9 +83,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: None,
     });
 
-    let asks = Ask {
-        options: &["opt 1", "opt2"],
-    };
+    let asks = Ask::new(&["Option 1", "Option 2"]);
 
     clear();
 
@@ -163,7 +161,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 fn panic_handler(panic: &PanicInfo) -> ! {
     clear();
 
-    let panic_layout = VerticalLayout::new(LayoutParams{
+    let panic_layout = VerticalLayout::new(LayoutParams {
         start_pos: (0, 0),
         padding: 0,
         line_size: None,
@@ -180,4 +178,3 @@ fn panic_handler(panic: &PanicInfo) -> ! {
 
     loop {}
 }
-

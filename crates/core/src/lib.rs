@@ -82,4 +82,3 @@ pub enum MemTestKind {
     Basic,
     Advanced,
 }
-
