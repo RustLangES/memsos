@@ -1,6 +1,7 @@
 use crate::ui::layout::{vertical::VerticalLayout, Layout, LayoutChild, LayoutParams};
 use crate::ui::widget::text::{Text, TextStyle};
 use crate::ui::widget::Widget;
+use crate::drivers::keyboard::{Key, KEYBOARD};
 use crate::{render, styled_text, text};
 
 pub struct Ask<'a> {
@@ -15,7 +16,19 @@ impl<'a> Ask<'a> {
 
 impl Widget for Ask<'_> {
     fn render(&self, _writer: &mut crate::ui::writer::UiWriter) {
-        let current = 0;
+        let mut current = 0;
+        let mut read = Key::Unknown(0);
+        while read != Key::Space {
+        if current >= self.options.len() {
+            current = 0;
+        }
+        if read == Key::Down {
+            current += 1;
+        } else {
+            if current > 0 {
+                current -= 1;
+            }
+        }
         let layout = VerticalLayout::new(LayoutParams {
             max_y: None,
             padding: 0,
@@ -33,6 +46,8 @@ impl Widget for Ask<'_> {
             };
             layout.margin(t.spacing());
             render!(&t);
+        }
+        read = KEYBOARD.scan(&[Key::Down, Key::Up, Key::Space]);
         }
     }
     fn erase(&self, _writer: &mut crate::ui::writer::UiWriter) {

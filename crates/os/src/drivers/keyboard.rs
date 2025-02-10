@@ -30,7 +30,7 @@ impl Keyboard {
     }
     pub fn scan(&self, keys: &[Key]) -> Key {
         let mut event = self.read();
-        while !keys.contains(&event.key) {
+        while !keys.contains(&event.key) && event.state == KeyState::Press {
             event = self.read();
         }
 
