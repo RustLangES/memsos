@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: ./.github/actions/cargo-action.yml
+      - uses: ./.github/workflows/cargo-action.yml
         with:
           runs-on: ubuntu-latest
           name: cargo-action
