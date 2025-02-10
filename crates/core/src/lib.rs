@@ -51,7 +51,7 @@ pub fn run_test<M: Mem, L: Logger>(
         logger.ui_change_test("Pattern test, own address");
 
         result += pattern::run_test_own_address(mem, region);
-    } 
+    }
 
     if kind == MemTestKind::Advanced {
         logger.ui_change_test("Pattern test, rand number");

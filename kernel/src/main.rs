@@ -105,7 +105,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     layout!(
         test_info_layout,
-        &text!((0,0), "Kind of test {:?}", response),
+        &text!((0, 0), "Kind of test {:?}", response),
         &text!("here you should see information about the processor ram and others")
     );
 
