@@ -5,15 +5,15 @@ use bootloader_api::{
     config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
 };
 use core::panic::PanicInfo;
-
-use os::{layout, render, text};
+use heapless::String;
+use os::{ask, layout, render, styled_text, text};
 use os::{
     mem::MemWriter,
     power::reboot::reboot,
     ui::{
         layout::{vertical::VerticalLayout, Layout, LayoutParams},
         logger::DebugLogger,
-        widget::{input::input, line::line},
+        widget::{ask::Ask, input::input, line::line},
         writer::{clear, init_ui},
     },
     PADDING,
@@ -68,7 +68,11 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: None,
     });
 
-    let memtest_message = text!((info.width - (info.width / 2) + 6, 30), "Memtest");
+    let memtest_message = styled_text!(
+        (info.width - (info.width / 2) + 6, 30),
+        os::ui::widget::text::TextStyle { invert: true },
+        "Memtest Info"
+    );
 
     let test_info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
@@ -77,7 +81,14 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: None,
     });
 
+    let question = ask!("basic", "advanced");
+
     clear();
+
+    render!(&question);
+
+    clear();
+    let response = memsos_core::MemTestKind::try_from(question.get_result()).unwrap();
 
     render!(
         &line((PADDING, PADDING), (PADDING, h - PADDING)),
@@ -92,6 +103,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     layout!(
         test_info_layout,
+        &text!((0, 0), "Kind of test {:?}", response),
         &text!("here you should see information about the processor ram and others")
     );
 
@@ -111,6 +123,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     let mut test_result = TestResult::default();
 
+    layout!(&test_info_layout,);
+
     for region in regions.iter() {
         if region.kind != MemoryRegionKind::Usable {
             layout!(
@@ -126,6 +140,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                 start: region.start,
                 end: region.end,
             },
+            response,
         );
     }
 

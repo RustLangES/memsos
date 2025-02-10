@@ -1,11 +1,12 @@
 #![no_std]
 
 mod test;
-
 use crate::test::marchc;
 use crate::test::pattern;
 use core::fmt::Arguments;
+use core::fmt::Error;
 use core::ops::{Add, AddAssign};
+use heapless::String;
 
 #[derive(Default)]
 pub struct TestResult {
@@ -27,21 +28,30 @@ impl AddAssign for TestResult {
     }
 }
 
-pub fn run_test<M: Mem, L: Logger>(logger: &mut L, mem: &M, region: &MemoryRegion) -> TestResult {
+pub fn run_test<M: Mem, L: Logger>(
+    logger: &mut L,
+    mem: &M,
+    region: &MemoryRegion,
+    kind: MemTestKind,
+) -> TestResult {
     logger.log(format_args!("Checking region {:?}", region));
-    let mut result = TestResult { bad_addrs: 0 };
+    let mut result = TestResult::default();
 
-    logger.ui_change_test("March-C");
+    if kind == MemTestKind::Basic || kind == MemTestKind::Advanced {
+        logger.ui_change_test("March-C");
 
-    result += marchc::run_march_c(mem, region);
+        result += marchc::run_march_c(mem, region);
 
-    logger.ui_change_test("Pattern test, own address");
+        logger.ui_change_test("Pattern test, own address");
 
-    result += pattern::run_test_own_address(mem, region);
+        result += pattern::run_test_own_address(mem, region);
+    }
 
-    logger.ui_change_test("Pattern test, rand number");
+    if kind == MemTestKind::Advanced {
+        logger.ui_change_test("Pattern test, rand number");
 
-    result += pattern::run_test_rand_num(mem, region);
+        result += pattern::run_test_rand_num(mem, region);
+    }
 
     result
 }
@@ -62,4 +72,24 @@ pub trait Mem {
 pub trait Logger {
     fn log(&self, message: Arguments<'_>);
     fn ui_change_test(&mut self, test: &str);
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum MemTestKind {
+    Basic,
+    Advanced,
+}
+
+impl TryFrom<String<256>> for MemTestKind {
+    type Error = Error;
+    fn try_from(value: String<256>) -> Result<Self, Self::Error> {
+        let s = value;
+        Ok(match s.as_str() {
+            "basic" => Self::Basic,
+            "advanced" => Self::Advanced,
+            _ => {
+                return Err(Error);
+            }
+        })
+    }
 }

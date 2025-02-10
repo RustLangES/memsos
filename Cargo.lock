@@ -666,6 +666,7 @@ name = "kernel"
 version = "0.1.0"
 dependencies = [
  "bootloader_api",
+ "heapless",
  "memsos_core",
  "os",
 ]
@@ -761,6 +762,7 @@ dependencies = [
 name = "memsos_core"
 version = "0.1.0"
 dependencies = [
+ "heapless",
  "rand",
  "rand_chacha",
 ]

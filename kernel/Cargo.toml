@@ -7,3 +7,4 @@ edition = "2021"
 os = { path = "../crates/os" }
 bootloader_api = "0.11.8"
 memsos_core = { path = "../crates/core" }
+heapless = "0.8.0"
