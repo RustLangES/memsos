@@ -42,14 +42,18 @@ impl Widget for Ask<'_> {
             if current >= self.options.len() {
                 current = 0;
             }
-            if read == Key::Down {
-                if current <= self.options.len() {
-                    current += 1;
+            match read {
+                Key::Down => {
+                    if current <= self.options.len() {
+                        current += 1;
+                    }
                 }
-            } else if read == Key::Up {
-                if current > 0 {
-                    current -= 1;
+                Key::Up => {
+                    if current > 0 {
+                        current = current.saturating_sub(1);
+                    }
                 }
+                _ => {}
             }
 
             let layout = VerticalLayout::new(LayoutParams {

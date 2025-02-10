@@ -2,12 +2,10 @@
 #![no_main]
 
 use bootloader_api::{
-    config::Mapping, entry_point, info::MemoryRegionKind, info::MemoryRegions, BootInfo,
-    BootloaderConfig,
+    config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
 };
 use core::panic::PanicInfo;
 use heapless::String;
-use os::drivers::driver::Driver;
 use os::{ask, layout, render, styled_text, text};
 use os::{
     mem::MemWriter,
