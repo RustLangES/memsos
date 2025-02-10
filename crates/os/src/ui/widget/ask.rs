@@ -21,7 +21,7 @@ impl<'a> Ask<'a> {
     }
     pub fn get_result(&self) -> String<256> {
         let index = self.selection.load(Ordering::SeqCst);
-        render!(&text!((30, 90), "{index}"));
+
         let i = {
             if index > 0 {
                 index - 1
@@ -37,7 +37,7 @@ impl Widget for Ask<'_> {
     fn render(&self, _writer: &mut crate::ui::writer::UiWriter) {
         let mut current = 0;
         let mut read = Key::Unknown(0);
-        render!(&text!((0, 90), "{}", self.options.len()));
+
         while !(read == Key::Space) {
             if current >= self.options.len() {
                 current = 0;
@@ -51,7 +51,6 @@ impl Widget for Ask<'_> {
                     current -= 1;
                 }
             }
-            render!(&text!((30, 30), "{current}"));
 
             let layout = VerticalLayout::new(LayoutParams {
                 max_y: None,

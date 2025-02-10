@@ -51,7 +51,9 @@ pub fn run_test<M: Mem, L: Logger>(
         logger.ui_change_test("Pattern test, own address");
 
         result += pattern::run_test_own_address(mem, region);
-    } else {
+    } 
+
+    if kind == MemTestKind::Advanced {
         logger.ui_change_test("Pattern test, rand number");
 
         result += pattern::run_test_rand_num(mem, region);
@@ -78,7 +80,7 @@ pub trait Logger {
     fn ui_change_test(&mut self, test: &str);
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum MemTestKind {
     Basic,
     Advanced,

@@ -89,10 +89,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     render!(&question);
 
+    clear();
     let response = memsos_core::MemTestKind::try_from(question.get_result()).unwrap();
 
-    render!(&text!((90, 39), "{:?}", response));
-    loop {}
     render!(
         &line((PADDING, PADDING), (PADDING, h - PADDING)),
         &line((PADDING, h - PADDING), (w - PADDING, h - PADDING)),
@@ -106,6 +105,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     layout!(
         test_info_layout,
+        &text!((0,0), "Kind of test {:?}", response),
         &text!("here you should see information about the processor ram and others")
     );
 
@@ -142,7 +142,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
                 start: region.start,
                 end: region.end,
             },
-            memsos_core::MemTestKind::Basic, // TODO: ask the user for this option
+            response,
         );
     }
 
