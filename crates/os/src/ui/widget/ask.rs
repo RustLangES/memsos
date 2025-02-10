@@ -58,6 +58,9 @@ impl Widget for Ask<'_> {
                 start_pos: (0, 0),
                 line_size: None,
             });
+            let msg = text!(layout.gen_pos(), "What kind of tests do you want?");
+            render!(&msg);
+            layout.margin(msg.spacing());
             for i in 0..self.options.len() {
                 let w = &self.options[i];
                 let t = {
