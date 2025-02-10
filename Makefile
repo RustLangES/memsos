@@ -1,3 +1,5 @@
+all: build lint fmt test run
+
 build:
 	cargo build
 
@@ -12,3 +14,6 @@ fmt-fix:
 
 test:
 	cargo test
+
+run:
+	cargo run
