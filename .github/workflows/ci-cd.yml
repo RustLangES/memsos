@@ -22,12 +22,16 @@ jobs:
       clippy-command: "-- -D warnings"
       tests-command: "test"
   
-  build_and_test:
+  build:
+    permissions:
+      contents: read
+
     needs: quality-gate
-    name: Rust project
+    name: Build
     runs-on: ubuntu-latest
     steps:
 
+      - uses: actions/checkout@v4
       - uses: ./.github/workflows/cargo-action.yml
         with:
           runs-on: ubuntu-latest

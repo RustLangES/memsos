@@ -29,12 +29,11 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     steps:
 
-        - uses: actions/checkout@v4
-        - uses: actions-rs/toolchain@v1
+        - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af
           with:
             toolchain: stable
   
-        - uses: actions-rs/cargo@v1
+        - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505
           with:
             command: ${{ inputs.command }}
             args: ${{ inputs.args }}
