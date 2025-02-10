@@ -1,0 +1,40 @@
+name: Checkout Rust
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        default: ubuntu-latest
+        required: false
+        type: string
+      name:
+        default: cargo-action
+        required: false
+        type: string
+      command:
+        default: check
+        required: false
+        type: string
+      args:
+        default: ""
+        required: false
+        type: string
+
+jobs:
+  cargo-action:
+    permissions:
+      contents: read
+
+    name: ${{ inputs.name }}
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+
+        - uses: actions/checkout@v4
+        - uses: actions-rs/toolchain@v1
+          with:
+            toolchain: stable
+  
+        - uses: actions-rs/cargo@v1
+          with:
+            command: ${{ inputs.command }}
+            args: ${{ inputs.args }}

@@ -1,0 +1,36 @@
+name: CI/CD
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - "src/**/**.rs"
+      - "crates/**/**.rs"
+      - "kernel/*.rs"
+
+jobs:
+  quality-gate:
+    uses: RustLangES/.github/.github/workflows/quality-gate.yml@main
+    with:
+      runs-on: ubuntu-latest
+      checks-command: "--all --check"
+      clippy-command: "-- -D warnings"
+      tests-command: "test"
+  
+  build_and_test:
+    needs: quality-gate
+    name: Rust project
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: ./.github/actions/cargo-action.yml
+        with:
+          runs-on: ubuntu-latest
+          name: cargo-action
+          command: build
+          args: "--release --all-features"
