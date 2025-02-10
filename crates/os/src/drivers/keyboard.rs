@@ -28,6 +28,14 @@ impl Keyboard {
             }
         }
     }
+    pub fn scan(&self, keys: &[Key]) -> Key {
+        let mut event = self.read();
+        while !keys.contains(&event.key) {
+            event = self.read();
+        }
+
+        event.key
+    }
 }
 
 #[derive(Debug)]
