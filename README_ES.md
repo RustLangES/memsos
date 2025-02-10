@@ -2,6 +2,6 @@
 
 # Memsos
 
-Mesos es una herramienta escrita en Rust con el objetivo de chequear tu memoria de una manera rápida. Mesos funciona tanto para UEFI como para BIOS.
+Memsos es una herramienta escrita en Rust con el objetivo de chequear tu memoria de una manera rápida. Mesos funciona tanto para UEFI como para BIOS.
 
 ### En desarrollo

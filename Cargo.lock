@@ -762,6 +762,7 @@ dependencies = [
 name = "memsos_core"
 version = "0.1.0"
 dependencies = [
+ "heapless",
  "rand",
  "rand_chacha",
 ]

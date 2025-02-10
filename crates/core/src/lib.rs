@@ -1,11 +1,12 @@
 #![no_std]
 
 mod test;
-
 use crate::test::marchc;
 use crate::test::pattern;
 use core::fmt::Arguments;
+use core::fmt::Error;
 use core::ops::{Add, AddAssign};
+use heapless::String;
 
 #[derive(Default)]
 pub struct TestResult {
@@ -81,4 +82,18 @@ pub trait Logger {
 pub enum MemTestKind {
     Basic,
     Advanced,
+}
+
+impl TryFrom<String<256>> for MemTestKind {
+    type Error = Error;
+    fn try_from(value: String<256>) -> Result<Self, Self::Error> {
+        let s = value;
+        Ok(match s.as_str() {
+            "basic" => Self::Basic,
+            "advanced" => Self::Advanced,
+            _ => {
+                return Err(Error);
+            }
+        })
+    }
 }
