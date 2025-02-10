@@ -13,12 +13,6 @@ pub struct TestResult {
     pub bad_addrs: u64,
 }
 
-impl TestResult {
-    pub fn new() -> Self {
-        Self { bad_addrs: 0 }
-    }
-}
-
 impl Add for TestResult {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
@@ -41,7 +35,7 @@ pub fn run_test<M: Mem, L: Logger>(
     kind: MemTestKind,
 ) -> TestResult {
     logger.log(format_args!("Checking region {:?}", region));
-    let mut result = TestResult::new();
+    let mut result = TestResult::default();
 
     if kind == MemTestKind::Basic || kind == MemTestKind::Advanced {
         logger.ui_change_test("March-C");
