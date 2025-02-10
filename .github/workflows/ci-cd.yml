@@ -15,6 +15,9 @@ on:
 
 jobs:
   quality-gate:
+    permissions:
+      contents: read
+
     uses: RustLangES/.github/.github/workflows/quality-gate.yml@main
     with:
       runs-on: ubuntu-latest
@@ -32,9 +35,11 @@ jobs:
     steps:
 
       - uses: actions/checkout@v4
-      - uses: ./.github/workflows/cargo-action.yml
+      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af
         with:
-          runs-on: ubuntu-latest
-          name: cargo-action
+          toolchain: stable
+
+      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505
+        with:
           command: build
           args: "--release --all-features"
