@@ -1,14 +1,8 @@
 mod qemu;
 use qemu::QemuBuilder;
-use structopt::StructOpt;
+use std::env;
 
-#[derive(StructOpt, Debug)]
-struct Cli {
-    #[structopt(subcommand)]
-    command: Option<Command>,
-}
-
-#[derive(StructOpt, Debug)]
+#[derive(Debug)]
 enum Command {
     Uefi,
     Bios,
@@ -16,9 +10,25 @@ enum Command {
 }
 
 fn main() {
-    let cli = Cli::from_args();
+    let args: Vec<String> = env::args().collect();
 
-    match cli.command.unwrap_or(Command::Uefi) {
+    let command = {
+        if args.len() < 2 {
+            Command::Uefi
+        } else if args.len() > 2 {
+            panic!("Only one argument is expected")
+        } 
+        else {
+            match args[1].as_str() {
+                "bios" => Command::Bios,
+                "dist" => Command::Dist,
+                "uefi" => Command::Uefi,
+                _ => panic!("Unknown command"),
+            }
+        }
+    };
+
+    match command {
         Command::Uefi => {
             let qemu = QemuBuilder::new()
                 .img(env!("UEFI_PATH").to_string())
