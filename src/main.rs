@@ -13,18 +13,18 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     let command = {
-        if args.len() < 2 {
-            Command::Uefi
-        } else if args.len() > 2 {
-            panic!("Only one argument is expected")
-        } 
-        else {
-            match args[1].as_str() {
-                "bios" => Command::Bios,
-                "dist" => Command::Dist,
-                "uefi" => Command::Uefi,
-                _ => panic!("Unknown command"),
+        let a = match args.len() {
+            n if n < 2 => "uefi",
+            n if n > 2 => {
+                panic!("Only one argument is expected");
             }
+            _ => args[1].as_str(),
+        };
+        match a {
+            "bios" => Command::Bios,
+            "dist" => Command::Dist,
+            "uefi" => Command::Uefi,
+            _ => panic!("Unknown command"),
         }
     };
 
