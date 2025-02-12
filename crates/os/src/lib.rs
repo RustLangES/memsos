@@ -6,7 +6,7 @@
 pub mod asm;
 pub mod drivers;
 pub mod mem;
-pub mod power;
+pub mod arch;
 pub mod ui;
 
 pub const PADDING: isize = 20;

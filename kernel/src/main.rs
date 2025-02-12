@@ -9,7 +9,7 @@ use heapless::String;
 use os::{ask, layout, render, styled_text, text};
 use os::{
     mem::MemWriter,
-    power::reboot::reboot,
+    arch::reboot::reboot,
     ui::{
         layout::{vertical::VerticalLayout, Layout, LayoutParams},
         logger::DebugLogger,
