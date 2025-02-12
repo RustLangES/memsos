@@ -9,7 +9,7 @@ use heapless::String;
 use os::{ask, layout, render, styled_text, text};
 use os::{
     mem::MemWriter,
-    arch::reboot::reboot,
+    arch::{reboot::reboot, cpuid::CpuInfo},
     ui::{
         layout::{vertical::VerticalLayout, Layout, LayoutParams},
         logger::DebugLogger,
@@ -81,6 +81,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: None,
     });
 
+    let cpuinfo = CpuInfo::new();
+
     let question = ask!("basic", "advanced");
 
     clear();
@@ -104,7 +106,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     layout!(
         test_info_layout,
         &text!((0, 0), "Kind of test {:?}", response),
-        &text!("here you should see information about the processor ram and others")
+        &text!((0, 0), "{:?}", cpuinfo) // TODO: change this to a better way of viewing processor information
     );
 
     layout!(
