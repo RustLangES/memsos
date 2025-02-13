@@ -1,2 +1,2 @@
-pub mod reboot;
 pub mod cpuid;
+pub mod reboot;

@@ -6,10 +6,9 @@ use bootloader_api::{
 };
 use core::panic::PanicInfo;
 use heapless::String;
-use os::{ask, layout, render, styled_text, text};
 use os::{
+    arch::{cpuid::CpuInfo, reboot::reboot},
     mem::MemWriter,
-    arch::{reboot::reboot, cpuid::CpuInfo},
     ui::{
         layout::{vertical::VerticalLayout, Layout, LayoutParams},
         logger::DebugLogger,
@@ -18,6 +17,7 @@ use os::{
     },
     PADDING,
 };
+use os::{ask, layout, render, styled_text, text};
 
 use memsos_core::{run_test, MemoryRegion, TestResult};
 
