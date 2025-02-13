@@ -4,6 +4,7 @@ use heapless::String;
 #[derive(Debug)]
 pub struct CpuInfo {
     pub vendor: Vendor,
+    pub model: &'static str,
     pub family: u32,
     pub stepping: u32,
 }
@@ -20,8 +21,9 @@ impl CpuInfo {
         let vendor = get_vendor();
         let family = get_cpu_family();
         let stepping = get_cpu_stepping();
-
-        Self { vendor, family, stepping }
+        let model = get_cpu_model();
+      
+        Self { vendor, family, stepping, model }
     }
 }
 
@@ -83,6 +85,44 @@ pub fn get_cpu_stepping() -> u32 {
     let result = cpuid(1);
     result.eax & 0xf
 }
+
+pub fn get_cpu_model() -> &'static str {
+    let result = cpuid(1);
+
+    let base_model = (result.eax >> 4) & 0xF;
+    let base_family = (result.eax >> 8) & 0xF;
+    let extended_model = (result.eax >> 16) & 0xF;
+    let extended_family = (result.eax >> 20) & 0xFF;
+
+    let model = if base_family == 0x06 || base_family == 0x0F {
+        (extended_model << 4) | base_model
+    } else {
+        base_model
+    };
+
+    let family = if base_family == 0x0F {
+        base_family + extended_family
+    } else {
+        base_family
+    };
+
+    let vendor = get_vendor();
+
+    // TODO: add more models
+    match vendor {
+        Vendor::Intel => match (family, model) {
+            (6, _) => "Intel Core i3",
+            (0x0F, _) => "Intel Core i7",
+            _ => "???",
+        },
+        Vendor::Amd => match (family, model) {
+            (23, _) => "Amd ryzen",
+            _ => "???",
+        },
+        _ => "Unknown Vendor"
+    }
+}
+
 
 
 struct CpuId {
