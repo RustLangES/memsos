@@ -5,6 +5,7 @@ use heapless::String;
 pub struct CpuInfo {
     pub vendor: Vendor,
     pub family: u32,
+    pub stepping: u32,
 }
 
 #[derive(Debug)]
@@ -18,8 +19,9 @@ impl CpuInfo {
     pub fn new() -> Self {
         let vendor = get_vendor();
         let family = get_cpu_family();
+        let stepping = get_cpu_stepping();
 
-        Self { vendor, family }
+        Self { vendor, family, stepping }
     }
 }
 
@@ -75,6 +77,11 @@ pub fn get_cpu_family() -> u32 {
     } else {
         family
     }
+}
+
+pub fn get_cpu_stepping() -> u32 {
+    let result = cpuid(1);
+    result.eax & 0xf
 }
 
 
