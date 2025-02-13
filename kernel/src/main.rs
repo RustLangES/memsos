@@ -6,18 +6,18 @@ use bootloader_api::{
 };
 use core::panic::PanicInfo;
 use heapless::String;
-use os::{ask, layout, render, styled_text, text};
 use os::{
+    arch::{cpuid::CpuInfo, reboot::reboot},
     mem::MemWriter,
-    power::reboot::reboot,
     ui::{
         layout::{vertical::VerticalLayout, Layout, LayoutParams},
         logger::DebugLogger,
-        widget::{ask::Ask, input::input, line::line},
+        widget::{ask::Ask, input::input, line::line, text::TextStyle},
         writer::{clear, init_ui},
     },
     PADDING,
 };
+use os::{ask, layout, render, styled_text, text};
 
 use memsos_core::{run_test, MemoryRegion, TestResult};
 
@@ -81,6 +81,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         max_y: None,
     });
 
+    let cpuinfo = CpuInfo::new();
+
     let question = ask!("basic", "advanced");
 
     clear();
@@ -103,8 +105,12 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     layout!(
         test_info_layout,
+        &styled_text!((0, 0), TextStyle { invert: true }, "Cpu info"),
         &text!((0, 0), "Kind of test {:?}", response),
-        &text!("here you should see information about the processor ram and others")
+        &text!((0, 0), "Model: {}", cpuinfo.model),
+        &text!((0, 0), "Vendor: {:?}", cpuinfo.vendor),
+        &text!((0, 0), "family: {}", cpuinfo.family),
+        &text!((0, 0), "Stepping: {}", cpuinfo.stepping)
     );
 
     layout!(
@@ -146,6 +152,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     layout!(
         &test_info_layout,
+        &styled_text!((0, 0), TextStyle { invert: true }, "Test result"),
         &text!("Test Completed..."),
         &text!(
             (0, 0),
