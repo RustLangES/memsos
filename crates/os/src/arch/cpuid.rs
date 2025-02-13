@@ -22,8 +22,13 @@ impl CpuInfo {
         let family = get_cpu_family();
         let stepping = get_cpu_stepping();
         let model = get_cpu_model();
-      
-        Self { vendor, family, stepping, model }
+
+        Self {
+            vendor,
+            family,
+            stepping,
+            model,
+        }
     }
 }
 
@@ -71,7 +76,7 @@ pub fn get_vendor() -> Vendor {
 
 pub fn get_cpu_family() -> u32 {
     let result = cpuid(1);
-    let family = (result.eax >> 8) & 0x0f; 
+    let family = (result.eax >> 8) & 0x0f;
     let extended_family = (result.eax >> 20) & 0xff;
 
     if family == 15 {
@@ -119,16 +124,13 @@ pub fn get_cpu_model() -> &'static str {
             (23, _) => "Amd ryzen",
             _ => "???",
         },
-        _ => "Unknown Vendor"
+        _ => "Unknown Vendor",
     }
 }
-
-
 
 struct CpuId {
     edx: u32,
     ecx: u32,
     ebx: u32,
-    eax: u32
+    eax: u32,
 }
-

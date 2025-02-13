@@ -12,7 +12,7 @@ use os::{
     ui::{
         layout::{vertical::VerticalLayout, Layout, LayoutParams},
         logger::DebugLogger,
-        widget::{ask::Ask, input::input, line::line},
+        widget::{ask::Ask, input::input, line::line, text::TextStyle},
         writer::{clear, init_ui},
     },
     PADDING,
@@ -105,8 +105,12 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     layout!(
         test_info_layout,
+        &styled_text!((0, 0), TextStyle { invert: true }, "Cpu info"),
         &text!((0, 0), "Kind of test {:?}", response),
-        &text!((0, 0), "{:?}", cpuinfo) // TODO: change this to a better way of viewing processor information
+        &text!((0, 0), "Model: {}", cpuinfo.model),
+        &text!((0, 0), "Vendor: {:?}", cpuinfo.vendor),
+        &text!((0, 0), "family: {}", cpuinfo.family),
+        &text!((0, 0), "Stepping: {}", cpuinfo.stepping)
     );
 
     layout!(
@@ -148,6 +152,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     layout!(
         &test_info_layout,
+        &styled_text!((0, 0), TextStyle { invert: true }, "Test result"),
         &text!("Test Completed..."),
         &text!(
             (0, 0),
