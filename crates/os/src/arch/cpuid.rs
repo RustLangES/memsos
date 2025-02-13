@@ -1,5 +1,4 @@
 use core::arch::asm;
-use heapless::String;
 
 #[derive(Debug)]
 pub struct CpuInfo {
@@ -32,8 +31,13 @@ impl CpuInfo {
     }
 }
 
-impl CpuInfo {}
+impl Default for CpuInfo {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
+#[allow(unused_assignments)]
 fn cpuid(mode: u32) -> CpuId {
     let mut edx: u32 = 0;
     let mut ecx: u32 = 0;
