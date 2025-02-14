@@ -2,7 +2,8 @@
 #![no_main]
 
 use bootloader_api::{
-    config::Mapping, entry_point, info::MemoryRegionKind, BootInfo, BootloaderConfig,
+    config::Mapping, entry_point, info::MemoryRegionKind, info::MemoryRegions, BootInfo,
+    BootloaderConfig,
 };
 use core::panic::PanicInfo;
 use heapless::String;
@@ -32,6 +33,7 @@ entry_point!(kernel_main, config = &CONFIG);
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
     let regions = &boot_info.memory_regions;
+
     let api_version = &boot_info.api_version;
     let framebuffer = boot_info.framebuffer.take().unwrap();
     let info = framebuffer.info();
@@ -105,8 +107,19 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     layout!(
         test_info_layout,
+        &styled_text!((0, 0), TextStyle { invert: true }, "Mem Info"),
+        &text!(
+            (0, 0),
+            "Mem Size: {:.2} GB",
+            calculate_total_memory_gb(regions)
+        ),
+        &text!("Mem Speed: Faied to load Information")
+    );
+
+    layout!(
+        test_info_layout,
         &styled_text!((0, 0), TextStyle { invert: true }, "Cpu info"),
-        &text!((0, 0), "Kind of test {:?}", response),
+        &text!((0, 0), "Kind of test: {:?}", response),
         &text!((0, 0), "Model: {}", cpuinfo.model),
         &text!((0, 0), "Vendor: {:?}", cpuinfo.vendor),
         &text!((0, 0), "family: {}", cpuinfo.family),
@@ -128,8 +141,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     );
 
     let mut test_result = TestResult::default();
-
-    layout!(&test_info_layout,);
 
     for region in regions.iter() {
         if region.kind != MemoryRegionKind::Usable {
@@ -163,6 +174,17 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     #[allow(clippy::empty_loop)]
     loop {}
+}
+
+fn calculate_total_memory_gb(regions: &MemoryRegions) -> f64 {
+    let mut total_memory_kb = 0;
+
+    for region in regions.iter() {
+        let region_size_kb = (region.end - region.start + 1) / 1024;
+        total_memory_kb += region_size_kb;
+    }
+
+    total_memory_kb as f64 / 1048576.0
 }
 
 #[panic_handler]
