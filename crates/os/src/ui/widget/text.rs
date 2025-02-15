@@ -19,7 +19,7 @@ pub struct TextStyle {
 }
 
 impl TextStyle {
-    pub fn apply(&self, byte: u8) -> u8 {
+    pub fn apply(&self, byte: u32) -> u32 {
         let mut final_byte = byte;
 
         if self.invert {
@@ -125,8 +125,8 @@ impl Text {
 
         for (y, row) in get_char_raster(c).raster().iter().enumerate() {
             for (x, byte) in row.iter().enumerate() {
-                let pixel = self.style.apply(*byte);
-                writer.write_pixel(pos.0 + x, pos.1 + y, pixel);
+                let pixel = self.style.apply(*byte as u32);
+                writer.write_pixel((pos.0 + x).try_into().unwrap(), (pos.1 + y).try_into().unwrap(), pixel);
             }
         }
 

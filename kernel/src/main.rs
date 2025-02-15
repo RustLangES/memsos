@@ -1,10 +1,6 @@
 #![no_std]
 #![no_main]
 
-use bootloader_api::{
-    config::Mapping, entry_point, info::MemoryRegionKind, info::MemoryRegions, BootInfo,
-    BootloaderConfig,
-};
 use core::panic::PanicInfo;
 use heapless::String;
 use os::{
@@ -22,15 +18,7 @@ use os::{ask, layout, render, styled_text, text};
 
 use memsos_core::{run_test, MemoryRegion, TestResult};
 
-const CONFIG: BootloaderConfig = {
-    let mut config = bootloader_api::BootloaderConfig::new_default();
-
-    config.mappings.physical_memory = Some(Mapping::Dynamic);
-    config
-};
-entry_point!(kernel_main, config = &CONFIG);
-
-fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
+pub extern "C" fn _start(boot_info: &'static mut BootInfo) -> ! {
     let physical = &boot_info.physical_memory_offset.into_option();
     let regions = &boot_info.memory_regions;
 

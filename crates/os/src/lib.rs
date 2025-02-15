@@ -8,5 +8,7 @@ pub mod asm;
 pub mod drivers;
 pub mod mem;
 pub mod ui;
+pub mod request;
 
 pub const PADDING: isize = 20;
+

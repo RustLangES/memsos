@@ -1,33 +1,33 @@
 use crate::ui::widget::Widget;
 use crate::PADDING;
-use bootloader_api::info::{FrameBufferInfo, PixelFormat};
+use limine::framebuffer::Framebuffer;
 use core::{cell::SyncUnsafeCell, ptr};
+use crate::request::FRAMEBUFFER_REQUEST;
 
 pub static UI_WRITER: SyncUnsafeCell<Option<UiWriter>> = SyncUnsafeCell::new(None);
 
 pub struct UiWriter {
-    pub buffer: &'static mut [u8],
-    pub info: FrameBufferInfo,
+    pub buffer: Framebuffer<'static>,
 }
 
 impl UiWriter {
-    pub const fn new(buffer: &'static mut [u8], info: FrameBufferInfo) -> Self {
-        Self { buffer, info }
+    pub const fn new(buffer: Framebuffer<'static>) -> Self {
+        Self { buffer }
     }
-    pub const fn width(&self) -> usize {
-        self.info.width
+    pub fn width(&self) -> usize {
+        usize::try_from(self.buffer.width()).expect("Cannot convert u64 to usize")
     }
-    pub const fn height(&self) -> usize {
-        self.info.height
+    pub fn height(&self) -> usize {
+        usize::try_from(self.buffer.height()).expect("Cannot convert u64 to usize")
     }
-    pub fn clear_zone(&mut self, from: (usize, usize), to: (usize, usize)) {
-        let padding: usize = PADDING.try_into().unwrap();
+    pub fn clear_zone(&mut self, from: (u64, u64), to: (u64, u64)) {
+        let padding:  u64 = PADDING.try_into().unwrap();
         for x in from.0..=to.0 {
             for y in from.1..=to.1 {
                 if x < padding
-                    || x >= self.width() - padding
+                    || x >= self.width() as u64 - padding
                     || y < padding
-                    || y >= self.height() - padding
+                    || y >= self.height() as u64 - padding
                 {
                     continue;
                 }
@@ -36,31 +36,31 @@ impl UiWriter {
             }
         }
     }
-
     pub fn clear(&mut self) {
-        unsafe {
-            ptr::write_bytes(self.buffer.as_mut_ptr(), 0, self.buffer.len());
+        let width = self.width() as u64;
+        let height = self.height() as u64;
+
+        for y in 0..height {
+            for x in 0..width {
+                let pixel_offset = y * self.buffer.pitch() + x * 4;
+                let offset = usize::try_from(pixel_offset)
+                    .expect("Cannot convert the pixel offset to usize");
+                unsafe {
+                    let buffer = self.buffer.addr().add(offset).cast::<u32>();
+                    *buffer = 0x0000_0000;
+                }
+            }
         }
     }
-    pub fn write_pixel(&mut self, x: usize, y: usize, intensity: u8) {
-        if x >= self.info.width || y >= self.info.height {
-            return;
+    pub fn write_pixel(&mut self, x: u64, y: u64, color: u32) {
+        let pixel_offset = y * self.buffer.pitch() + x * 4;
+        let offset =
+            usize::try_from(pixel_offset).expect("Cannot convert the pixel offset to usize");
+        unsafe {
+            let buffer = self.buffer.addr().add(offset).cast::<u32>();
+
+            *buffer = color;
         }
-
-        let pixel_offset = y * self.info.stride + x;
-        let color = match self.info.pixel_format {
-            PixelFormat::Rgb => [intensity, intensity, intensity / 2, 0],
-            PixelFormat::Bgr => [intensity / 2, intensity, intensity, 0],
-            PixelFormat::U8 => [if intensity > 200 { 0xf } else { 0 }, 0, 0, 0],
-            other => {
-                panic!("pixel format {:?} not supported in logger", other)
-            }
-        };
-        let bytes_per_pixel = self.info.bytes_per_pixel;
-        let byte_offset = pixel_offset * bytes_per_pixel;
-
-        self.buffer[byte_offset..(byte_offset + bytes_per_pixel)]
-            .copy_from_slice(&color[..bytes_per_pixel]);
     }
     pub fn render<T: Widget>(&mut self, widget: &T) {
         widget.render(self);
@@ -74,11 +74,13 @@ unsafe impl Send for UiWriter {}
 unsafe impl Sync for UiWriter {}
 
 #[inline]
-pub fn init_ui(buffer: &'static mut [u8], info: FrameBufferInfo) {
-    let ui = UiWriter { buffer, info };
-
-    unsafe {
-        *UI_WRITER.get() = Some(ui);
+pub fn init_ui() {
+     if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response() {
+        if let Some(framebuffer) = framebuffer_response.framebuffers().next() {
+            let writer = UiWriter::new(framebuffer);
+            
+            unsafe { *UI_WRITER.get() = Some(writer); }
+        }
     }
 }
 

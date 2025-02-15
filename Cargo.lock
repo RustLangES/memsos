@@ -3,10 +3,10 @@
 version = 4
 
 [[package]]
-name = "bootloader_api"
-version = "0.11.9"
+name = "bitflags"
+version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57a08a674787a3711ea0ba3bd730e6ffeb74832dcf6c51caf553528b33b54f73"
+checksum = "8f68f53c83ab957f72c32642f3868eec03eb974d1fb82e453128456482613d36"
 
 [[package]]
 name = "byteorder"
@@ -37,10 +37,19 @@ dependencies = [
 name = "kernel"
 version = "0.1.0"
 dependencies = [
- "bootloader_api",
  "heapless",
+ "limine",
  "memsos_core",
  "os",
+]
+
+[[package]]
+name = "limine"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ca87cab008b8efeebdbe037cd4d1438037d48c5cb6fed939ffa5aa06315a321"
+dependencies = [
+ "bitflags",
 ]
 
 [[package]]
@@ -69,8 +78,8 @@ checksum = "1064d564ae026ae123bf5d607318b42a5b31d70a3c48e6ea7ee44cce4cdb095e"
 name = "os"
 version = "0.1.0"
 dependencies = [
- "bootloader_api",
  "heapless",
+ "limine",
  "memsos_core",
  "noto-sans-mono-bitmap",
 ]
