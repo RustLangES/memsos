@@ -1,6 +1,7 @@
 mod qemu;
 use qemu::QemuBuilder;
 use std::env;
+use std::process::Command as Cmd;
 
 #[derive(Debug)]
 enum Command {
@@ -28,20 +29,18 @@ fn main() {
         }
     };
 
+    let mut cmd = Cmd::new("just");
     match command {
         Command::Uefi => {
-            let qemu = QemuBuilder::new()
-                .img("nothing".to_string())
-                .uefi(true)
-                .build();
-            qemu.run();
+            println!("Running in uefi mode");
+            let mut child = cmd.spawn().unwrap();
+            child.wait().unwrap();
         }
         Command::Bios => {
-            let qemu = QemuBuilder::new()
-                .img("nothing".to_string())
-                .uefi(false)
-                .build();
-            qemu.run();
+            println!("Running in bios mode");
+            cmd.arg("run-bios");
+            let mut child = cmd.spawn().unwrap();
+            child.wait().unwrap();
         }
         Command::Dist => {
             println!("UEFI PATH: {}, BIOS PATH: {}", "nothing", "nothing");

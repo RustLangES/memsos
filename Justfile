@@ -1,5 +1,5 @@
 QEMU_FLAGS :=  env_var_or_default("QEMU_FLAGS", "")
-IMAGE_NAME := "toggle-x86_64"
+IMAGE_NAME := "memsos-x86_64"
 OVMF_DIR := "ovmf"
 LIMINE_DIR := "limine"
 ARCH := "x86_64"
@@ -21,11 +21,9 @@ run-bios: build
   qemu-system-{{ARCH}} \
     -M q35 \
     -cdrom {{IMAGE_NAME}}.iso \
-    -S \
     -d int \
     -no-reboot \
     -no-shutdown \
-    -gdb tcp::1234 \
     -boot d \
     {{QEMU_FLAGS}}
 
