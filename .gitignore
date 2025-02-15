@@ -1,3 +1,5 @@
+kernel/kernel
+kernel/kernel.sym
 /target
 memfile
 limine
