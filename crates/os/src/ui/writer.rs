@@ -139,3 +139,13 @@ pub fn clear_zone(from: (u64, u64), to: (u64, u64)) {
 
     ui.clear_zone(from, to);
 }
+
+#[inline]
+pub fn width() -> usize {
+    get_ui().width()
+}
+
+#[inline]
+pub fn height() -> usize {
+    get_ui().height()
+}

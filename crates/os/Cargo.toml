@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 heapless = "0.8.0"
-noto-sans-mono-bitmap = "0.3.0"
+noto-sans-mono-bitmap = { version = "0.3.0", features = ["unicode-latin-1-supplement"] }
 memsos_core = { path = "../core" }
 limine = "0.3.1"

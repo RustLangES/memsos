@@ -9,6 +9,7 @@ pub mod drivers;
 pub mod mem;
 pub mod ui;
 pub mod request;
+pub mod boot;
 
 pub const PADDING: isize = 20;
 
