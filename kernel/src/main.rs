@@ -137,7 +137,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             api_version.version_patch()
         ),
         &text!((0, 0), "Mem regions: {:?}", regions),
-        &text!("Made with love by Rust Lang Es")
+        &text!("Made with love by RustLangEs (Rust Lang en Español)")
     );
 
     let mut test_result = TestResult::default();
