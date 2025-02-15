@@ -7,7 +7,7 @@ use noto_sans_mono_bitmap::{
 
 const CHAR_RASTER_HEIGHT: RasterHeight = RasterHeight::Size16;
 const CHAR_RASTER_WIDTH: usize = get_raster_width(FontWeight::Regular, CHAR_RASTER_HEIGHT);
-const BACKUP_CHAR: char = '�';
+const BACKUP_CHAR: char = '?';
 const FONT_WEIGHT: FontWeight = FontWeight::Regular;
 const LINE_SPACING: usize = 2;
 const BORDER_PADDING: usize = 1;

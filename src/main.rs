@@ -31,14 +31,14 @@ fn main() {
     match command {
         Command::Uefi => {
             let qemu = QemuBuilder::new()
-                .img(env!("UEFI_PATH").to_string())
+                .img("nothing".to_string())
                 .uefi(true)
                 .build();
             qemu.run();
         }
         Command::Bios => {
             let qemu = QemuBuilder::new()
-                .img(env!("BIOS_PATH").to_string())
+                .img("nothing".to_string())
                 .uefi(false)
                 .build();
             qemu.run();
@@ -46,8 +46,8 @@ fn main() {
         Command::Dist => {
             println!(
                 "UEFI PATH: {}, BIOS PATH: {}",
-                env!("UEFI_PATH"),
-                env!("BIOS_PATH")
+                "nothing",
+                "nothing"
             );
         }
     }

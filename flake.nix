@@ -89,7 +89,7 @@
       };
 
       devShells.${system}.default = craneLib.devShell {
-        packages = with pkgs; [ qemu toolchain runvm gnumake ];
+        packages = with pkgs; [ qemu toolchain runvm just ];
       };
     };
 }
