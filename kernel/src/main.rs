@@ -33,7 +33,7 @@ pub extern "C" fn _start(boot_info: &'static mut BootInfo) -> ! {
 
     let memory_writer = MemWriter::create(*mem_offset);
 
-    init_ui(buffer, info);
+    init_ui();
 
     let memsos_version = env!("CARGO_PKG_VERSION");
     let h: isize = info.height.try_into().unwrap();
