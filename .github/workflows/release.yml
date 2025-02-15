@@ -1,0 +1,67 @@
+name: Release Build and Publish
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: "Name of release"
+        required: false
+        default: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Convert BIOS image to ISO
+        run: |
+          mkdir -p isos
+          cp target/bios.img isos/bios.img
+          xorriso -as mkisofs -o isos/bios.iso isos/bios.img
+
+      - name: Convert UEFI image to ISO
+        run: |
+          cp target/uefi.img isos/uefi.img
+          xorriso -as mkisofs -o isos/uefi.iso isos/uefi.img
+
+      - name: Get tag or manual release name
+        id: tag_name
+        run: |
+          if [ -n "${{ github.event.inputs.release_name }}" ]; then
+            echo "RELEASE_NAME=${{ github.event.inputs.release_name }}" >> $GITHUB_ENV
+          else
+            echo "RELEASE_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
+
+      - name: Get commit history with mentions
+        id: commit_history
+        run: |
+          if [ -n "${{ github.event.inputs.release_name }}" ]; then
+            # Si es un lanzamiento manual, muestra los últimos 10 commits
+            echo "COMMIT_HISTORY=$(git log --pretty=format:'- %s (by @%an)' -n 10)" >> $GITHUB_ENV
+          else
+            # Si es un lanzamiento automático, muestra los commits desde el último tag
+            echo "COMMIT_HISTORY=$(git log --pretty=format:'- %s (by @%an)' $(git describe --tags --abbrev=0)..HEAD)" >> $GITHUB_ENV
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_NAME }}
+          name: ${{ env.RELEASE_NAME }}
+          body: ${{ env.COMMIT_HISTORY }}
+          files: |
+            isos/bios.iso
+            isos/uefi.iso
