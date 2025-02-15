@@ -125,7 +125,7 @@ impl Text {
 
         for (y, row) in get_char_raster(c).raster().iter().enumerate() {
             for (x, byte) in row.iter().enumerate() {
-                let intensity = u32::from(*byte);
+                let intensity = self.style.apply(*byte as u32);
                 let pixel = (intensity << 16) | (intensity << 8);
                 writer.write_pixel(
                     (pos.0 + x).try_into().unwrap(),
