@@ -3,6 +3,8 @@
 
 use core::panic::PanicInfo;
 use heapless::String;
+use limine::memory_map::{Entry, EntryType};
+use memsos_core::{run_test, MemoryRegion, TestResult};
 use os::boot::BootInfo;
 use os::{
     arch::{cpuid::CpuInfo, reboot::reboot},
@@ -16,8 +18,6 @@ use os::{
     PADDING,
 };
 use os::{ask, layout, render, styled_text, text};
-
-use memsos_core::{run_test, MemoryRegion, TestResult};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -120,10 +120,15 @@ pub extern "C" fn _start() -> ! {
     let mut test_result = TestResult::default();
 
     for region in regions.iter() {
-        if region.kind != MemoryRegionKind::Usable {
+        if region.entry_type != EntryType::USABLE {
             layout!(
                 &debug_layout,
-                &text!((0, 0), "Omitting region of memory {:?}", region)
+                &text!(
+                    (0, 0),
+                    "Omitting region of memory {}-{}",
+                    region.base,
+                    region.base + region.length
+                )
             );
             continue;
         }
@@ -131,8 +136,8 @@ pub extern "C" fn _start() -> ! {
             &mut logger,
             &memory_writer,
             &MemoryRegion {
-                start: region.start,
-                end: region.end,
+                start: region.base,
+                end: region.base + region.length,
             },
             response,
         );
@@ -153,12 +158,18 @@ pub extern "C" fn _start() -> ! {
     loop {}
 }
 
-fn calculate_total_memory_gb(regions: &MemoryRegions) -> f64 {
+fn calculate_total_memory_gb(regions: &[&Entry]) -> f64 {
     let mut total_memory_kb = 0;
 
     for region in regions.iter() {
-        let region_size_kb = (region.end - region.start + 1) / 1024;
-        total_memory_kb += region_size_kb;
+        if region.entry_type == EntryType::USABLE
+            || region.entry_type == EntryType::BOOTLOADER_RECLAIMABLE
+            || region.entry_type == EntryType::KERNEL_AND_MODULES
+            || region.entry_type == EntryType::ACPI_RECLAIMABLE
+        {
+            let region_size_kb = ((region.base + region.length) - region.base + 1) / 1024;
+            total_memory_kb += region_size_kb;
+        }
     }
 
     total_memory_kb as f64 / 1048576.0

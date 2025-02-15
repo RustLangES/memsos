@@ -1,4 +1,4 @@
-use limine::request::{MemoryMapRequest, FramebufferRequest, BootloaderInfoRequest, HhdmRequest};
+use limine::request::{BootloaderInfoRequest, FramebufferRequest, HhdmRequest, MemoryMapRequest};
 
 #[used]
 #[link_section = ".requests"]

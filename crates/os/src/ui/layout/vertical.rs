@@ -42,8 +42,14 @@ impl Layout for VerticalLayout {
 
         if new_y >= self.max_y {
             writer.clear_zone(
-                (self.params.start_pos.0 as u64, self.params.start_pos.1 as u64),
-                ((self.params.start_pos.0 + self.line_size) as u64, self.max_y as u64),
+                (
+                    self.params.start_pos.0 as u64,
+                    self.params.start_pos.1 as u64,
+                ),
+                (
+                    (self.params.start_pos.0 + self.line_size) as u64,
+                    self.max_y as u64,
+                ),
             );
             self.y.store(self.params.start_pos.1, Ordering::SeqCst);
             return;

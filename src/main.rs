@@ -44,11 +44,7 @@ fn main() {
             qemu.run();
         }
         Command::Dist => {
-            println!(
-                "UEFI PATH: {}, BIOS PATH: {}",
-                "nothing",
-                "nothing"
-            );
+            println!("UEFI PATH: {}, BIOS PATH: {}", "nothing", "nothing");
         }
     }
 }

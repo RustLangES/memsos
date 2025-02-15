@@ -126,7 +126,11 @@ impl Text {
         for (y, row) in get_char_raster(c).raster().iter().enumerate() {
             for (x, byte) in row.iter().enumerate() {
                 let pixel = self.style.apply(*byte as u32);
-                writer.write_pixel((pos.0 + x).try_into().unwrap(), (pos.1 + y).try_into().unwrap(), pixel);
+                writer.write_pixel(
+                    (pos.0 + x).try_into().unwrap(),
+                    (pos.1 + y).try_into().unwrap(),
+                    pixel,
+                );
             }
         }
 

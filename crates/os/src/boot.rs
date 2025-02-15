@@ -1,7 +1,7 @@
-use limine::{response::BootloaderInfoResponse, memory_map::Entry};
-use crate::request::{BOOT_INFO_REQUEST, MEMORY_MAP_REQUEST, HHDM_REQUEST};
+use crate::request::{BOOT_INFO_REQUEST, HHDM_REQUEST, MEMORY_MAP_REQUEST};
+use limine::{memory_map::Entry, response::BootloaderInfoResponse};
 
-pub struct BootInfo<'a> { 
+pub struct BootInfo<'a> {
     pub info: &'a BootloaderInfoResponse,
     pub memory_regions: &'a [&'a Entry],
     pub offset: u64,
@@ -16,7 +16,7 @@ impl<'a> BootInfo<'a> {
         Self {
             info,
             memory_regions,
-            offset
+            offset,
         }
     }
 }

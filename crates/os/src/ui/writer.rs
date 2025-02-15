@@ -1,8 +1,8 @@
+use crate::request::FRAMEBUFFER_REQUEST;
 use crate::ui::widget::Widget;
 use crate::PADDING;
-use limine::framebuffer::Framebuffer;
 use core::{cell::SyncUnsafeCell, ptr};
-use crate::request::FRAMEBUFFER_REQUEST;
+use limine::framebuffer::Framebuffer;
 
 pub static UI_WRITER: SyncUnsafeCell<Option<UiWriter>> = SyncUnsafeCell::new(None);
 
@@ -21,7 +21,7 @@ impl UiWriter {
         usize::try_from(self.buffer.height()).expect("Cannot convert u64 to usize")
     }
     pub fn clear_zone(&mut self, from: (u64, u64), to: (u64, u64)) {
-        let padding:  u64 = PADDING.try_into().unwrap();
+        let padding: u64 = PADDING.try_into().unwrap();
         for x in from.0..=to.0 {
             for y in from.1..=to.1 {
                 if x < padding
@@ -75,11 +75,13 @@ unsafe impl Sync for UiWriter {}
 
 #[inline]
 pub fn init_ui() {
-     if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response() {
+    if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response() {
         if let Some(framebuffer) = framebuffer_response.framebuffers().next() {
             let writer = UiWriter::new(framebuffer);
-            
-            unsafe { *UI_WRITER.get() = Some(writer); }
+
+            unsafe {
+                *UI_WRITER.get() = Some(writer);
+            }
         }
     }
 }
