@@ -1,12 +1,10 @@
-mod qemu;
-use qemu::QemuBuilder;
 use std::env;
+use std::process::Command as Cmd;
 
 #[derive(Debug)]
 enum Command {
     Uefi,
     Bios,
-    Dist,
 }
 
 fn main() {
@@ -22,33 +20,23 @@ fn main() {
         };
         match a {
             "bios" => Command::Bios,
-            "dist" => Command::Dist,
             "uefi" => Command::Uefi,
             _ => panic!("Unknown command"),
         }
     };
 
+    let mut cmd = Cmd::new("just");
     match command {
         Command::Uefi => {
-            let qemu = QemuBuilder::new()
-                .img(env!("UEFI_PATH").to_string())
-                .uefi(true)
-                .build();
-            qemu.run();
+            println!("Running in uefi mode");
+            let mut child = cmd.spawn().unwrap();
+            child.wait().unwrap();
         }
         Command::Bios => {
-            let qemu = QemuBuilder::new()
-                .img(env!("BIOS_PATH").to_string())
-                .uefi(false)
-                .build();
-            qemu.run();
-        }
-        Command::Dist => {
-            println!(
-                "UEFI PATH: {}, BIOS PATH: {}",
-                env!("UEFI_PATH"),
-                env!("BIOS_PATH")
-            );
+            println!("Running in bios mode");
+            cmd.arg("run-bios");
+            let mut child = cmd.spawn().unwrap();
+            child.wait().unwrap();
         }
     }
 }

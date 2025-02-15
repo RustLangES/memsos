@@ -10,7 +10,7 @@ pub struct VerticalLayout {
 }
 
 impl VerticalLayout {
-    pub const fn new(params: LayoutParams) -> Self {
+    pub fn new(params: LayoutParams) -> Self {
         let size = if let Some(val) = params.line_size {
             val
         } else {
@@ -42,8 +42,14 @@ impl Layout for VerticalLayout {
 
         if new_y >= self.max_y {
             writer.clear_zone(
-                (self.params.start_pos.0, self.params.start_pos.1),
-                (self.params.start_pos.0 + self.line_size, self.max_y),
+                (
+                    self.params.start_pos.0 as u64,
+                    self.params.start_pos.1 as u64,
+                ),
+                (
+                    (self.params.start_pos.0 + self.line_size) as u64,
+                    self.max_y as u64,
+                ),
             );
             self.y.store(self.params.start_pos.1, Ordering::SeqCst);
             return;

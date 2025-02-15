@@ -1,12 +1,11 @@
 #![no_std]
 #![no_main]
 
-use bootloader_api::{
-    config::Mapping, entry_point, info::MemoryRegionKind, info::MemoryRegions, BootInfo,
-    BootloaderConfig,
-};
 use core::panic::PanicInfo;
 use heapless::String;
+use limine::memory_map::{Entry, EntryType};
+use memsos_core::{run_test, MemoryRegion, TestResult};
+use os::boot::BootInfo;
 use os::{
     arch::{cpuid::CpuInfo, reboot::reboot},
     mem::MemWriter,
@@ -14,42 +13,27 @@ use os::{
         layout::{vertical::VerticalLayout, Layout, LayoutParams},
         logger::DebugLogger,
         widget::{ask::Ask, input::input, line::line, text::TextStyle},
-        writer::{clear, init_ui},
+        writer::{clear, height, init_ui, width},
     },
     PADDING,
 };
 use os::{ask, layout, render, styled_text, text};
 
-use memsos_core::{run_test, MemoryRegion, TestResult};
-
-const CONFIG: BootloaderConfig = {
-    let mut config = bootloader_api::BootloaderConfig::new_default();
-
-    config.mappings.physical_memory = Some(Mapping::Dynamic);
-    config
-};
-entry_point!(kernel_main, config = &CONFIG);
-
-fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
-    let physical = &boot_info.physical_memory_offset.into_option();
+#[no_mangle]
+pub extern "C" fn _start() -> ! {
+    let boot_info = BootInfo::get();
+    let mem_offset = &boot_info.offset;
     let regions = &boot_info.memory_regions;
 
-    let api_version = &boot_info.api_version;
-    let framebuffer = boot_info.framebuffer.take().unwrap();
-    let info = framebuffer.info();
-    let buffer = framebuffer.into_buffer();
-
-    let Some(mem_offset) = physical else {
-        panic!("no physical memory")
-    };
+    let limine_info = &boot_info.info;
 
     let memory_writer = MemWriter::create(*mem_offset);
 
-    init_ui(buffer, info);
+    init_ui();
 
     let memsos_version = env!("CARGO_PKG_VERSION");
-    let h: isize = info.height.try_into().unwrap();
-    let w: isize = info.width.try_into().unwrap();
+    let h: isize = height().try_into().unwrap();
+    let w: isize = width().try_into().unwrap();
 
     let debug_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
@@ -71,15 +55,15 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     });
 
     let memtest_message = styled_text!(
-        (info.width - (info.width / 2) + 6, 30),
-        os::ui::widget::text::TextStyle { invert: true },
+        (width() - (width() / 2) + 6, 30),
+        TextStyle { invert: true },
         "Memtest Info"
     );
 
     let test_info_layout = VerticalLayout::new(LayoutParams {
         padding: 0,
         line_size: None,
-        start_pos: (info.width - (info.width / 2) + 6, 70),
+        start_pos: (width() - (width() / 2) + 6, 70),
         max_y: None,
     });
 
@@ -129,24 +113,23 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     layout!(
         info_layout,
         &text!("memsos v{memsos_version}"),
-        &text!(
-            (0, 0),
-            "bootloader v{}.{}.{}",
-            api_version.version_major(),
-            api_version.version_minor(),
-            api_version.version_patch()
-        ),
-        &text!((0, 0), "Mem regions: {:?}", regions),
+        &text!((0, 0), "limine version {}", limine_info.version()),
+        &text!((0, 0), "bootloader v{}", boot_info.info.version(),),
         &text!("Made with love by RustLangEs (Rust Lang en Español)")
     );
 
     let mut test_result = TestResult::default();
 
     for region in regions.iter() {
-        if region.kind != MemoryRegionKind::Usable {
+        if region.entry_type != EntryType::USABLE {
             layout!(
                 &debug_layout,
-                &text!((0, 0), "Omitting region of memory {:?}", region)
+                &text!(
+                    (0, 0),
+                    "Omitting region of memory {}-{}",
+                    region.base,
+                    region.base + region.length
+                )
             );
             continue;
         }
@@ -154,8 +137,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
             &mut logger,
             &memory_writer,
             &MemoryRegion {
-                start: region.start,
-                end: region.end,
+                start: region.base,
+                end: region.base + region.length,
             },
             response,
         );
@@ -176,12 +159,18 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     loop {}
 }
 
-fn calculate_total_memory_gb(regions: &MemoryRegions) -> f64 {
+fn calculate_total_memory_gb(regions: &[&Entry]) -> f64 {
     let mut total_memory_kb = 0;
 
     for region in regions.iter() {
-        let region_size_kb = (region.end - region.start + 1) / 1024;
-        total_memory_kb += region_size_kb;
+        if region.entry_type == EntryType::USABLE
+            || region.entry_type == EntryType::BOOTLOADER_RECLAIMABLE
+            || region.entry_type == EntryType::KERNEL_AND_MODULES
+            || region.entry_type == EntryType::ACPI_RECLAIMABLE
+        {
+            let region_size_kb = ((region.base + region.length) - region.base + 1) / 1024;
+            total_memory_kb += region_size_kb;
+        }
     }
 
     total_memory_kb as f64 / 1048576.0

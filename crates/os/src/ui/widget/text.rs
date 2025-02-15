@@ -7,7 +7,7 @@ use noto_sans_mono_bitmap::{
 
 const CHAR_RASTER_HEIGHT: RasterHeight = RasterHeight::Size16;
 const CHAR_RASTER_WIDTH: usize = get_raster_width(FontWeight::Regular, CHAR_RASTER_HEIGHT);
-const BACKUP_CHAR: char = '�';
+const BACKUP_CHAR: char = '?';
 const FONT_WEIGHT: FontWeight = FontWeight::Regular;
 const LINE_SPACING: usize = 2;
 const BORDER_PADDING: usize = 1;
@@ -19,7 +19,7 @@ pub struct TextStyle {
 }
 
 impl TextStyle {
-    pub fn apply(&self, byte: u8) -> u8 {
+    pub fn apply(&self, byte: u32) -> u32 {
         let mut final_byte = byte;
 
         if self.invert {
@@ -125,8 +125,13 @@ impl Text {
 
         for (y, row) in get_char_raster(c).raster().iter().enumerate() {
             for (x, byte) in row.iter().enumerate() {
-                let pixel = self.style.apply(*byte);
-                writer.write_pixel(pos.0 + x, pos.1 + y, pixel);
+                let intensity = self.style.apply(*byte as u32);
+                let pixel = (intensity << 16) | (intensity << 8);
+                writer.write_pixel(
+                    (pos.0 + x).try_into().unwrap(),
+                    (pos.1 + y).try_into().unwrap(),
+                    pixel,
+                );
             }
         }
 
