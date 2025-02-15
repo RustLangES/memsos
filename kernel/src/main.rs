@@ -114,6 +114,7 @@ pub extern "C" fn _start() -> ! {
         info_layout,
         &text!("memsos v{memsos_version}"),
         &text!((0, 0), "limine version {}", limine_info.version()),
+        &text!((0, 0), "bootloader v{}", boot_info.info.version(),),
         &text!("Made with love by RustLangEs (Rust Lang en Español)")
     );
 
