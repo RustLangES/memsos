@@ -1,15 +1,30 @@
-use miniserde::{json, Deserialize, Serialize};
+#[path = "dialog.rs"]
+mod dialog;
+
 use std::env;
 use std::fs::{read_to_string, File};
 use std::path::Path;
 use std::io::Write;
+use miniserde::json;
+use dialog::Dialogs;
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct Dialogs {
-    test_kind: String,
-    advanced: String,
-    basic: String
-} 
+
+fn get_struct() -> String {
+    let file = std::fs::File::open("dialog.rs").unwrap();
+    let reader = std::io::BufReader::new(file);
+    let mut output = String::new();
+
+    for (index, line) in reader.lines().enumerate() {
+        let mut line = line.unwrap();
+        if index >= 2 {
+            line = line.replace("String", "&'static str");
+            writeln!(output, "{}", line)?;
+        }
+    }
+    
+    output
+}
+
 
 fn main() {
     let lang = env::var("LANG".to_string()).unwrap();
@@ -31,6 +46,5 @@ fn main() {
     "#, dialogs).as_bytes()).unwrap();
 
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rustc-env=TEST_KIND={}", dialogs.test_kind);
 }
 
