@@ -2,22 +2,27 @@
   description = "Memtest rewritten in Rust";
 
   inputs = {
-    fenix-src.url = "github:nix-community/fenix";
+    crane.url = "github:ipetkov/crane";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { fenix-src, nixpkgs, ... }:
+  outputs = { crane, nixpkgs, rust-overlay, ... }:
     let
       system = "x86_64-linux";
       lib = nixpkgs.lib;
-      pkgs = nixpkgs.legacyPackages.${system};
-      fenix = fenix-src.packages.${system};
-
-      # fenix: rustup replacement for reproducible builds
-      toolchain = target: fenix.targets.${target}.fromToolchainFile {
-        file = ./rust-toolchain.toml;
-        sha256 = "sha256-WGTJJbpV6WEv0VHPBqSIqWLCxzHivFNu0okQ2f9LrWU=";
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ (import rust-overlay) ];
       };
+
+      toolchain = target: p: (p.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml).override {
+        targets = [ target ];
+      };
+      craneLib = target: (crane.mkLib pkgs).overrideToolchain (toolchain target);
 
       architectures = [
         { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }
@@ -27,27 +32,27 @@
         { arch = "riscv64"; name = "riscv64-gc";  target = "riscv64gc-unknown-none-elf"; }
       ];
 
-      mkDevShell = { name, target, ... }: pkgs.mkShell {
+      mkDevShell = { name, target, ... }: (craneLib target).devShell {
         packages = with pkgs; [ qemu just libisoburn ];
-        nativeBuildInputs = [ (toolchain target) ];
         shellHook = ''
           echo "DevShell for ${name} (${target})"
         '';
       };
 
-      mkPackage = { name, target, ... }: pkgs.stdenv.mkDerivation {
+      mkPackage = { arch, name, target, ... }: let
+        target_name = lib.toUpper (builtins.replaceStrings [ "-" ] [ "_" ] target);
+      in (craneLib target).buildPackage {
         pname = "memsos-${name}";
         version = "0.1.0";
-        src = lib.cleanSourceWith { src = ./..; };
-        nativeBuildInputs = [ (toolchain target) ];
-        buildPhase = ''
-          cargo build --release --target ${target}
-        '';
-        installPhase = ''
-          mkdir -p $out/bin
-          cp target/${target}/release/memsos $out/bin/
-        '';
+        src = (craneLib target).cleanCargoSource ./.;
+        cargoExtraArgs = "--target ${target}";
+        doCheck = false;
+
+        CARGO_BUILD_TARGET = target;
+        "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.stdenv.cc.targetPrefix}cc";
+        "CARGO_TARGET_${target_name}_RUNNER" = "qemu-${arch}";
       };
+
       listApps = pkgs.writeShellScriptBin "list-apps" ''
         echo "Available apps/packages:"
         ${lib.concatMapStringsSep "\n" ({ name, ... }: ''echo "  - ${name}"'') architectures}
