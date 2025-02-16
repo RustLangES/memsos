@@ -3,6 +3,7 @@
 
 use core::panic::PanicInfo;
 use heapless::String;
+use lang::DIALOGS;
 use limine::memory_map::{Entry, EntryType};
 use memsos_core::{run_test, MemoryRegion, TestResult};
 use os::boot::BootInfo;
@@ -69,7 +70,7 @@ pub extern "C" fn _start() -> ! {
 
     let cpuinfo = CpuInfo::new();
 
-    let question = ask!("basic", "advanced");
+    let question = ask!(DIALOGS.basic, DIALOGS.advanced);
 
     clear();
 

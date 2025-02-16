@@ -8,3 +8,4 @@ os = { path = "../crates/os" }
 memsos_core = { path = "../crates/core" }
 heapless = "0.8.0"
 limine = "0.3.1"
+lang = { path = "../crates/lang" }

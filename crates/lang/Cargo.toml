@@ -1,0 +1,9 @@
+[package]
+name = "lang"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+miniserde = "0.1.41"
+
+[dependencies]

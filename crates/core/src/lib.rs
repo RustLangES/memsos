@@ -7,6 +7,7 @@ use core::fmt::Arguments;
 use core::fmt::Error;
 use core::ops::{Add, AddAssign};
 use heapless::String;
+use lang::DIALOGS;
 
 #[derive(Default)]
 pub struct TestResult {
@@ -85,8 +86,8 @@ impl TryFrom<String<256>> for MemTestKind {
     fn try_from(value: String<256>) -> Result<Self, Self::Error> {
         let s = value;
         Ok(match s.as_str() {
-            "basic" => Self::Basic,
-            "advanced" => Self::Advanced,
+            a if a == DIALOGS.basic => Self::Basic,
+            a if a == DIALOGS.advanced => Self::Advanced,
             _ => {
                 return Err(Error);
             }

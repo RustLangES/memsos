@@ -3,6 +3,7 @@ use crate::drivers::keyboard::{Key, KeyState, KEYBOARD};
 use crate::ui::layout::{vertical::VerticalLayout, Layout, LayoutChild, LayoutParams};
 use crate::ui::widget::text::{Text, TextStyle};
 use crate::ui::widget::Widget;
+use lang::DIALOGS;
 use crate::{render, styled_text, text};
 use core::sync::atomic::{AtomicUsize, Ordering};
 use heapless::String;
@@ -62,7 +63,7 @@ impl Widget for Ask<'_> {
                 start_pos: (0, 0),
                 line_size: None,
             });
-            let msg = text!(layout.gen_pos(), "What kind of tests do you want?");
+            let msg = text!(layout.gen_pos(), "{}", DIALOGS.test_kind);
             render!(&msg);
             layout.margin(msg.spacing());
             for i in 0..self.options.len() {

@@ -34,13 +34,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "itoa"
+version = "1.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d75a2a4b1b190afb6f5425f10f6a8f959d2ea0b9c2b1d79553551850539e4674"
+
+[[package]]
 name = "kernel"
 version = "0.1.0"
 dependencies = [
  "heapless",
+ "lang",
  "limine",
  "memsos_core",
  "os",
+]
+
+[[package]]
+name = "lang"
+version = "0.1.0"
+dependencies = [
+ "miniserde",
 ]
 
 [[package]]
@@ -64,8 +78,31 @@ name = "memsos_core"
 version = "0.1.0"
 dependencies = [
  "heapless",
+ "lang",
  "rand",
  "rand_chacha",
+]
+
+[[package]]
+name = "mini-internal"
+version = "0.1.41"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07b7f1340a7f0d2f89755aac4096f1c55352bfcb95cb8f351d6fcefa18df474f"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "miniserde"
+version = "0.1.41"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "625208b7bc90255fe6d99338041880bf48a3049166f46fbefbd4e9b0478c0b66"
+dependencies = [
+ "itoa",
+ "mini-internal",
+ "ryu",
 ]
 
 [[package]]
@@ -79,6 +116,7 @@ name = "os"
 version = "0.1.0"
 dependencies = [
  "heapless",
+ "lang",
  "limine",
  "memsos_core",
  "noto-sans-mono-bitmap",
@@ -145,6 +183,12 @@ checksum = "a88e0da7a2c97baa202165137c158d0a2e824ac465d13d81046727b34cb247d3"
 dependencies = [
  "zerocopy 0.8.18",
 ]
+
+[[package]]
+name = "ryu"
+version = "1.0.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ea1a2d0a644769cc99faa24c3ad26b379b786fe7c36fd3c546254801650e6dd"
 
 [[package]]
 name = "stable_deref_trait"

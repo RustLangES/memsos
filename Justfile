@@ -53,6 +53,7 @@ limine:
 
 # Kernel build
 kernel:
+  echo $LANG
   just kernel/
 
 

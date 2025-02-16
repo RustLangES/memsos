@@ -7,4 +7,4 @@ edition = "2021"
 ovmf-prebuilt = "0.1.0-alpha.1"
 
 [workspace]
-members = ["crates/core", "crates/os", "kernel"]
+members = ["crates/core", "crates/lang", "crates/os", "kernel"]
