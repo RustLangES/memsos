@@ -1,7 +1,7 @@
 use miniserde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Dialogs {
-    test_kind: String,
-    advanced: String,
-    basic: String
+    pub test_kind: String,
+    pub advanced: String,
+    pub basic: String
 } 

@@ -8,22 +8,23 @@ use std::io::Write;
 use miniserde::json;
 use dialog::Dialogs;
 
+use std::io::{BufRead, BufReader};
 
-fn get_struct() -> String {
-    let file = std::fs::File::open("dialog.rs").unwrap();
-    let reader = std::io::BufReader::new(file);
+fn read_struct() -> String {
+    let file = File::open("dialog.rs").unwrap();
+    let reader = BufReader::new(file);
     let mut output = String::new();
-
     for (index, line) in reader.lines().enumerate() {
         let mut line = line.unwrap();
         if index >= 2 {
             line = line.replace("String", "&'static str");
-            writeln!(output, "{}", line)?;
+            output.push_str(&line);
         }
     }
     
     output
 }
+
 
 
 fn main() {
@@ -34,14 +35,10 @@ fn main() {
  
     let dest_path = Path::new("src").join("lang_info.rs");
     let mut file = File::create(dest_path).unwrap();
+    let def = read_struct();
 
     file.write_all(format!(r#"
-        pub struct Dialogs {{
-            pub test_kind: &'static str,
-            pub advanced: &'static str,
-            pub basic: &'static str
-        }}
-
+        {def}
         pub const DIALOGS: Dialogs = {:?};
     "#, dialogs).as_bytes()).unwrap();
 
