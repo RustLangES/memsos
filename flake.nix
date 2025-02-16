@@ -1,95 +1,98 @@
 {
   description = "Memtest rewritten in Rust";
+
   inputs = {
-    crane.url = "github:ipetkov/crane";
-    fenix.url = "github:nix-community/fenix";
+    fenix-src.url = "github:nix-community/fenix";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
-  
-  outputs = { fenix, nixpkgs, ... }@inputs:
+
+  outputs = { fenix-src, nixpkgs, ... }:
     let
       system = "x86_64-linux";
-      lib = pkgs.lib;
+      lib = nixpkgs.lib;
       pkgs = nixpkgs.legacyPackages.${system};
-      crane = inputs.crane.mkLib pkgs;
+      fenix = fenix-src.packages.${system};
 
       # fenix: rustup replacement for reproducible builds
-      toolchain = fenix.packages.${system}.fromToolchainFile {
+      toolchain = target: fenix.targets.${target}.fromToolchainFile {
         file = ./rust-toolchain.toml;
         sha256 = "sha256-WGTJJbpV6WEv0VHPBqSIqWLCxzHivFNu0okQ2f9LrWU=";
       };
-      # crane: cargo and artifacts manager
-      craneLib = crane.overrideToolchain toolchain;
 
-      # Create the runvm binary
-      runvm = pkgs.writeShellScriptBin "runvm" ''
-        #!/usr/bin/env bash
-        set -e
+      architectures = [
+        { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }
+        { arch = "aarch64"; name = "aarch64";  target = "aarch64-unknown-none"; }
+        { arch = "aarch64"; name = "aarch64-uefi";  target = "aarch64-unknown-uefi"; }
+        { arch = "riscv64"; name = "riscv64-imac";  target = "riscv64imac-unknown-none-elf"; }
+        { arch = "riscv64"; name = "riscv64-gc";  target = "riscv64gc-unknown-none-elf"; }
+      ];
 
-        # Paths to VM images
-        if [[ -z "$out" || ! -d "$out" ]]; then
-          BASE_PATH="./target"
-        else
-          BASE_PATH="$out"
-        fi
+      mkDevShell = { name, target, ... }: pkgs.mkShell {
+        packages = with pkgs; [ qemu just libisoburn ];
+        nativeBuildInputs = [ (toolchain target) ];
+        shellHook = ''
+          echo "DevShell for ${name} (${target})"
+        '';
+      };
 
-        BIOS_IMG="$BASE_PATH/bios.img"
-        UEFI_IMG="$BASE_PATH/uefi.img"
-
-        # Check the required image exists
-        if [[ ! -f "$BIOS_IMG" && ! -f "$UEFI_IMG" ]]; then
-          echo "Error: No BIOS or UEFI image found."
-          exit 1
-        fi
-
-        # Choose the image to boot
-        IMG_TO_BOOT="$BIOS_IMG"
-        if [[ "$1" == "uefi" ]]; then
-          IMG_TO_BOOT="$UEFI_IMG"
-        fi
-
-        echo "Booting VM using image: $IMG_TO_BOOT"
-
-        # QEMU command (adjust based on your VM needs)
-        qemu-system-x86_64 \
-          -enable-kvm \
-          -m 512M \
-          -cpu host \
-          -drive file="$IMG_TO_BOOT",format=raw \
-          "$@"
+      mkPackage = { name, target, ... }: pkgs.stdenv.mkDerivation {
+        pname = "memsos-${name}";
+        version = "0.1.0";
+        src = lib.cleanSourceWith { src = ./..; };
+        nativeBuildInputs = [ (toolchain target) ];
+        buildPhase = ''
+          cargo build --release --target ${target}
+        '';
+        installPhase = ''
+          mkdir -p $out/bin
+          cp target/${target}/release/memsos $out/bin/
+        '';
+      };
+      listApps = pkgs.writeShellScriptBin "list-apps" ''
+        echo "Available apps/packages:"
+        ${lib.concatMapStringsSep "\n" ({ name, ... }: ''echo "  - ${name}"'') architectures}
       '';
-
-      # Base args, needed to build all crate artifacts and cache them for later builds
-      commonArgs = {
-        doCheck = false;
-        src = lib.cleanSourceWith {
-          src = craneLib.path ./..;
+    in {
+      devShells.${system} = lib.listToAttrs (map ({ name, ... }@args: {
+        inherit name;
+        value = mkDevShell args;
+      }) architectures) // {
+        # Default Devshell
+        default = mkDevShell {
+          name = "x86_64";
+          arch = "x86_64";
+          target = "x86_64-unknown-none";
         };
       };
 
-      # Build dependencies and images
-      memsosDeps = craneLib.buildDepsOnly commonArgs;
-      memsos = target: craneLib.buildPackage (commonArgs // {
-        pname = "memsos";
-        version = "0.1.0";
-        cargoArtifacts = memsosDeps;
-        buildPhaseCargoCommand = "cargo run -r -- dist";
-
-        postInstall = ''
-          mkdir -p $out/bin
-          cp ${runvm}/bin/runvm $out/bin/
-
-          cp target/${target}.img $out/${target}.img
-        '';
+      packages.${system} = (lib.listToAttrs (map ({ name, ... }@args: {
+        inherit name;
+        value = mkPackage args;
+      }) architectures)) // ({
+        # Default Package
+        default = mkPackage {
+          name = "x86_64";
+          arch = "x86_64";
+          target = "x86_64-unknown-none";
+        };
       });
-    in {
-      packages.${system} = rec {
-        default = memsosBIOS;
-        memsosBIOS = memsos "bios"; # BIOS package with runvm and bios.img
-        memsosUEFI = memsos "uefi"; # UEFI package with runvm and uefi.img
-      };
 
-      devShells.${system}.default = craneLib.devShell {
-        packages = with pkgs; [ qemu toolchain runvm just libisoburn ];
+      apps.${system} = lib.listToAttrs (map ({ name, target, ... }@args: {
+        inherit name;
+        value = {
+          type = "app";
+          program = "${mkPackage args}/bin/memsos";
+        };
+      }) architectures) // {
+        list = {
+          type = "app";
+          program = "${listApps}/bin/list-apps";
+        };
+        # Default App
+        default = {
+          type = "app";
+          program = "${mkPackage { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }}/bin/memsos";
+        };
       };
     };
 }
