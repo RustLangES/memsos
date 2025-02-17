@@ -66,11 +66,6 @@
           nativeBuildInputs = with pkgs; [ gnumake xorriso ];
 
           postInstall = ''
-            OVMF_DIR="$out/ovmf"
-            mkdir -p "$OVMF_DIR"
-            cp ${./ovmf-files/ovmf-code-${arch}.fd} "$OVMF_DIR/ovmf-code-${arch}.fd"
-            cp ${./ovmf-files/ovmf-vars-${arch}.fd} "$OVMF_DIR/ovmf-vars-${arch}.fd"
-
             LIMINE_DIR="$src/limine"
             mkdir -p $LIMINE_DIR
             cp ${limine}/* $LIMINE_DIR
@@ -116,14 +111,14 @@
         packages = (lib.listToAttrs (map ({ name, ... }@args: {
           inherit name;
           value = mkPackage args;
-        }) architectures)) // ({
+        }) architectures)) // {
           # Default Package
           default = mkPackage {
             name = "x86_64";
             arch = "x86_64";
             target = "x86_64-unknown-none";
           };
-        });
+        };
 
         apps = lib.listToAttrs (map ({ arch, name, target, ... }@args: {
           inherit name;
@@ -136,8 +131,6 @@
                 -no-reboot \
                 -no-shutdown \
                 -d int
-                -drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-${arch}.fd,readonly=on \
-                -drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-${arch}.fd \
             '';
           };
         }) architectures) // {
