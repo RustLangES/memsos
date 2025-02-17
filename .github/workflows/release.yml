@@ -51,23 +51,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
-      - name: Install Rust target
-        run: rustup target add ${{ matrix.rust_target }}
-
-      - name: Install dependencies
-        run: sudo apt-get install -y xorriso
-      - uses: taiki-e/install-action@just
-
-      - name: Build for architecture
+      - name: Build with Nix
         run: |
           echo "Building for ${{ matrix.arch }} with target ${{ matrix.rust_target }}..."
-          just build
+          nix build .#${{ matrix.name }}
 
           mkdir -p isos
-          mv "${{ env.IMAGE_NAME }}.iso" "isos/"
+          cp result/memsos-${{ matrix.name }}.iso isos/${{ env.IMAGE_NAME }}.iso
 
       - name: Get release name
         id: release_name
