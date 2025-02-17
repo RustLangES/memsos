@@ -12,28 +12,14 @@ impl Port {
 
 #[cfg(target_arch = "x86_64")]
 mod arch_specific {
-    use core::arch::asm;
+    use crate::asm::{inb::inb, outb::outb};
 
     pub fn read_port(port: u16) -> u8 {
-        let result: u8;
-        unsafe {
-            asm!(
-                "in al, dx",
-                inout("dx") port => _,
-                lateout("al") result
-            );
-        }
-        result
+        inb(port)
     }
 
     pub fn write_port(port: u16, value: u8) {
-        unsafe {
-            asm!(
-                "out dx, al",
-                inout("dx") port => _,
-                in("al") value
-            );
-        }
+        outb(port, value);
     }
 }
 
