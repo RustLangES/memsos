@@ -43,5 +43,6 @@ fn main() {
     "#, dialogs).as_bytes()).unwrap();
 
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-env-changed=LANG");
 }
 
