@@ -25,8 +25,6 @@ mod arch_specific {
 
 #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
 mod arch_specific {
-    use core::ptr;
-
     #[cfg(target_arch = "aarch64")]
     const UART0: *mut u8 = 0x0900_0000 as *mut u8; // PL011 UART (QEMU)
 

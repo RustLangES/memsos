@@ -12,6 +12,10 @@ pub struct CpuInfo {
 pub enum Vendor {
     Intel,
     Amd,
+    #[cfg(target_arch = "aarch64")]
+    Arm,
+    #[cfg(target_arch = "riscv64")]
+    RiscV,
     Unknown(&'static str),
 }
 
