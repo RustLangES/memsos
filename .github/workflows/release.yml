@@ -46,7 +46,7 @@ jobs:
       RUST_PROFILE: "release"
       ARCH: "${{ matrix.arch }}"
       RUST_TARGET: "${{ matrix.rust_target }}"
-      IMAGE_NAME: "memsos_${{ matrix.name }}-${{ github.event.inputs.release_name || (github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}"
+      IMAGE_NAME: "memsos_${{ matrix.name }}-${{ github.event.inputs.release_name || (github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name) }}"
 
     steps:
       - uses: actions/checkout@v4
