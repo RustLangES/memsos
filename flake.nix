@@ -46,7 +46,7 @@
         ];
 
         mkDevShell = { name, target, ... }: (craneLib target).devShell {
-          packages = with pkgs; [ qemu just libisoburn ];
+          packages = with pkgs; [ qemu just libisoburn rustfmt ];
           shellHook = ''
             echo "DevShell for ${name} (${target})"
           '';

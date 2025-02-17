@@ -11,10 +11,6 @@ PHDRS
 
 SECTIONS
 {
-    /* We want to be placed in the topmost 2GiB of the address space, for optimisations */
-    /* and because that is what the Limine spec mandates. */
-    /* Any address in this region will do, but often 0xffffffff80000000 is chosen as */
-    /* that is the beginning of the region. */
     . = 0xffffffff80000000;
 
     .text : {
@@ -37,10 +33,6 @@ SECTIONS
         KEEP(*(.requests_end_marker))
     } :data
 
-    /* NOTE: .bss needs to be the last thing mapped to :data, otherwise lots of */
-    /* unnecessary zeros will be written to the binary. */
-    /* If you need, for example, .init_array and .fini_array, those should be placed */
-    /* above this. */
     .bss : {
         *(.bss .bss.*)
         *(COMMON)
