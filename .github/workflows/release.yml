@@ -40,6 +40,7 @@ jobs:
             rust_target: "riscv64gc-unknown-none-elf"
             name: "riscv64-gc" # GC RISC-V
     env:
+      RUST_PROFILE: "release"
       IMAGE_NAME: "memsos_${{ matrix.name }}-${{ github.event.inputs.release_name || github.ref_name }}"
 
     steps:
