@@ -28,6 +28,7 @@
 
         hostTarget = systemToTarget.${system} or (throw "Unsupported system: ${system}");
         toolchain = target: fenix.combine [
+          (fenix.targets.${hostTarget}.minimal.rust-std)
           (fenix.targets.${hostTarget}.minimal.toolchain)
           (fenix.targets.${target}.fromToolchainFile {
             file = ./rust-toolchain.toml;
@@ -142,7 +143,14 @@
           # Default App
           default = {
             type = "app";
-            program = "${mkPackage { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }}/bin/memsos";
+            program = pkgs.writeShellScriptBin "run-default" ''
+              qemu-system-x86_64 \
+                -cdrom ${mkPackage { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }}/memsos-x86_64.iso \
+                -M q35 \
+                -no-reboot \
+                -no-shutdown \
+                -d int
+            '';
           };
         };
       }
