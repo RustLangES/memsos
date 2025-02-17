@@ -41,6 +41,8 @@ jobs:
             name: "riscv64-gc" # GC RISC-V
     env:
       RUST_PROFILE: "release"
+      ARCH: "${{ matrix.arch }}"
+      RUST_TARGET: "${{ matrix.rust_target }}"
       IMAGE_NAME: "memsos_${{ matrix.name }}-${{ github.event.inputs.release_name || github.ref_name }}"
 
     steps:
@@ -58,7 +60,7 @@ jobs:
       - name: Build for architecture
         run: |
           echo "Building for ${{ matrix.arch }} with target ${{ matrix.rust_target }}..."
-          just build ARCH="${{ matrix.arch }}" RUST_TARGET="${{ matrix.rust_target }}" IMAGE_NAME="${{ env.IMAGE_NAME }}"
+          just build
 
           mkdir -p isos
           mv "${{ env.IMAGE_NAME }}.iso" "isos/"
