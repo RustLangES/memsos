@@ -1,7 +1,7 @@
 # Arch: x86_64, aarch64, riscv64
 ARCH := env("ARCH", "x86_64")
 RUST_TARGET := env("RUST_TARGET", "x86_64-unknown-none")
-IMAGE_NAME := env("IMAGE_NAME", "memsos_{{ARCH}}")
+IMAGE_NAME := env("IMAGE_NAME", "memsos_" + ARCH)
 QEMU_FLAGS := env("QEMU_FLAGS", "")
 OVMF_DIR := "ovmf"
 LIMINE_DIR := "limine"
