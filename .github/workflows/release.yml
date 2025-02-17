@@ -90,11 +90,11 @@ jobs:
             echo "COMMIT_HISTORY=$(git log --pretty=format:'- %s (by @%an)' $(git describe --tags --abbrev=0)..HEAD)" >> $GITHUB_ENV
           fi
 
-      - name: Upload ISOs as artifacts
+      - name: Upload ISO as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: isos
-          path: isos/
+          name: iso-${{ matrix.name }}
+          path: isos/${{ env.IMAGE_NAME }}.iso
 
   create-release:
     runs-on: ubuntu-latest
@@ -104,8 +104,14 @@ jobs:
       - name: Download ISOs
         uses: actions/download-artifact@v4
         with:
-          name: isos
-          path: isos/
+          path: isos
+
+      - name: Combine ISOs into a single folder
+        run: |
+          mkdir -p combined_isos
+          for iso in isos/iso-*/*.iso; do
+            cp "$iso" combined_isos/
+          done
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -114,4 +120,4 @@ jobs:
           name: ${{ needs.build.outputs.RELEASE_NAME }}
           body: ${{ needs.build.outputs.COMMIT_HISTORY }}
           files: |
-            isos/memsos_*.iso
+            combined_isos/*.iso
