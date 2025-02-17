@@ -1,7 +1,20 @@
-use crate::{asm::port::Port, drivers::driver::Driver};
+use crate::drivers::driver::Driver;
 
-const KEYBOARD_CTRL: Port = Port(0x64);
-const KEYBOARD_PORT: Port = Port(0x60);
+macro_rules! make_keys {
+    ($( $name:ident -> $value:literal ),*) => {
+        $(
+            #[cfg(target_arch = "x86_64")]
+            const $name: $crate::asm::port::Port = $crate::asm::port::Port($value);
+            #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+            const $name: $crate::asm::port::Port = $crate::asm::port::Port(0);
+        )*
+    };
+}
+
+make_keys!(
+    KEYBOARD_CTRL -> 0x64,
+    KEYBOARD_PORT -> 0x60
+);
 
 pub static KEYBOARD: Keyboard = Keyboard {};
 
@@ -30,7 +43,9 @@ impl Keyboard {
     }
     pub fn scan(&self, keys: &[Key]) -> Key {
         let mut event = self.read();
-        while !keys.contains(&event.key) && event.state == KeyState::Press {
+        while !keys.contains(&event.key) && event.state == KeyState::Press
+            || event.state == KeyState::None
+        {
             event = self.read();
         }
 
