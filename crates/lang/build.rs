@@ -42,7 +42,17 @@ fn main() {
         pub const DIALOGS: Dialogs = {:?};
     "#, dialogs).as_bytes()).unwrap();
 
+    let paths = std::fs::read_dir("defs").unwrap();
+
+    for path in paths {
+        let path = path.unwrap().path();
+        if path.is_file() {
+            println!("cargo:rerun-if-changed={}", path.display());
+        }
+    }
+
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-env-changed=LANG");
+    println!("cargo:rerun-if-changed=dialog.rs");
 }
 
