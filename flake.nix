@@ -4,100 +4,153 @@
   inputs = {
     crane.url = "github:ipetkov/crane";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
+    fenix-src.url = "github:nix-community/fenix";
+    flake-utils.url = "github:numtide/flake-utils";
+    limine = {
+      url = "github:limine-bootloader/limine/v8.x-binary";
+      flake = false;
     };
   };
 
-  outputs = { crane, nixpkgs, rust-overlay, ... }:
-    let
-      system = "x86_64-linux";
-      lib = nixpkgs.lib;
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [ (import rust-overlay) ];
-      };
+  outputs = { crane, nixpkgs, fenix-src, flake-utils, limine, ... }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        lib = nixpkgs.lib;
+        pkgs = nixpkgs.legacyPackages.${system};
+        fenix = fenix-src.packages.${system};
+        systemToTarget = {
+          "aarch64-darwin" = "aarch64-apple-darwin";
+          "aarch64-linux" = "aarch64-unknown-linux-gnu";
+          "i686-linux" = "i686-unknown-linux-gnu";
+          "x86_64-darwin" = "x86_64-apple-darwin";
+          "x86_64-linux" = "x86_64-unknown-linux-gnu";
+        };
 
-      toolchain = target: p: (p.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml).override {
-        targets = [ target ];
-      };
-      craneLib = target: (crane.mkLib pkgs).overrideToolchain (toolchain target);
+        hostTarget = systemToTarget.${system} or (throw "Unsupported system: ${system}");
+        toolchain = target: fenix.combine [
+          (fenix.targets.${hostTarget}.minimal.toolchain)
+          (fenix.targets.${target}.fromToolchainFile {
+            file = ./rust-toolchain.toml;
+            sha256 = "sha256-WGTJJbpV6WEv0VHPBqSIqWLCxzHivFNu0okQ2f9LrWU=";
+          })
+        ];
+        craneLib = target: (crane.mkLib pkgs).overrideToolchain (toolchain target);
 
-      architectures = [
-        { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }
-        { arch = "aarch64"; name = "aarch64";  target = "aarch64-unknown-none"; }
-        { arch = "aarch64"; name = "aarch64-uefi";  target = "aarch64-unknown-uefi"; }
-        { arch = "riscv64"; name = "riscv64-imac";  target = "riscv64imac-unknown-none-elf"; }
-        { arch = "riscv64"; name = "riscv64-gc";  target = "riscv64gc-unknown-none-elf"; }
-      ];
+        architectures = [
+          { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }
+          { arch = "aarch64"; name = "aarch64";  target = "aarch64-unknown-none"; }
+          { arch = "aarch64"; name = "aarch64-uefi";  target = "aarch64-unknown-uefi"; }
+          { arch = "riscv64"; name = "riscv64-imac";  target = "riscv64imac-unknown-none-elf"; }
+          { arch = "riscv64"; name = "riscv64-gc";  target = "riscv64gc-unknown-none-elf"; }
+        ];
 
-      mkDevShell = { name, target, ... }: (craneLib target).devShell {
-        packages = with pkgs; [ qemu just libisoburn ];
-        shellHook = ''
-          echo "DevShell for ${name} (${target})"
+        mkDevShell = { name, target, ... }: (craneLib target).devShell {
+          packages = with pkgs; [ qemu just libisoburn ];
+          shellHook = ''
+            echo "DevShell for ${name} (${target})"
+          '';
+        };
+
+
+        mkPackage = { arch, name, target, ... }: let
+          target_name = lib.toUpper (builtins.replaceStrings [ "-" ] [ "_" ] target);
+        in (craneLib target).buildPackage {
+          pname = "memsos-${name}";
+          version = "0.1.0";
+          src = (craneLib target).cleanCargoSource ./.;
+          doCheck = false;
+
+          "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.stdenv.cc.targetPrefix}cc";
+          "CARGO_TARGET_${target_name}_RUNNER" = "qemu-${arch}";
+
+          nativeBuildInputs = with pkgs; [ gnumake xorriso ];
+
+          postInstall = ''
+            OVMF_DIR="$out/ovmf"
+            mkdir -p "$OVMF_DIR"
+            cp ${./ovmf-files/ovmf-code-${arch}.fd} "$OVMF_DIR/ovmf-code-${arch}.fd"
+            cp ${./ovmf-files/ovmf-vars-${arch}.fd} "$OVMF_DIR/ovmf-vars-${arch}.fd"
+
+            LIMINE_DIR="$src/limine"
+            mkdir -p $LIMINE_DIR
+            cp ${limine}/* $LIMINE_DIR
+            make -C "$LIMINE_DIR"
+
+            mkdir -p $out/iso_root/boot
+            cp $out/bin/memsos-boot $src/iso_root/boot/kernel
+
+            mkdir -p $out/iso_root/boot/limine
+            cp "$LIMINE_DIR/limine-bios.sys" $src/iso_root/boot/limine/
+            cp "$LIMINE_DIR/limine-bios-cd.bin" $src/iso_root/boot/limine/
+            cp "$LIMINE_DIR/limine-uefi-cd.bin" $src/iso_root/boot/limine/
+            cp ${./limine.conf} $src/iso_root/boot/limine/
+
+            xorriso -as mkisofs -b boot/limine/limine-bios-cd.bin \
+              -no-emul-boot -boot-load-size 4 -boot-info-table \
+              --efi-boot boot/limine/limine-uefi-cd.bin \
+              -efi-boot-part --efi-boot-image --protective-msdos-label \
+              $src/iso_root -o $out/memsos-${name}.iso
+
+            "$LIMINE_DIR/limine" bios-install $out/memsos-${name}.iso
+            rm -rf $out/bin $out/iso_root $out/limine
+          '';
+        };
+
+        listApps = pkgs.writeShellScriptBin "list-apps" ''
+          echo "Available apps/packages:"
+          ${lib.concatMapStringsSep "\n" ({ name, ... }: ''echo "  - ${name}"'') architectures}
         '';
-      };
-
-      mkPackage = { arch, name, target, ... }: let
-        target_name = lib.toUpper (builtins.replaceStrings [ "-" ] [ "_" ] target);
-      in (craneLib target).buildPackage {
-        pname = "memsos-${name}";
-        version = "0.1.0";
-        src = (craneLib target).cleanCargoSource ./.;
-        cargoExtraArgs = "--target ${target}";
-        doCheck = false;
-
-        CARGO_BUILD_TARGET = target;
-        "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.stdenv.cc.targetPrefix}cc";
-        "CARGO_TARGET_${target_name}_RUNNER" = "qemu-${arch}";
-      };
-
-      listApps = pkgs.writeShellScriptBin "list-apps" ''
-        echo "Available apps/packages:"
-        ${lib.concatMapStringsSep "\n" ({ name, ... }: ''echo "  - ${name}"'') architectures}
-      '';
-    in {
-      devShells.${system} = lib.listToAttrs (map ({ name, ... }@args: {
-        inherit name;
-        value = mkDevShell args;
-      }) architectures) // {
-        # Default Devshell
-        default = mkDevShell {
-          name = "x86_64";
-          arch = "x86_64";
-          target = "x86_64-unknown-none";
+      in {
+        devShells = lib.listToAttrs (map ({ name, ... }@args: {
+          inherit name;
+          value = mkDevShell args;
+        }) architectures) // {
+          # Default Devshell
+          default = mkDevShell {
+            name = "x86_64";
+            arch = "x86_64";
+            target = "x86_64-unknown-none";
+          };
         };
-      };
 
-      packages.${system} = (lib.listToAttrs (map ({ name, ... }@args: {
-        inherit name;
-        value = mkPackage args;
-      }) architectures)) // ({
-        # Default Package
-        default = mkPackage {
-          name = "x86_64";
-          arch = "x86_64";
-          target = "x86_64-unknown-none";
-        };
-      });
+        packages = (lib.listToAttrs (map ({ name, ... }@args: {
+          inherit name;
+          value = mkPackage args;
+        }) architectures)) // ({
+          # Default Package
+          default = mkPackage {
+            name = "x86_64";
+            arch = "x86_64";
+            target = "x86_64-unknown-none";
+          };
+        });
 
-      apps.${system} = lib.listToAttrs (map ({ name, target, ... }@args: {
-        inherit name;
-        value = {
-          type = "app";
-          program = "${mkPackage args}/bin/memsos";
+        apps = lib.listToAttrs (map ({ arch, name, target, ... }@args: {
+          inherit name;
+          value = {
+            type = "app";
+            program = pkgs.writeShellScriptBin "run-${name}" ''
+              qemu-system-${arch} \
+                -cdrom ${mkPackage args}/memsos-${name}.iso \
+                -M q35 \
+                -no-reboot \
+                -no-shutdown \
+                -d int
+                -drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-${arch}.fd,readonly=on \
+                -drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-${arch}.fd \
+            '';
+          };
+        }) architectures) // {
+          list = {
+            type = "app";
+            program = "${listApps}/bin/list-apps";
+          };
+          # Default App
+          default = {
+            type = "app";
+            program = "${mkPackage { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }}/bin/memsos";
+          };
         };
-      }) architectures) // {
-        list = {
-          type = "app";
-          program = "${listApps}/bin/list-apps";
-        };
-        # Default App
-        default = {
-          type = "app";
-          program = "${mkPackage { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }}/bin/memsos";
-        };
-      };
-    };
+      }
+    );
 }
