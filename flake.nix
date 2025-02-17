@@ -60,31 +60,32 @@
           src = (craneLib target).cleanCargoSource ./.;
           doCheck = false;
 
+          RUST_PROFILE = "release";
           "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.stdenv.cc.targetPrefix}cc";
           "CARGO_TARGET_${target_name}_RUNNER" = "qemu-${arch}";
 
           nativeBuildInputs = with pkgs; [ gnumake xorriso ];
 
           postInstall = ''
-            LIMINE_DIR="$src/limine"
+            LIMINE_DIR="$out/limine"
             mkdir -p $LIMINE_DIR
             cp ${limine}/* $LIMINE_DIR
             make -C "$LIMINE_DIR"
 
             mkdir -p $out/iso_root/boot
-            cp $out/bin/memsos-boot $src/iso_root/boot/kernel
+            cp $out/bin/memsos-boot $out/iso_root/boot/kernel
 
             mkdir -p $out/iso_root/boot/limine
-            cp "$LIMINE_DIR/limine-bios.sys" $src/iso_root/boot/limine/
-            cp "$LIMINE_DIR/limine-bios-cd.bin" $src/iso_root/boot/limine/
-            cp "$LIMINE_DIR/limine-uefi-cd.bin" $src/iso_root/boot/limine/
-            cp ${./limine.conf} $src/iso_root/boot/limine/
+            cp "$LIMINE_DIR/limine-bios.sys" $out/iso_root/boot/limine/
+            cp "$LIMINE_DIR/limine-bios-cd.bin" $out/iso_root/boot/limine/
+            cp "$LIMINE_DIR/limine-uefi-cd.bin" $out/iso_root/boot/limine/
+            cp ${./limine.conf} $out/iso_root/boot/limine/
 
             xorriso -as mkisofs -b boot/limine/limine-bios-cd.bin \
               -no-emul-boot -boot-load-size 4 -boot-info-table \
               --efi-boot boot/limine/limine-uefi-cd.bin \
               -efi-boot-part --efi-boot-image --protective-msdos-label \
-              $src/iso_root -o $out/memsos-${name}.iso
+              $out/iso_root -o $out/memsos-${name}.iso
 
             "$LIMINE_DIR/limine" bios-install $out/memsos-${name}.iso
             rm -rf $out/bin $out/iso_root $out/limine
