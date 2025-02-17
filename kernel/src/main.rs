@@ -92,6 +92,7 @@ pub extern "C" fn _start() -> ! {
 
     layout!(
         test_info_layout,
+        &text!((0, 0), "Kind of test: {}", response),
         &styled_text!((0, 0), TextStyle { invert: true }, "Mem Info"),
         &text!(
             (0, 0),
@@ -104,7 +105,6 @@ pub extern "C" fn _start() -> ! {
     layout!(
         test_info_layout,
         &styled_text!((0, 0), TextStyle { invert: true }, "Cpu info"),
-        &text!((0, 0), "Kind of test: {:?}", response),
         &text!((0, 0), "Model: {}", cpuinfo.model),
         &text!((0, 0), "Vendor: {:?}", cpuinfo.vendor),
         &text!((0, 0), "family: {}", cpuinfo.family),

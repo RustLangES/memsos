@@ -8,6 +8,7 @@ use core::fmt::Error;
 use core::ops::{Add, AddAssign};
 use heapless::String;
 use lang::DIALOGS;
+use core::fmt::Display;
 
 #[derive(Default)]
 pub struct TestResult {
@@ -79,6 +80,16 @@ pub trait Logger {
 pub enum MemTestKind {
     Basic,
     Advanced,
+}
+
+impl Display for MemTestKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Basic => f.write_str(DIALOGS.basic)?,
+            Self::Advanced => f.write_str(DIALOGS.advanced)?
+        };
+        Ok(())
+    }
 }
 
 impl TryFrom<String<256>> for MemTestKind {
