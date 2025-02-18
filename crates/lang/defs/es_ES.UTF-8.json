@@ -1,6 +1,12 @@
 {
-  "test_kind": "¿Qué tipo de pruebas deseas?",
-  "advanced": "Avanzado",
-  "basic": "Basico"
+  "ask": {
+  	"test_kind": "¿Qué tipo de pruebas deseas?",
+  	"advanced": "Avanzado",
+  	"basic": "Basico"
+  },
+  "info": {
+   	"bootloader_version": "versión de limine",
+   	"love_message": "Hecho con amor por RustLangEs (Rust Lang en Español)"
+   }
 }
 

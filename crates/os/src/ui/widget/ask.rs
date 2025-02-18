@@ -63,7 +63,7 @@ impl Widget for Ask<'_> {
                 start_pos: (0, 0),
                 line_size: None,
             });
-            let msg = text!(layout.gen_pos(), "{}", DIALOGS.test_kind);
+            let msg = text!(layout.gen_pos(), "{}", DIALOGS.ask.test_kind);
             render!(&msg);
             layout.margin(msg.spacing());
             for i in 0..self.options.len() {

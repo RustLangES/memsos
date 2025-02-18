@@ -85,8 +85,8 @@ pub enum MemTestKind {
 impl Display for MemTestKind {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::Basic => f.write_str(DIALOGS.basic)?,
-            Self::Advanced => f.write_str(DIALOGS.advanced)?
+            Self::Basic => f.write_str(DIALOGS.ask.basic)?,
+            Self::Advanced => f.write_str(DIALOGS.ask.advanced)?
         };
         Ok(())
     }
@@ -97,8 +97,8 @@ impl TryFrom<String<256>> for MemTestKind {
     fn try_from(value: String<256>) -> Result<Self, Self::Error> {
         let s = value;
         Ok(match s.as_str() {
-            a if a == DIALOGS.basic => Self::Basic,
-            a if a == DIALOGS.advanced => Self::Advanced,
+            a if a == DIALOGS.ask.basic => Self::Basic,
+            a if a == DIALOGS.ask.advanced => Self::Advanced,
             _ => {
                 return Err(Error);
             }

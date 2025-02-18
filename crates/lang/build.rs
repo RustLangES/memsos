@@ -17,6 +17,9 @@ fn read_struct() -> String {
     for (index, line) in reader.lines().enumerate() {
         let mut line = line.unwrap();
         if index >= 2 {
+            if line.starts_with("#") {
+                continue;
+            }
             line = line.replace("String", "&'static str");
             output.push_str(&line);
         }

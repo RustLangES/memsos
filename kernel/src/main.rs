@@ -70,7 +70,7 @@ pub extern "C" fn _start() -> ! {
 
     let cpuinfo = CpuInfo::new();
 
-    let question = ask!(DIALOGS.basic, DIALOGS.advanced);
+    let question = ask!(DIALOGS.ask.basic, DIALOGS.ask.advanced);
 
     clear();
 
@@ -114,9 +114,8 @@ pub extern "C" fn _start() -> ! {
     layout!(
         info_layout,
         &text!("memsos v{memsos_version}"),
-        &text!((0, 0), "limine version {}", limine_info.version()),
-        &text!((0, 0), "bootloader v{}", boot_info.info.version(),),
-        &text!("Made with love by RustLangEs (Rust Lang en Español)")
+        &text!((0, 0), "{} {}", DIALOGS.info.bootloader_version, limine_info.version()),
+        &text!((0,0), "{}", DIALOGS.info.love_message)
     );
 
     let mut test_result = TestResult::default();
