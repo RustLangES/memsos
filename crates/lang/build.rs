@@ -35,7 +35,7 @@ fn main() {
     let paths: Vec<_> = read_dir("defs").unwrap()
         .map(|entry| entry.unwrap().path())
         .collect();
-    let lang_path = Path::new("defs").join(&lang);
+    let lang_path = Path::new("defs").join(format!("{}.json", &lang));
 
     if !lang_path.exists() {
         eprintln!("A translation called {} was not found", lang);
