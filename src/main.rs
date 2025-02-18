@@ -15,9 +15,8 @@ fn main() {
         if args.len() < 2 {
             Command::Uefi
         } else {
-            let a = match args.len() {
-                _ => args[1].as_str(),
-            };
+            let a = args[1].as_str();
+
             if args.len() > 2 {
                 cmd.env("LANG", args[2].as_str());
             } else { 
