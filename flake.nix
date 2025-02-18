@@ -1,5 +1,5 @@
 {
-  description = "Memtest rewritten in Rust";
+  description = "Powered Hardware test tool written in Rust";
 
   inputs = {
     crane.url = "github:ipetkov/crane";
@@ -18,15 +18,33 @@
         lib = nixpkgs.lib;
         pkgs = nixpkgs.legacyPackages.${system};
         fenix = fenix-src.packages.${system};
-        systemToTarget = {
-          "aarch64-darwin" = "aarch64-apple-darwin";
-          "aarch64-linux" = "aarch64-unknown-linux-gnu";
-          "i686-linux" = "i686-unknown-linux-gnu";
-          "x86_64-darwin" = "x86_64-apple-darwin";
-          "x86_64-linux" = "x86_64-unknown-linux-gnu";
+        ovmf_hashes = {
+          x86_64 = {
+            vars = "sha256-btmHrzo8FVvnFmX1EOrj4Aftqbi5Sv1Z1F6RxKEVZcw=";
+            code = "sha256-PI4QAiPjx6+P7LawNzP4kkWaXTEqOaapVdpj6GUm/6Q=";
+          };
+          aarch64 = {
+              vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
+              code = "sha256-j7i2aFmrXrStxrIv9zzpslmLLbqBe3igeDTbw8y7scQ=";
+          };
+          riscv64 = {
+              vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
+              code = "sha256-b24MAyRmI98zE40Auw+ZX2HbHbQ9ln8HLlRTxwL1emY=";
+          };
         };
+        systemToTarget = system:
+          let
+            arch = builtins.elemAt (lib.splitString "-" system) 0;
+            os = builtins.elemAt (lib.splitString "-" system) 1;
+          in
+            if os == "darwin" then
+              "${arch}-apple-darwin"
+            else if os == "linux" then
+              "${arch}-unknown-linux-gnu"
+            else
+              throw "Unsupported system: ${system}";
 
-        hostTarget = systemToTarget.${system} or (throw "Unsupported system: ${system}");
+        hostTarget = systemToTarget system;
         toolchain = target: fenix.combine [
           (fenix.targets.${hostTarget}.default.rust-std)
           (fenix.targets.${hostTarget}.default.toolchain)
@@ -49,9 +67,26 @@
           '';
         };
 
+        ovmf_pkg = arch: name: let
+          version = "2025-02-18";
+        in pkgs.stdenv.mkDerivation {
+          inherit version;
+          pname = "ovmf_${arch}";
+          src = pkgs.fetchurl {
+            url = "https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-${name}-${arch}.fd";
+            hash = ovmf_hashes.${arch}.${name};
+          };
+
+          unpackPhase = ''
+            mkdir -p $out
+            cp $src $out/ovmf-${name}-${arch}.fd
+          '';
+        };
 
         mkPackage = { arch, name, target, ... }: let
           target_name = lib.toUpper (builtins.replaceStrings [ "-" ] [ "_" ] target);
+          ovmf_vars = ovmf_pkg arch "vars";
+          ovmf_code= ovmf_pkg arch "code";
         in (craneLib target).buildPackage {
           pname = "memsos-${name}";
           version = "0.1.0";
@@ -72,6 +107,10 @@
 
             mkdir -p $out/iso_root/boot
             cp $out/bin/memsos-boot $out/iso_root/boot/kernel
+
+            mkdir -p $out/ovmf
+            cp ${ovmf_vars}/ovmf-vars-${arch}.fd $out/ovmf/ovmf-vars-${arch}.fd
+            cp ${ovmf_code}/ovmf-code-${arch}.fd $out/ovmf/ovmf-code-${arch}.fd
 
             mkdir -p $out/iso_root/boot/limine
             cp "$LIMINE_DIR/limine-bios.sys" $out/iso_root/boot/limine/
@@ -119,18 +158,23 @@
           };
         };
 
-        apps = lib.listToAttrs (map ({ arch, name, target, ... }@args: {
-          inherit name;
-          value = {
-            type = "app";
-            program = pkgs.writeShellScriptBin "run-${name}" ''
+        apps = lib.listToAttrs (map ({ arch, name, target, ... }@args: let
+            pkg = mkPackage args;
+            run = pkgs.writeShellScriptBin "run-${name}" ''
               qemu-system-${arch} \
-                -cdrom ${mkPackage args}/memsos-${name}.iso \
+                -cdrom ${pkg}/memsos-${name}.iso \
                 -M q35 \
                 -no-reboot \
                 -no-shutdown \
+                -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
+                -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
                 -d int
             '';
+        in {
+          inherit name;
+          value = {
+            type = "app";
+            program = "${run}/bin/run-${name}";
           };
         }) architectures) // {
           list = {
@@ -138,16 +182,22 @@
             program = "${listApps}/bin/list-apps";
           };
           # Default App
-          default = {
-            type = "app";
-            program = pkgs.writeShellScriptBin "run-default" ''
+          default = let
+            arch = "x86_64";
+            pkg = mkPackage { arch = arch; name = "x86_64"; target = "x86_64-unknown-none"; };
+            run = pkgs.writeShellScriptBin "run-default" ''
               qemu-system-x86_64 \
-                -cdrom ${mkPackage { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }}/memsos-x86_64.iso \
+                -cdrom ${pkg}/memsos-x86_64.iso \
                 -M q35 \
                 -no-reboot \
                 -no-shutdown \
+                -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
+                -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
                 -d int
             '';
+          in {
+            type = "app";
+            program = "${run}/bin/run-default";
           };
         };
       }
