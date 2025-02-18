@@ -28,12 +28,9 @@
 
         hostTarget = systemToTarget.${system} or (throw "Unsupported system: ${system}");
         toolchain = target: fenix.combine [
-          (fenix.targets.${hostTarget}.minimal.rust-std)
-          (fenix.targets.${hostTarget}.minimal.toolchain)
-          (fenix.targets.${target}.fromToolchainFile {
-            file = ./rust-toolchain.toml;
-            sha256 = "sha256-WGTJJbpV6WEv0VHPBqSIqWLCxzHivFNu0okQ2f9LrWU=";
-          })
+          (fenix.targets.${hostTarget}.default.rust-std)
+          (fenix.targets.${hostTarget}.default.toolchain)
+          (fenix.targets.${target}.latest.toolchain)
         ];
         craneLib = target: (crane.mkLib pkgs).overrideToolchain (toolchain target);
 
