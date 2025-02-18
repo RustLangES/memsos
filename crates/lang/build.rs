@@ -1,12 +1,12 @@
 #[path = "dialog.rs"]
 mod dialog;
 
-use std::env;
-use std::fs::{read_to_string, File, read_dir};
-use std::path::Path;
-use std::io::Write;
-use miniserde::json;
 use dialog::Dialogs;
+use miniserde::json;
+use std::env;
+use std::fs::{read_dir, read_to_string, File};
+use std::io::Write;
+use std::path::Path;
 
 use std::io::{BufRead, BufReader};
 
@@ -24,15 +24,16 @@ fn read_struct() -> String {
             output.push_str(&line);
         }
     }
-    
+
     output
 }
 
 fn main() {
     let lang = env::var("LANG".to_string()).unwrap();
-     
+
     let dest_path = Path::new("src").join("lang_info.rs");
-    let paths: Vec<_> = read_dir("defs").unwrap()
+    let paths: Vec<_> = read_dir("defs")
+        .unwrap()
         .map(|entry| entry.unwrap().path())
         .collect();
     let lang_path = Path::new("defs").join(format!("{}.json", &lang));
@@ -51,14 +52,20 @@ fn main() {
     let j = read_to_string(lang_path).unwrap();
     let dialogs: Dialogs = json::from_str(&j).unwrap();
 
-
     let mut file = File::create(dest_path).unwrap();
     let def = read_struct();
 
-    file.write_all(format!(r#"
+    file.write_all(
+        format!(
+            r#"
         {def}
         pub const DIALOGS: Dialogs = {:?};
-    "#, dialogs).as_bytes()).unwrap();
+    "#,
+            dialogs
+        )
+        .as_bytes(),
+    )
+    .unwrap();
 
     for path in &paths {
         if path.is_file() {
@@ -70,4 +77,3 @@ fn main() {
     println!("cargo:rerun-if-env-changed=LANG");
     println!("cargo:rerun-if-changed=dialog.rs");
 }
-

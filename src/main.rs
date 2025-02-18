@@ -19,8 +19,8 @@ fn main() {
 
             if args.len() > 2 {
                 cmd.env("LANG", args[2].as_str());
-            } else { 
-                  cmd.env("LANG", "en_US");
+            } else {
+                cmd.env("LANG", "en_US");
             }
             match a {
                 "bios" => Command::Bios,

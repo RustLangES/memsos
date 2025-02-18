@@ -4,11 +4,11 @@ mod test;
 use crate::test::marchc;
 use crate::test::pattern;
 use core::fmt::Arguments;
+use core::fmt::Display;
 use core::fmt::Error;
 use core::ops::{Add, AddAssign};
 use heapless::String;
 use lang::DIALOGS;
-use core::fmt::Display;
 
 #[derive(Default)]
 pub struct TestResult {
@@ -86,7 +86,7 @@ impl Display for MemTestKind {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::Basic => f.write_str(DIALOGS.ask.basic)?,
-            Self::Advanced => f.write_str(DIALOGS.ask.advanced)?
+            Self::Advanced => f.write_str(DIALOGS.ask.advanced)?,
         };
         Ok(())
     }

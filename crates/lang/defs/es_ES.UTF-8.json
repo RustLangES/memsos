@@ -1,12 +1,27 @@
 {
   "ask": {
-  	"test_kind": "¿Qué tipo de pruebas deseas?",
-  	"advanced": "Avanzado",
-  	"basic": "Basico"
+    "test_kind": "¿Qué tipo de pruebas deseas?",
+    "advanced": "Avanzado",
+    "basic": "Basico"
   },
   "info": {
-   	"bootloader_version": "versión de limine",
-   	"love_message": "Hecho con amor por RustLangEs (Rust Lang en Español)"
-   }
+    "bootloader_version": "versión de limine",
+    "love_message": "Hecho con amor por RustLangEs (Rust Lang en Español)"
+  },
+  "memtest_info": {
+    "info": "Información del test de memoria",
+    "actual_tests": "Prueba actual:",
+    "kind_test": "Tipo de pruebas"
+  },
+  "mem_info": {
+    "info": "Información de la memoria",
+    "size": "Tamaño de Memoria:"
+  },
+  "cpu_info": {
+    "info": "Información del CPU",
+    "model": "Modelo",
+    "vendor": "Vendedor",
+    "family": "Familia",
+    "stepping": "Revisión"
+  }
 }
-

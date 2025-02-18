@@ -7,5 +7,21 @@
    "info": {
 	"bootloader_version": "limine version",
 	"love_message": "Made with love by RustLangEs (Rust Lang en Español)"
+   },
+   "memtest_info": {
+	"info": "Memtest Info",
+	"actual_tests": "Actual test:",
+	"kind_test": "Kind of tests"
+   },
+   "mem_info": {
+ 	"info": "Mem Info",
+	"size": "Mem Size:"
+   },
+  "cpu_info": { 
+	"info": "Cpu Info",
+	"model": "Model",
+	"vendor": "Vendor",
+	"family": "family",
+	"stepping": "Stepping"
    }
 }

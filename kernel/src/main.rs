@@ -58,7 +58,8 @@ pub extern "C" fn _start() -> ! {
     let memtest_message = styled_text!(
         (width() - (width() / 2) + 6, 30),
         TextStyle { invert: true },
-        "Memtest Info"
+        "{}",
+        DIALOGS.memtest_info.info
     );
 
     let test_info_layout = VerticalLayout::new(LayoutParams {
@@ -92,30 +93,51 @@ pub extern "C" fn _start() -> ! {
 
     layout!(
         test_info_layout,
-        &text!((0, 0), "Kind of test: {}", response),
-        &styled_text!((0, 0), TextStyle { invert: true }, "Mem Info"),
+        &text!((0, 0), "{}: {}", DIALOGS.memtest_info.kind_test, response),
+        &styled_text!(
+            (0, 0),
+            TextStyle { invert: true },
+            "{}",
+            DIALOGS.mem_info.info
+        ),
         &text!(
             (0, 0),
-            "Mem Size: {:.2} GB",
+            "{}: {:.2} GB",
+            DIALOGS.mem_info.size,
             calculate_total_memory_gb(regions)
         ),
-        &text!("Mem Speed: Faied to load Information")
+        &text!("TODO: Mem Speed")
     );
 
     layout!(
         test_info_layout,
-        &styled_text!((0, 0), TextStyle { invert: true }, "Cpu info"),
-        &text!((0, 0), "Model: {}", cpuinfo.model),
-        &text!((0, 0), "Vendor: {:?}", cpuinfo.vendor),
-        &text!((0, 0), "family: {}", cpuinfo.family),
-        &text!((0, 0), "Stepping: {}", cpuinfo.stepping)
+        &styled_text!(
+            (0, 0),
+            TextStyle { invert: true },
+            "{}",
+            DIALOGS.cpu_info.info
+        ),
+        &text!((0, 0), "{}: {}", DIALOGS.cpu_info.model, cpuinfo.model),
+        &text!((0, 0), "{}: {:?}", DIALOGS.cpu_info.vendor, cpuinfo.vendor),
+        &text!((0, 0), "{}: {}", DIALOGS.cpu_info.family, cpuinfo.family),
+        &text!(
+            (0, 0),
+            "{}: {}",
+            DIALOGS.cpu_info.stepping,
+            cpuinfo.stepping
+        )
     );
 
     layout!(
         info_layout,
         &text!("memsos v{memsos_version}"),
-        &text!((0, 0), "{} {}", DIALOGS.info.bootloader_version, limine_info.version()),
-        &text!((0,0), "{}", DIALOGS.info.love_message)
+        &text!(
+            (0, 0),
+            "{} {}",
+            DIALOGS.info.bootloader_version,
+            limine_info.version()
+        ),
+        &text!((0, 0), "{}", DIALOGS.info.love_message)
     );
 
     let mut test_result = TestResult::default();

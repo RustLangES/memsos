@@ -3,10 +3,10 @@ use crate::drivers::keyboard::{Key, KeyState, KEYBOARD};
 use crate::ui::layout::{vertical::VerticalLayout, Layout, LayoutChild, LayoutParams};
 use crate::ui::widget::text::{Text, TextStyle};
 use crate::ui::widget::Widget;
-use lang::DIALOGS;
 use crate::{render, styled_text, text};
 use core::sync::atomic::{AtomicUsize, Ordering};
 use heapless::String;
+use lang::DIALOGS;
 
 pub struct Ask<'a> {
     pub options: &'a [Text],
