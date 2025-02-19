@@ -83,10 +83,10 @@ clean:
   rm -rf limine ovmf
 
 format:
-  just kernel/ format
+  cargo fmt --all -p kernel
 
 clippy:
-  just kernel/ clippy
+  cargo clippy -p kernel
 
 default: run-uefi
 

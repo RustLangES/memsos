@@ -9,12 +9,6 @@ build:
   cp ../target/{{RUST_TARGET}}/{{RUST_PROFILE_SUBDIR}}/kernel kernel
   {{ obj_cmd }}
 
-format:
-   cargo fmt
-
-clippy:
-   cargo clippy -- -D clippy::pedantic
-
 clean:
   cargo clean
   rm -rf kernel
