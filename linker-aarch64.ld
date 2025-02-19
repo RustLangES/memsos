@@ -1,4 +1,4 @@
-OUTPUT_FORMAT(elf64-x86-64)
+OUTPUT_FORMAT(elf64-littleaarch64)
 
 ENTRY(_start)
 
@@ -28,7 +28,7 @@ SECTIONS
     .data : {
         *(.data .data.*)
 
-        KEEP(*(.requests_start_marker))
+	KEEP(*(.requests_start_marker))
         KEEP(*(.requests))
         KEEP(*(.requests_end_marker))
     } :data
@@ -43,3 +43,4 @@ SECTIONS
         *(.note .note.*)
     }
 }
+

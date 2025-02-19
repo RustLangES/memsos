@@ -1,4 +1,4 @@
-OUTPUT_FORMAT(elf64-x86-64)
+OUTPUT_FORMAT(elf64-littleriscv)
 
 ENTRY(_start)
 
@@ -16,7 +16,6 @@ SECTIONS
     .text : {
         *(.text .text.*)
     } :text
-
     . = ALIGN(CONSTANT(MAXPAGESIZE));
 
     .rodata : {
@@ -28,12 +27,15 @@ SECTIONS
     .data : {
         *(.data .data.*)
 
-        KEEP(*(.requests_start_marker))
+	KEEP(*(.requests_start_marker))
         KEEP(*(.requests))
         KEEP(*(.requests_end_marker))
+
+        *(.sdata .sdata.*)
     } :data
 
     .bss : {
+        *(.sbss .sbss.*)
         *(.bss .bss.*)
         *(COMMON)
     } :data

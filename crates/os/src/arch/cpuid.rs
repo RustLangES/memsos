@@ -12,6 +12,10 @@ pub struct CpuInfo {
 pub enum Vendor {
     Intel,
     Amd,
+    #[cfg(target_arch = "aarch64")]
+    Arm,
+    #[cfg(target_arch = "riscv64")]
+    RiscV,
     Unknown(&'static str),
 }
 
@@ -37,7 +41,16 @@ impl Default for CpuInfo {
     }
 }
 
+#[cfg(target_arch = "x86_64")]
+struct CpuId {
+    edx: u32,
+    ecx: u32,
+    ebx: u32,
+    eax: u32,
+}
+
 #[allow(unused_assignments)]
+#[cfg(target_arch = "x86_64")]
 fn cpuid(mode: u32) -> CpuId {
     let mut edx: u32 = 0;
     let mut ecx: u32 = 0;
@@ -63,6 +76,7 @@ fn cpuid(mode: u32) -> CpuId {
     CpuId { edx, ecx, ebx, eax }
 }
 
+#[cfg(target_arch = "x86_64")]
 pub fn get_vendor() -> Vendor {
     let result = cpuid(0);
     let vendor = [result.ebx, result.edx, result.ecx];
@@ -78,6 +92,17 @@ pub fn get_vendor() -> Vendor {
     }
 }
 
+#[cfg(target_arch = "aarch64")]
+pub fn get_vendor() -> Vendor {
+    Vendor::Arm
+}
+
+#[cfg(target_arch = "riscv64")]
+pub fn get_vendor() -> Vendor {
+    Vendor::RiscV
+}
+
+#[cfg(target_arch = "x86_64")]
 pub fn get_cpu_family() -> u32 {
     let result = cpuid(1);
     let family = (result.eax >> 8) & 0x0f;
@@ -90,11 +115,49 @@ pub fn get_cpu_family() -> u32 {
     }
 }
 
+#[cfg(target_arch = "aarch64")]
+pub fn get_cpu_family() -> u32 {
+    let midr: u64;
+    unsafe {
+        asm!("mrs {0}, MIDR_EL1", out(reg) midr);
+    }
+    ((midr >> 4) & 0xFF) as u32
+}
+
+#[cfg(target_arch = "riscv64")]
+pub fn get_cpu_family() -> u32 {
+    let marchid: u64;
+    unsafe {
+        asm!("csrr {}, marchid", out(reg) marchid);
+    }
+    marchid as u32
+}
+
+#[cfg(target_arch = "x86_64")]
 pub fn get_cpu_stepping() -> u32 {
     let result = cpuid(1);
     result.eax & 0xf
 }
 
+#[cfg(target_arch = "aarch64")]
+pub fn get_cpu_stepping() -> u32 {
+    let midr: u64;
+    unsafe {
+        asm!("mrs {0}, MIDR_EL1", out(reg) midr);
+    }
+    (midr & 0xF) as u32
+}
+
+#[cfg(target_arch = "riscv64")]
+pub fn get_cpu_stepping() -> u32 {
+    let mimpid: u64;
+    unsafe {
+        asm!("csrr {}, mimpid", out(reg) mimpid);
+    }
+    mimpid as u32
+}
+
+#[cfg(target_arch = "x86_64")]
 pub fn get_cpu_model() -> &'static str {
     let result = cpuid(1);
 
@@ -132,9 +195,35 @@ pub fn get_cpu_model() -> &'static str {
     }
 }
 
-struct CpuId {
-    edx: u32,
-    ecx: u32,
-    ebx: u32,
-    eax: u32,
+#[cfg(target_arch = "aarch64")]
+pub fn get_cpu_model() -> &'static str {
+    let midr: u64;
+    unsafe {
+        asm!("mrs {0}, MIDR_EL1", out(reg) midr);
+    }
+    let implementer = (midr >> 24) & 0xFF;
+    let part_number = (midr >> 4) & 0xFFF;
+
+    match (implementer, part_number) {
+        (0x41, 0xD03) => "Cortex-A53",
+        (0x41, 0xD07) => "Cortex-A57",
+        (0x41, 0xD08) => "Cortex-A72",
+        (0x41, 0xD0C) => "Cortex-A76",
+        _ => "Unknown ARM CPU",
+    }
+}
+
+#[cfg(target_arch = "riscv64")]
+pub fn get_cpu_model() -> &'static str {
+    let marchid: u64;
+    unsafe {
+        asm!("csrr {}, marchid", out(reg) marchid);
+    }
+
+    match marchid {
+        0x80000000 => "SiFive U74",
+        0x80000001 => "SiFive U54",
+        0x80000002 => "SiFive S51",
+        _ => "Unknown RISC-V CPU",
+    }
 }

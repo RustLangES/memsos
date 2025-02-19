@@ -1,7 +1,7 @@
 use crate::request::FRAMEBUFFER_REQUEST;
 use crate::ui::widget::Widget;
 use crate::PADDING;
-use core::{cell::SyncUnsafeCell, ptr};
+use core::cell::SyncUnsafeCell;
 use limine::framebuffer::Framebuffer;
 
 pub static UI_WRITER: SyncUnsafeCell<Option<UiWriter>> = SyncUnsafeCell::new(None);

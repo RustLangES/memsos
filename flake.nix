@@ -1,95 +1,205 @@
 {
-  description = "Memtest rewritten in Rust";
+  description = "Powered Hardware test tool written in Rust";
+
   inputs = {
     crane.url = "github:ipetkov/crane";
-    fenix.url = "github:nix-community/fenix";
-  };
-  
-  outputs = { fenix, nixpkgs, ... }@inputs:
-    let
-      system = "x86_64-linux";
-      lib = pkgs.lib;
-      pkgs = nixpkgs.legacyPackages.${system};
-      crane = inputs.crane.mkLib pkgs;
-
-      # fenix: rustup replacement for reproducible builds
-      toolchain = fenix.packages.${system}.fromToolchainFile {
-        file = ./rust-toolchain.toml;
-        sha256 = "sha256-WGTJJbpV6WEv0VHPBqSIqWLCxzHivFNu0okQ2f9LrWU=";
-      };
-      # crane: cargo and artifacts manager
-      craneLib = crane.overrideToolchain toolchain;
-
-      # Create the runvm binary
-      runvm = pkgs.writeShellScriptBin "runvm" ''
-        #!/usr/bin/env bash
-        set -e
-
-        # Paths to VM images
-        if [[ -z "$out" || ! -d "$out" ]]; then
-          BASE_PATH="./target"
-        else
-          BASE_PATH="$out"
-        fi
-
-        BIOS_IMG="$BASE_PATH/bios.img"
-        UEFI_IMG="$BASE_PATH/uefi.img"
-
-        # Check the required image exists
-        if [[ ! -f "$BIOS_IMG" && ! -f "$UEFI_IMG" ]]; then
-          echo "Error: No BIOS or UEFI image found."
-          exit 1
-        fi
-
-        # Choose the image to boot
-        IMG_TO_BOOT="$BIOS_IMG"
-        if [[ "$1" == "uefi" ]]; then
-          IMG_TO_BOOT="$UEFI_IMG"
-        fi
-
-        echo "Booting VM using image: $IMG_TO_BOOT"
-
-        # QEMU command (adjust based on your VM needs)
-        qemu-system-x86_64 \
-          -enable-kvm \
-          -m 512M \
-          -cpu host \
-          -drive file="$IMG_TO_BOOT",format=raw \
-          "$@"
-      '';
-
-      # Base args, needed to build all crate artifacts and cache them for later builds
-      commonArgs = {
-        doCheck = false;
-        src = lib.cleanSourceWith {
-          src = craneLib.path ./..;
-        };
-      };
-
-      # Build dependencies and images
-      memsosDeps = craneLib.buildDepsOnly commonArgs;
-      memsos = target: craneLib.buildPackage (commonArgs // {
-        pname = "memsos";
-        version = "0.1.0";
-        cargoArtifacts = memsosDeps;
-        buildPhaseCargoCommand = "cargo run -r -- dist";
-
-        postInstall = ''
-          mkdir -p $out/bin
-          cp ${runvm}/bin/runvm $out/bin/
-
-          cp target/${target}.img $out/${target}.img
-        '';
-      });
-    in {
-      packages.${system} = rec {
-        default = memsosBIOS;
-        memsosBIOS = memsos "bios"; # BIOS package with runvm and bios.img
-        memsosUEFI = memsos "uefi"; # UEFI package with runvm and uefi.img
-      };
-
-      devShells.${system}.default = craneLib.devShell {
-        packages = with pkgs; [ qemu toolchain runvm just libisoburn ];
-      };
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    fenix-src.url = "github:nix-community/fenix";
+    flake-utils.url = "github:numtide/flake-utils";
+    limine = {
+      url = "github:limine-bootloader/limine/v8.x-binary";
+      flake = false;
     };
+  };
+
+  outputs = { crane, nixpkgs, fenix-src, flake-utils, limine, ... }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        lib = nixpkgs.lib;
+        pkgs = nixpkgs.legacyPackages.${system};
+        fenix = fenix-src.packages.${system};
+        ovmf_hashes = {
+          x86_64 = {
+            vars = "sha256-btmHrzo8FVvnFmX1EOrj4Aftqbi5Sv1Z1F6RxKEVZcw=";
+            code = "sha256-PI4QAiPjx6+P7LawNzP4kkWaXTEqOaapVdpj6GUm/6Q=";
+          };
+          aarch64 = {
+              vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
+              code = "sha256-j7i2aFmrXrStxrIv9zzpslmLLbqBe3igeDTbw8y7scQ=";
+          };
+          riscv64 = {
+              vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
+              code = "sha256-b24MAyRmI98zE40Auw+ZX2HbHbQ9ln8HLlRTxwL1emY=";
+          };
+        };
+        systemToTarget = system:
+          let
+            arch = builtins.elemAt (lib.splitString "-" system) 0;
+            os = builtins.elemAt (lib.splitString "-" system) 1;
+          in
+            if os == "darwin" then
+              "${arch}-apple-darwin"
+            else if os == "linux" then
+              "${arch}-unknown-linux-gnu"
+            else
+              throw "Unsupported system: ${system}";
+
+        hostTarget = systemToTarget system;
+        toolchain = target: fenix.combine [
+          (fenix.targets.${hostTarget}.default.rust-std)
+          (fenix.targets.${hostTarget}.default.toolchain)
+          (fenix.targets.${target}.latest.toolchain)
+        ];
+        craneLib = target: (crane.mkLib pkgs).overrideToolchain (toolchain target);
+
+        architectures = [
+          { arch = "x86_64"; name = "x86_64"; target = "x86_64-unknown-none"; }
+          { arch = "aarch64"; name = "aarch64";  target = "aarch64-unknown-none"; }
+          { arch = "aarch64"; name = "aarch64-uefi";  target = "aarch64-unknown-uefi"; }
+          { arch = "riscv64"; name = "riscv64-imac";  target = "riscv64imac-unknown-none-elf"; }
+          { arch = "riscv64"; name = "riscv64-gc";  target = "riscv64gc-unknown-none-elf"; }
+        ];
+
+        mkDevShell = { name, target, ... }: (craneLib target).devShell {
+          packages = with pkgs; [ qemu just libisoburn ];
+          shellHook = ''
+            echo "DevShell for ${name} (${target})"
+          '';
+        };
+
+        ovmf_pkg = arch: name: let
+          version = "2025-02-18";
+        in pkgs.stdenv.mkDerivation {
+          inherit version;
+          pname = "ovmf_${arch}";
+          src = pkgs.fetchurl {
+            url = "https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-${name}-${arch}.fd";
+            hash = ovmf_hashes.${arch}.${name};
+          };
+
+          unpackPhase = ''
+            mkdir -p $out
+            cp $src $out/ovmf-${name}-${arch}.fd
+          '';
+        };
+
+        mkPackage = { arch, name, target, ... }: let
+          target_name = lib.toUpper (builtins.replaceStrings [ "-" ] [ "_" ] target);
+          ovmf_vars = ovmf_pkg arch "vars";
+          ovmf_code= ovmf_pkg arch "code";
+        in (craneLib target).buildPackage {
+          pname = "memsos-${name}";
+          version = "0.1.0";
+          src = (craneLib target).cleanCargoSource ./.;
+          doCheck = false;
+
+          RUST_PROFILE = "release";
+          "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.stdenv.cc.targetPrefix}cc";
+          "CARGO_TARGET_${target_name}_RUNNER" = "qemu-${arch}";
+
+          nativeBuildInputs = with pkgs; [ gnumake xorriso ];
+
+          postInstall = ''
+            LIMINE_DIR="$out/limine"
+            mkdir -p $LIMINE_DIR
+            cp ${limine}/* $LIMINE_DIR
+            make -C "$LIMINE_DIR"
+
+            mkdir -p $out/iso_root/boot
+            cp $out/bin/memsos-boot $out/iso_root/boot/kernel
+
+            mkdir -p $out/ovmf
+            cp ${ovmf_vars}/ovmf-vars-${arch}.fd $out/ovmf/ovmf-vars-${arch}.fd
+            cp ${ovmf_code}/ovmf-code-${arch}.fd $out/ovmf/ovmf-code-${arch}.fd
+
+            mkdir -p $out/iso_root/boot/limine
+            cp "$LIMINE_DIR/limine-bios.sys" $out/iso_root/boot/limine/
+            cp "$LIMINE_DIR/limine-bios-cd.bin" $out/iso_root/boot/limine/
+            cp "$LIMINE_DIR/limine-uefi-cd.bin" $out/iso_root/boot/limine/
+            cp ${./limine.conf} $out/iso_root/boot/limine/
+
+            xorriso -as mkisofs -b boot/limine/limine-bios-cd.bin \
+              -no-emul-boot -boot-load-size 4 -boot-info-table \
+              --efi-boot boot/limine/limine-uefi-cd.bin \
+              -efi-boot-part --efi-boot-image --protective-msdos-label \
+              $out/iso_root -o $out/memsos-${name}.iso
+
+            "$LIMINE_DIR/limine" bios-install $out/memsos-${name}.iso
+            rm -rf $out/bin $out/iso_root $out/limine
+          '';
+        };
+
+        listApps = pkgs.writeShellScriptBin "list-apps" ''
+          echo "Available apps/packages:"
+          ${lib.concatMapStringsSep "\n" ({ name, ... }: ''echo "  - ${name}"'') architectures}
+        '';
+      in {
+        devShells = lib.listToAttrs (map ({ name, ... }@args: {
+          inherit name;
+          value = mkDevShell args;
+        }) architectures) // {
+          # Default Devshell
+          default = mkDevShell {
+            name = "x86_64";
+            arch = "x86_64";
+            target = "x86_64-unknown-none";
+          };
+        };
+
+        packages = (lib.listToAttrs (map ({ name, ... }@args: {
+          inherit name;
+          value = mkPackage args;
+        }) architectures)) // {
+          # Default Package
+          default = mkPackage {
+            name = "x86_64";
+            arch = "x86_64";
+            target = "x86_64-unknown-none";
+          };
+        };
+
+        apps = lib.listToAttrs (map ({ arch, name, target, ... }@args: let
+            pkg = mkPackage args;
+            run = pkgs.writeShellScriptBin "run-${name}" ''
+              qemu-system-${arch} \
+                -cdrom ${pkg}/memsos-${name}.iso \
+                -M q35 \
+                -no-reboot \
+                -no-shutdown \
+                -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
+                -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
+                -d int
+            '';
+        in {
+          inherit name;
+          value = {
+            type = "app";
+            program = "${run}/bin/run-${name}";
+          };
+        }) architectures) // {
+          list = {
+            type = "app";
+            program = "${listApps}/bin/list-apps";
+          };
+          # Default App
+          default = let
+            arch = "x86_64";
+            pkg = mkPackage { arch = arch; name = "x86_64"; target = "x86_64-unknown-none"; };
+            run = pkgs.writeShellScriptBin "run-default" ''
+              qemu-system-x86_64 \
+                -cdrom ${pkg}/memsos-x86_64.iso \
+                -M q35 \
+                -no-reboot \
+                -no-shutdown \
+                -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
+                -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
+                -d int
+            '';
+          in {
+            type = "app";
+            program = "${run}/bin/run-default";
+          };
+        };
+      }
+    );
 }

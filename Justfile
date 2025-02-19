@@ -1,11 +1,24 @@
-QEMU_FLAGS :=  env_var_or_default("QEMU_FLAGS", "")
-IMAGE_NAME := "memsos-x86_64"
+# Arch: x86_64, aarch64, riscv64
+ARCH := env("ARCH", "x86_64")
+RUST_TARGET := env("RUST_TARGET", "x86_64-unknown-none")
+IMAGE_NAME := env("IMAGE_NAME", "memsos_" + ARCH)
+QEMU_FLAGS := env("QEMU_FLAGS", "")
 OVMF_DIR := "ovmf"
 LIMINE_DIR := "limine"
-ARCH := "x86_64"
+
+# UEFI prefix from ARCH
+UEFI_SUFFIX := `\
+  if [ "{{ARCH}}" = "x86_64" ]; then \
+    echo "X64"; \
+  elif [ "{{ARCH}}" = "aarch64" ]; then \
+    echo "AA64"; \
+  elif [ "{{ARCH}}" = "riscv64" ]; then \
+    echo "RISCV64"; \
+  else \
+    echo "IA32"; \
+  fi`
 
 # Run vm
-
 run-uefi: build ovmf
   qemu-system-{{ARCH}} \
     -M q35 \
@@ -29,7 +42,6 @@ run-bios: build
 
 
 # OVMF build
-
 ovmf:
     test -d {{OVMF_DIR}} || (mkdir -p {{OVMF_DIR}} && curl -Lo {{OVMF_DIR}}/ovmf-code-{{ARCH}}.fd https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-{{ARCH}}.fd &&  curl -Lo {{OVMF_DIR}}/ovmf-vars-{{ARCH}}.fd https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-vars-{{ARCH}}.fd)
 
@@ -40,31 +52,28 @@ limine:
   make -C {{LIMINE_DIR}}
 
 # Kernel build
-
 kernel:
   just kernel/
 
 
 # Image build
-
 build: limine kernel
   rm -rf iso_root
   mkdir -p iso_root/boot
   cp -v kernel/kernel iso_root/boot/
   mkdir -p iso_root/boot/limine
   cp -v limine.conf iso_root/boot/limine/
-  mkdir -p iso_root/EFI/BOOT    
+  mkdir -p iso_root/EFI/BOOT
 
   cp -v limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/boot/limine/
-  cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
-  cp -v limine/BOOTIA32.EFI iso_root/EFI/BOOT/
+  cp -v limine/BOOT{{UEFI_SUFFIX}}.EFI iso_root/EFI/BOOT/
   xorriso -as mkisofs -b boot/limine/limine-bios-cd.bin \
     -no-emul-boot -boot-load-size 4 -boot-info-table \
     --efi-boot boot/limine/limine-uefi-cd.bin \
     -efi-boot-part --efi-boot-image --protective-msdos-label \
     iso_root -o {{IMAGE_NAME}}.iso
- 
-  ./limine/limine bios-install {{IMAGE_NAME}}.iso 
+
+  ./limine/limine bios-install {{IMAGE_NAME}}.iso
   rm -rf iso_root
 
 clean:
