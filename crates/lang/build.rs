@@ -57,10 +57,8 @@ fn main() {
 
     file.write_all(
         format!(
-            r#"
-        {def}
-        pub const DIALOGS: Dialogs = {:?};
-    "#,
+            r#"{def}
+pub const DIALOGS: Dialogs = {:?};"#,
             dialogs
         )
         .as_bytes(),
