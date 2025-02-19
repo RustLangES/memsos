@@ -27,5 +27,10 @@
   "debug_info": {
     "checking": "Verificando región",
     "omitting": "Omitiendo región"
+  },
+  "test_result_info": {
+    "info": "Resultado del test",
+    "completed_message": "Prueba completada...",
+    "number_of_errors": "Número de direcciones de memoria defectuosas:"
   }
 }
