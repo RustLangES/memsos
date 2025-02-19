@@ -94,6 +94,16 @@ jobs:
     needs: build
     if: ${{ (github.event.inputs.create_release == 'true' || github.event_name == 'push') && github.event_name != 'pull_request' }}
     steps:
+      - uses: actions/checkout@v4
+      - name: Generate a changelog
+        uses: orhun/git-cliff-action@v4
+        id: git-cliff
+        with:
+          config: cliff.toml
+          args: --latest
+        env:
+          OUTPUT: CHANGES.md
+          GITHUB_REPO: ${{ github.repository }}
       - name: Download ISOs
         uses: actions/download-artifact@v4
         with:
@@ -113,5 +123,7 @@ jobs:
           prerelease: ${{ needs.build.outputs.release_name != '' && contains(needs.build.outputs.release_name, 'a') }}
           tag_name: ${{ needs.build.outputs.release_name }}
           name: ${{ needs.build.outputs.release_name }}
+          body: ${{ steps.git-cliff.outputs.content }}
           files: |
             combined_isos/*.iso
+            CHANGES.md
