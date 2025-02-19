@@ -23,5 +23,9 @@
     "vendor": "Vendedor",
     "family": "Familia",
     "stepping": "Revisión"
+  },
+  "debug_info": {
+    "checking": "Verificando región",
+    "omitting": "Omitiendo región"
   }
 }

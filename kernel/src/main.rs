@@ -148,7 +148,8 @@ pub extern "C" fn _start() -> ! {
                 &debug_layout,
                 &text!(
                     (0, 0),
-                    "Omitting region of memory {}-{}",
+                    "{} {}-{}",
+                    DIALOGS.debug_info.omitting,
                     region.base,
                     region.base + region.length
                 )
