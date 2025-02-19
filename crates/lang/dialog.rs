@@ -7,7 +7,7 @@ pub struct Dialogs {
     pub mem_info: MemInfo,
     pub cpu_info: CpuInfo,
     pub debug_info: MemTestDebug,
-    pub test_result_info: TestResult
+    pub test_result_info: TestResult,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -47,13 +47,13 @@ pub struct CpuInfo {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MemTestDebug {
-   pub checking: String,
-   pub omitting: String
+    pub checking: String,
+    pub omitting: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TestResult {
     pub info: String,
     pub completed_message: String,
-    pub number_of_errors: String
+    pub number_of_errors: String,
 }

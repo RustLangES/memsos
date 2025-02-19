@@ -169,7 +169,12 @@ pub extern "C" fn _start() -> ! {
 
     layout!(
         &test_info_layout,
-        &styled_text!((0, 0), TextStyle { invert: true }, "{}", DIALOGS.test_result_info.info),
+        &styled_text!(
+            (0, 0),
+            TextStyle { invert: true },
+            "{}",
+            DIALOGS.test_result_info.info
+        ),
         &text!((0, 0), "{}", DIALOGS.test_result_info.completed_message),
         &text!(
             (0, 0),

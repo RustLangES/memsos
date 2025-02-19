@@ -36,7 +36,10 @@ pub fn run_test<M: Mem, L: Logger>(
     region: &MemoryRegion,
     kind: MemTestKind,
 ) -> TestResult {
-    logger.log(format_args!("{} {}-{}", DIALOGS.debug_info.checking, region.start, region.end));
+    logger.log(format_args!(
+        "{} {}-{}",
+        DIALOGS.debug_info.checking, region.start, region.end
+    ));
     let mut result = TestResult::default();
 
     if kind == MemTestKind::Basic || kind == MemTestKind::Advanced {
