@@ -25,11 +25,11 @@
           };
           aarch64 = {
               vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
-              code = "sha256-j7i2aFmrXrStxrIv9zzpslmLLbqBe3igeDTbw8y7scQ=";
+              code = "sha256-mEAArGgaUtBQdIoCInieGWXENZbWCkLvKyWIYxOx4CI=";
           };
           riscv64 = {
               vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
-              code = "sha256-b24MAyRmI98zE40Auw+ZX2HbHbQ9ln8HLlRTxwL1emY=";
+              code = "sha256-/AyM5b8itwPZRuGK4Z81a+z8SLZ2r+CL7DPEedzAkZA=";
           };
         };
         systemToTarget = system:
