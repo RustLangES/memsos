@@ -28,24 +28,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Detect modified language files (PR only)
+        if: github.event_name == 'pull_request'
+        id: detect-modified-langs
+        run: |
+          MODIFIED_LANGS=$(git diff --name-only origin/${{ github.base_ref }} | grep 'crates/lang/defs/' | sed 's|crates/lang/defs/||g' | sed 's|.UTF-8.json||g' | sort -u || true)
+
+          if [[ -z "$MODIFIED_LANGS" ]]; then
+            MODIFIED_LANGS="en_US"
+          fi
+
+          echo "MODIFIED_LANGS=$MODIFIED_LANGS"
+          echo "langs=$(echo "$MODIFIED_LANGS" | jq -R -s 'split("\n") | map(select(. != ""))')" >> "$GITHUB_OUTPUT"
+
       - name: Generate matrix
         id: generate-matrix
         run: |
-          LANG_FILES=$(ls crates/lang/defs/*.json)
-          LANGUAGES=$(echo "$LANG_FILES" | sed 's|crates/lang/defs/||g' | sed 's|.UTF-8.json||g')
-
           ARCHITECTURES=("x86_64" "aarch64" "aarch64-uefi" "riscv64-imac" "riscv64-gc")
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            LANGUAGES=${{ steps.detect-modified-langs.outputs.langs }}
+          else
+            LANG_FILES=$(ls crates/lang/defs/*.json)
+            LANGUAGES=$(echo "$LANG_FILES" | sed 's|crates/lang/defs/||g' | sed 's|.UTF-8.json||g')
+            LANGUAGES=$(echo "$LANGUAGES" | jq -R -s 'split("\n") | map(select(. != ""))')
+          fi
 
           MATRIX=$(jq -n '[]')
           for arch in "${ARCHITECTURES[@]}"; do
-            for lang in $LANGUAGES; do
+            for lang in $(echo "$LANGUAGES" | jq -r '.[]'); do
               MATRIX=$(echo "$MATRIX" | jq --arg arch "$arch" --arg lang "$lang" '. += [{"arch": $arch, "lang": $lang}]')
             done
           done
 
-          MATRIX=$(echo "$MATRIX" | jq -c ".")
-          echo "matrix=$MATRIX"
-          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "Generated Matrix:"
+          echo "$MATRIX" | jq .
+          echo "matrix=$(echo "$MATRIX" | jq -c .)" >> "$GITHUB_OUTPUT"
 
   build:
     runs-on: ubuntu-latest
