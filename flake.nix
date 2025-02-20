@@ -5,6 +5,7 @@
     crane.url = "github:ipetkov/crane";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -15,10 +16,11 @@
     };
   };
 
-  outputs = { crane, nixpkgs, flake-utils, rust-overlay, limine, ... }:
+  outputs = { crane, nixpkgs, flake-utils, rust-overlay, limine, pre-commit-hooks, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         lib = nixpkgs.lib;
+        hooks = pre-commit-hooks.lib.${system};
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs {
           inherit system overlays;
@@ -68,8 +70,10 @@
 
         mkDevShell = { name, target, ... }: (craneLib target).devShell {
           packages = with pkgs; [ qemu just libisoburn ];
+          buildInputs = hook.enabledPackages;
           shellHook = ''
             echo "DevShell for ${name} (${target})"
+            ${hook.shellHook}
           '';
         };
 
@@ -193,7 +197,29 @@
           echo -e "\033[0;36mAvailable languages:\033[0m"
           ${lib.concatMapStringsSep "\n" (lang: ''echo "  - ${lang}"'') languages}
         '';
+
+        hook = hooks.run {
+          src = ./.;
+          hooks = {
+            actionlint.enable = true;
+            check-json.enable = true;
+            pretty-format-json.enable = true;
+            check-executables-have-shebangs.enable = true;
+            check-shebang-scripts-are-executable.enable = true;
+            rustfmt = {
+              enable = true;
+              packageOverrides = {
+                cargo = toolchain hostTarget;
+                rustfmt = toolchain hostTarget;
+              };
+            };
+          };
+        };
       in {
+        checks = {
+          pre-commit-check = hook;
+        };
+
         devShells = lib.listToAttrs (map ({ name, ... }@args: {
           inherit name;
           value = mkDevShell args;

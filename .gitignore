@@ -7,3 +7,4 @@ iso_root
 ovmf
 memsos*.iso
 crates/lang/src/lang_info.rs
+/.pre-commit-config.yaml
