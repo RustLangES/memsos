@@ -95,16 +95,20 @@ impl Display for MemTestKind {
     }
 }
 
+#[derive(Debug)]
+pub struct MemTestKindError(String<256>);
+
 impl TryFrom<String<256>> for MemTestKind {
-    type Error = Error;
+    type Error = MemTestKindError;
     fn try_from(value: String<256>) -> Result<Self, Self::Error> {
-        let s = value;
+        let s = value.clone();
         Ok(match s.as_str() {
             a if a == DIALOGS.ask.basic => Self::Basic,
             a if a == DIALOGS.ask.advanced => Self::Advanced,
             _ => {
-                return Err(Error);
+                return Err(MemTestKindError(value));
             }
         })
     }
 }
+
