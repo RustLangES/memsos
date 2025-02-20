@@ -89,7 +89,7 @@
           '';
         };
 
-        mkPackage = { arch, name, target, lang ? "en_US", ... }: let
+        mkPackage = { arch, name, target, lang ? "en_US", debug_symbols ? false, ... }: let
           target_name = lib.toUpper (builtins.replaceStrings [ "-" ] [ "_" ] target);
           ovmf_vars = ovmf_pkg arch "vars";
           ovmf_code= ovmf_pkg arch "code";
@@ -102,7 +102,7 @@
             else
               "IA32";
         in (craneLib target).buildPackage {
-          pname = "memsos-${name}";
+          pname = "memsos-${name}" + (if debug_symbols then "-debug" else "");
           version = "0.1.0";
           src = pkgs.lib.cleanSourceWith {
             src = ./.;
@@ -112,7 +112,7 @@
               || ((craneLib target).filterCargoSources path type);
           };
           doCheck = false;
-          cargoBuildCommand = "cargo build --target ${target} -p kernel";
+          cargoBuildCommand = "cargo build --target ${target} -p kernel" + (if (!debug_symbols) then " --release" else "");
 
           RUSTFLAGS="-C relocation-model=static";
           TARGET_CC = "${pkgs.stdenv.cc.targetPrefix}cc";
@@ -129,8 +129,11 @@
             make -C "$LIMINE_DIR"
 
             mkdir -p $out/iso_root/boot
+
+            ${lib.optionalString debug_symbols ''
+              ${pkgs.binutils}/bin/objcopy --only-keep-debug $out/bin/kernel $out/bin/kernel.sym
+            ''}
             cp $out/bin/kernel $out/iso_root/boot/kernel
-            ${pkgs.binutils}/bin/objcopy --only-keep-debug $out/bin/kernel $out/bin/kernel.sym
 
             mkdir -p $out/ovmf
             cp ${ovmf_vars}/ovmf-vars-${arch}.fd $out/ovmf/ovmf-vars-${arch}.fd
@@ -149,10 +152,12 @@
               -no-emul-boot -boot-load-size 4 -boot-info-table \
               --efi-boot boot/limine/limine-uefi-cd.bin \
               -efi-boot-part --efi-boot-image --protective-msdos-label \
-              $out/iso_root -o $out/memsos-${name}-${lang}.iso
+              $out/iso_root -o $out/memsos-${name}-${lang}${if debug_symbols then "-debug" else ""}.iso
 
-            "$LIMINE_DIR/limine" bios-install $out/memsos-${name}-${lang}.iso
-            # rm -rf $out/bin $out/iso_root $out/limine
+            "$LIMINE_DIR/limine" bios-install $out/memsos-${name}-${lang}${if debug_symbols then "-debug" else ""}.iso
+            ${lib.optionalString (!debug_symbols) ''
+              rm -rf $out/bin $out/iso_root $out/limine
+            ''}
           '';
         };
 
@@ -160,6 +165,33 @@
           echo "Available apps/packages:"
           ${lib.concatMapStringsSep "\n" ({ name, ... }: ''echo "  - ${name}"'') architectures}
           ${lib.concatMapStringsSep "\n" (lang: lib.concatMapStringsSep "\n" ({ name, ... }: ''echo "  - ${name}-${lang}"'') architectures) languages}
+          ${lib.concatMapStringsSep "\n" (lang: lib.concatMapStringsSep "\n" ({ name, ... }: ''echo "  - ${name}-${lang}-debug"'') architectures) languages}
+        '';
+
+        helpApp = pkgs.writeShellScriptBin "help" ''
+          echo ""
+          echo "Welcome to Memsos"
+          echo ""
+          echo -e "\033[0;33mAvailable commands:\033[0m"
+          echo "  nix build"
+          echo "  nix build .#<template>"
+          echo "  nix run"
+          echo "  nix run .#<template>"
+          echo ""
+          echo -e "\033[0;33mUse the following template:\033[0m"
+          echo "  <arch>-<lang>"
+          echo "  <arch>-<lang>-debug"
+          echo ""
+          echo -e "\033[0;32mExample:\033[0m"
+          echo "  nix build .#x86_64-en_US"
+          echo "  nix run .#x86_64-en_US-debug"
+          echo ""
+          echo -e "\033[0;35mAvailable architectures:\033[0m"
+          ${lib.concatMapStringsSep "\n" ({ arch, ... }: ''echo "  - ${arch}"'') architectures}
+
+          echo ""
+          echo -e "\033[0;36mAvailable languages:\033[0m"
+          ${lib.concatMapStringsSep "\n" (lang: ''echo "  - ${lang}"'') languages}
         '';
       in {
         devShells = lib.listToAttrs (map ({ name, ... }@args: {
@@ -180,6 +212,9 @@
         }) architectures)) // (lib.listToAttrs (lib.concatMap (lang: map ({ name, ... }@args: {
           name = "${name}-${lang}";
           value = mkPackage (args // { inherit lang; });
+        }) architectures) languages)) // (lib.listToAttrs (lib.concatMap (lang: map ({ name, ... }@args: {
+          name = "${name}-${lang}-debug";
+          value = mkPackage (args // { inherit lang; debug_symbols = true; });
         }) architectures) languages)) // {
           # Default Package
           default = mkPackage {
@@ -207,10 +242,33 @@
             type = "app";
             program = "${run}/bin/run-${name}-${lang}";
           };
+        }) architectures) languages)) // (lib.listToAttrs (lib.concatMap (lang: map ({ arch, name, target, ... }@args: let
+            pkg = mkPackage (args // { inherit lang; debug_symbols = true; });
+            run = pkgs.writeShellScriptBin "run-${name}-${lang}-debug" ''
+              ${pkgs.qemu}/bin/qemu-system-${arch} \
+                -cdrom ${pkg}/memsos-${name}-${lang}-debug.iso \
+                -M q35 \
+                -no-reboot \
+                -no-shutdown \
+                -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
+                -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
+                -d int
+            '';
+        in {
+          name = "${name}-${lang}-debug";
+          value = {
+            type = "app";
+            program = "${run}/bin/run-${name}-${lang}-debug";
+          };
         }) architectures) languages)) // {
           list = {
             type = "app";
             program = "${listApps}/bin/list-apps";
+          };
+
+          help = {
+            type = "app";
+            program = "${helpApp}/bin/help";
           };
           # Default App
           default = let
