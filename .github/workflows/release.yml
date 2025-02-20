@@ -27,19 +27,29 @@ jobs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Detect modified language files (PR only)
         if: github.event_name == 'pull_request'
         id: detect-modified-langs
         run: |
-          MODIFIED_LANGS=$(git diff --name-only origin/${{ github.base_ref }} | grep 'crates/lang/defs/' | sed 's|crates/lang/defs/||g' | sed 's|.UTF-8.json||g' | sort -u || true)
+          git remote -v
+          git fetch origin ${{ github.base_ref }}
 
-          if [[ -z "$MODIFIED_LANGS" ]]; then
-            MODIFIED_LANGS="en_US"
+          MODIFIED_FILES=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E 'crates/lang/defs/.*\.UTF-8\.json$' || true)
+
+          if [[ -z "$MODIFIED_FILES" ]]; then
+            echo "No language files modified, defaulting to en_US"
+            echo "langs=[\"en_US\"]" >> "$GITHUB_OUTPUT"
+          else
+            LANG_ARRAY=$(echo "$MODIFIED_FILES" | \
+              sed -E 's|crates/lang/defs/(.*)\.UTF-8\.json|\1|g' | \
+              awk 'BEGIN{printf "["} {if(NR>1)printf ","; printf "\"%s\"", $0} END{printf "]"}')
+
+            echo "Modified languages array: $LANG_ARRAY"
+            echo "langs=$LANG_ARRAY" >> "$GITHUB_OUTPUT"
           fi
-
-          echo "MODIFIED_LANGS=$MODIFIED_LANGS"
-          echo "langs=$(echo "$MODIFIED_LANGS" | jq -R -s 'split("\n") | map(select(. != ""))')" >> "$GITHUB_OUTPUT"
 
       - name: Generate matrix
         id: generate-matrix
@@ -47,11 +57,12 @@ jobs:
           ARCHITECTURES=("x86_64" "aarch64" "aarch64-uefi" "riscv64-imac" "riscv64-gc")
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            LANGUAGES=${{ steps.detect-modified-langs.outputs.langs }}
+            LANGUAGES='${{ steps.detect-modified-langs.outputs.langs }}'
           else
-            LANG_FILES=$(ls crates/lang/defs/*.json)
-            LANGUAGES=$(echo "$LANG_FILES" | sed 's|crates/lang/defs/||g' | sed 's|.UTF-8.json||g')
-            LANGUAGES=$(echo "$LANGUAGES" | jq -R -s 'split("\n") | map(select(. != ""))')
+            LANG_FILES=$(ls crates/lang/defs/*.UTF-8.json)
+            LANGUAGES=$(echo "$LANG_FILES" | \
+              sed -E 's|crates/lang/defs/(.*)\.UTF-8\.json|\1|g' | \
+              awk 'BEGIN{printf "["} {if(NR>1)printf ","; printf "\"%s\"", $0} END{printf "]"}')
           fi
 
           MATRIX=$(jq -n '[]')
