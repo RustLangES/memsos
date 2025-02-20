@@ -7,7 +7,7 @@ pub struct BootInfo<'a> {
     pub offset: u64,
 }
 
-impl<'a> BootInfo<'a> {
+impl BootInfo<'_> {
     pub fn get() -> Self {
         let info = BOOT_INFO_REQUEST.get_response().unwrap();
         let memory_regions = MEMORY_MAP_REQUEST.get_response().unwrap().entries();

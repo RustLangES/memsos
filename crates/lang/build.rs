@@ -29,7 +29,7 @@ fn read_struct() -> String {
 }
 
 fn main() {
-    let lang = env::var("LANG".to_string()).unwrap();
+    let lang = env::var("LANG").unwrap();
 
     let dest_path = Path::new("src").join("lang_info.rs");
     let paths: Vec<_> = read_dir("defs")

@@ -38,9 +38,7 @@ impl Widget for Ask<'_> {
     fn render(&self, _writer: &mut crate::ui::writer::UiWriter) {
         let mut current = 0;
         let mut read = Key::Unknown(0);
-        render!(
-            &text!((0,0), "serjio ladron")
-        );
+        render!(&text!((0, 0), "serjio ladron"));
         while !(read == Key::Space) {
             if current >= self.options.len() {
                 current = 0;

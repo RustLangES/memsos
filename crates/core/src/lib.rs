@@ -5,7 +5,6 @@ use crate::test::marchc;
 use crate::test::pattern;
 use core::fmt::Arguments;
 use core::fmt::Display;
-use core::fmt::Error;
 use core::ops::{Add, AddAssign};
 use heapless::String;
 use lang::DIALOGS;
@@ -96,6 +95,7 @@ impl Display for MemTestKind {
 }
 
 #[derive(Debug)]
+#[allow(unused)]
 pub struct MemTestKindError(String<256>);
 
 impl TryFrom<String<256>> for MemTestKind {
@@ -111,4 +111,3 @@ impl TryFrom<String<256>> for MemTestKind {
         })
     }
 }
-
