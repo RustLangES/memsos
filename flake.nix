@@ -213,6 +213,17 @@
                 rustfmt = toolchain hostTarget;
               };
             };
+            clippy = {
+              enable = true;
+              settings = {
+                denyWarnings = true;
+                extraArgs = "--workspace";
+              };
+              packageOverrides = {
+                cargo = toolchain hostTarget;
+                clippy = toolchain hostTarget;
+              };
+            };
           };
         };
       in {
