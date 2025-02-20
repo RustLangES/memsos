@@ -108,21 +108,19 @@
             src = ./.;
             filter = path: type:
               (pkgs.lib.hasSuffix ".json" path)
+              || (pkgs.lib.hasSuffix ".ld" path)
               || ((craneLib target).filterCargoSources path type);
           };
           doCheck = false;
           cargoExtraArgs = "-p kernel";
 
           CARGO_BUILD_TARGET = target;
-          CARGO_BUILD_RUSTFLAGS = "-Zlinker-features=-lld";
-          # NIX_CFLAGS_COMPILE = "-C relocation-model=static";
-          HOST_CC = "${pkgs.stdenv.cc.nativePrefix}cc";
+          RUSTFLAGS="-C relocation-model=static";
           TARGET_CC = "${pkgs.stdenv.cc.targetPrefix}cc";
-          "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.stdenv.cc.targetPrefix}cc";
+          "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.llvmPackages.lld}/bin/ld.lld";
           "CARGO_TARGET_${target_name}_RUNNER" = "qemu-${arch}";
 
-          nativeBuildInputs = with pkgs; [ gnumake xorriso lld ];
-          depsBuildBuild = with pkgs; [ qemu stdenv.cc ];
+          nativeBuildInputs = with pkgs; [ gnumake xorriso ];
           LANG = "${lang}.UTF-8";
 
           postInstall = ''
