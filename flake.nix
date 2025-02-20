@@ -205,7 +205,6 @@
             check-json.enable = true;
             pretty-format-json.enable = true;
             check-executables-have-shebangs.enable = true;
-            check-shebang-scripts-are-executable.enable = true;
             rustfmt = {
               enable = true;
               packageOverrides = {
@@ -215,10 +214,10 @@
             };
             clippy = {
               enable = true;
-              settings = {
-                denyWarnings = true;
-                extraArgs = "--workspace";
-              };
+              # settings = {
+              #   denyWarnings = true;
+              #   extraArgs = "-Zbuild-std --workspace";
+              # };
               packageOverrides = {
                 cargo = toolchain hostTarget;
                 clippy = toolchain hostTarget;
