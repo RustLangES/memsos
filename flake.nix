@@ -192,7 +192,7 @@
         apps = (lib.listToAttrs (lib.concatMap (lang: map ({ arch, name, target, ... }@args: let
             pkg = mkPackage (args // { inherit lang; });
             run = pkgs.writeShellScriptBin "run-${name}-${lang}" ''
-              qemu-system-${arch} \
+              ${pkgs.qemu}/bin/qemu-system-${arch} \
                 -cdrom ${pkg}/memsos-${name}-${lang}.iso \
                 -M q35 \
                 -no-reboot \
@@ -217,7 +217,7 @@
             arch = "x86_64";
             pkg = mkPackage { arch = arch; name = "x86_64"; target = "x86_64-unknown-none"; };
             run = pkgs.writeShellScriptBin "run-default" ''
-              qemu-system-x86_64 \
+              ${pkgs.qemu}/bin/qemu-system-x86_64 \
                 -cdrom ${pkg}/memsos-x86_64-en_US.iso \
                 -M q35 \
                 -no-reboot \
