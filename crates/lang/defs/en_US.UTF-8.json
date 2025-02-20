@@ -25,19 +25,12 @@
     "stepping": "Stepping"
   },
   "debug_info": {
-<<<<<<< HEAD
     "checking": "Checking region",
     "omitting": "Omitting region"
+  },
+  "test_result_info": {
+    "info": "Test result",
+    "completed_message": "Test completed...",
+    "number_of_errors": "Number of faulty memory addrs:"
   }
-=======
-	"checking": "Checking region",
-	"omitting": "Omitting region"
-   },
-   "test_result_info": {
-	"info": "Test result",
-	"completed_message": "Test completed...",
-	"number_of_errors": "Number of faulty memory addrs:"
-   }
->>>>>>> 1e3d3f9 (feat: translate test result pane)
 }
-
