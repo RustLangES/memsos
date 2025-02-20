@@ -112,9 +112,8 @@
               || ((craneLib target).filterCargoSources path type);
           };
           doCheck = false;
-          cargoExtraArgs = "-p kernel";
+          cargoBuildCommand = "cargo build --target ${target} -p kernel";
 
-          CARGO_BUILD_TARGET = target;
           RUSTFLAGS="-C relocation-model=static";
           TARGET_CC = "${pkgs.stdenv.cc.targetPrefix}cc";
           "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.llvmPackages.lld}/bin/ld.lld";
@@ -131,6 +130,7 @@
 
             mkdir -p $out/iso_root/boot
             cp $out/bin/kernel $out/iso_root/boot/kernel
+            ${pkgs.binutils}/bin/objcopy --only-keep-debug $out/bin/kernel $out/bin/kernel.sym
 
             mkdir -p $out/ovmf
             cp ${ovmf_vars}/ovmf-vars-${arch}.fd $out/ovmf/ovmf-vars-${arch}.fd
@@ -152,7 +152,7 @@
               $out/iso_root -o $out/memsos-${name}-${lang}.iso
 
             "$LIMINE_DIR/limine" bios-install $out/memsos-${name}-${lang}.iso
-            rm -rf $out/bin $out/iso_root $out/limine
+            # rm -rf $out/bin $out/iso_root $out/limine
           '';
         };
 
