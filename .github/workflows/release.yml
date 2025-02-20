@@ -54,7 +54,7 @@ jobs:
       - name: Generate matrix
         id: generate-matrix
         run: |
-          ARCHITECTURES=("x86_64" "aarch64" "aarch64-uefi" "riscv64-imac" "riscv64-gc")
+          ARCHITECTURES=("x86_64" "aarch64" "riscv64-imac" "riscv64-gc")
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             LANGUAGES='${{ steps.detect-modified-langs.outputs.langs }}'
