@@ -28,15 +28,15 @@
         ovmf_hashes = {
           x86_64 = {
             vars = "sha256-btmHrzo8FVvnFmX1EOrj4Aftqbi5Sv1Z1F6RxKEVZcw=";
-            code = "sha256-PI4QAiPjx6+P7LawNzP4kkWaXTEqOaapVdpj6GUm/6Q=";
+            code = "sha256-EFmqYmMWozpdj/i4T/oA7WfIGpL4dS+LX3i/IA6b5WY=";
           };
           aarch64 = {
               vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
-              code = "sha256-mEAArGgaUtBQdIoCInieGWXENZbWCkLvKyWIYxOx4CI=";
+              code = "sha256-7zRfwHhc6d8wzZ8QliqEjO6bI9S6fvR6nAdYBSUhpO8=";
           };
           riscv64 = {
               vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
-              code = "sha256-/AyM5b8itwPZRuGK4Z81a+z8SLZ2r+CL7DPEedzAkZA=";
+              code = "sha256-i+ajq5sonPmR3PRtPaOycODl5uKbNc5ny0AZOEnXpQc=";
           };
         };
         systemToTarget = system:
