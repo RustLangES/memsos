@@ -11,6 +11,6 @@ build:
 
 clean:
   cargo clean
-  rm -rf kernel
+  rm -rf kernel kernel.sym
 
 default: build
