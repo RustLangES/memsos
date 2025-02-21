@@ -13,12 +13,12 @@ use os::{
     ui::{
         layout::{vertical::VerticalLayout, Layout, LayoutParams},
         logger::DebugLogger,
-        widget::{ask::Ask, input::input, line::line, text::TextStyle},
+        widget::{ask::ask, input::input, line::line, text::TextStyle},
         writer::{clear, height, init_ui, width},
     },
     PADDING,
 };
-use os::{ask, layout, render, styled_text, text};
+use os::{layout, render, styled_text, text};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -71,7 +71,7 @@ pub extern "C" fn _start() -> ! {
 
     let cpuinfo = CpuInfo::new();
 
-    let question = ask!(DIALOGS.ask.basic, DIALOGS.ask.advanced);
+    let question = ask(&[DIALOGS.ask.basic, DIALOGS.ask.advanced]);
 
     clear();
 

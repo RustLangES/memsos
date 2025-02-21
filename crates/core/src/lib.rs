@@ -5,6 +5,7 @@ use crate::test::marchc;
 use crate::test::pattern;
 use core::fmt::Arguments;
 use core::fmt::Display;
+use core::fmt::Error;
 use core::ops::{Add, AddAssign};
 use heapless::String;
 use lang::DIALOGS;
@@ -95,14 +96,13 @@ impl Display for MemTestKind {
 }
 
 #[derive(Debug)]
-#[allow(unused)]
-pub struct MemTestKindError(String<256>);
+pub struct MemTestKindError(&'static str);
 
-impl TryFrom<String<256>> for MemTestKind {
+impl TryFrom<&'static str> for MemTestKind {
     type Error = MemTestKindError;
-    fn try_from(value: String<256>) -> Result<Self, Self::Error> {
-        let s = value.clone();
-        Ok(match s.as_str() {
+    fn try_from(value: &'static str) -> Result<Self, Self::Error> {
+        let s = value;
+        Ok(match s {
             a if a == DIALOGS.ask.basic => Self::Basic,
             a if a == DIALOGS.ask.advanced => Self::Advanced,
             _ => {
