@@ -10,6 +10,3 @@ heapless = "0.8.0"
 limine = "0.3.1"
 lang = { path = "../crates/lang" }
 
-[profile.release]
-opt-level = 2
-

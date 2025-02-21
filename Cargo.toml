@@ -8,3 +8,13 @@ ovmf-prebuilt = "0.1.0-alpha.1"
 
 [workspace]
 members = ["crates/core", "crates/lang", "crates/os", "kernel"]
+
+[profile.release]
+opt-level = 0
+debug = false
+codegen-units = 1
+lto = false
+panic = 'unwind'
+incremental = false
+overflow-checks = true
+
