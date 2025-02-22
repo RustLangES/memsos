@@ -1,4 +1,4 @@
-name: Update omvf hashes
+name: Update ovmf hashes
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     - cron: "0 * * * *"
 
 jobs:
-  update-zen-browser:
+  update-ovmf-hashes:
     name: Update omvf hashes
     runs-on: ubuntu-latest
     permissions:
