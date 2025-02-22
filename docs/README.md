@@ -18,4 +18,10 @@ if you have all of these programs on your computer you can run ``just`` and mems
 
 # Getting started (with Nix)
 
+With nix it's a little bit easier to start developing by entering a devShell with
 
+```
+nix develop
+```
+
+You can simply build the project with nix build and if you want to see the list of targets you can use nix build .#list
