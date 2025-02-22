@@ -27,11 +27,11 @@ download_update() {
         real_uri=$(echo $download_url | sed "s/download/$version/; s/latest/download/")
         jq --arg arch "$1" --arg name "$name" --arg version "$version" --arg sha256 "$sha256" \
             '(.["Nightly"][$arch]["sha256"][$name] = $sha256) | (.["Nightly"][$arch]["version"] = $version) ' \
-            <sources.json >sources.json.tmp && mv sources.json.tmp sources.json
+            <ovmf_sources.json >ovmf_sources.json.tmp && mv ovmf_sources.json.tmp ovmf_sources.json
         urls["$real_uri"]=1
     done
     unique_urls_json=$(printf '"%s"\n' "${!urls[@]}" | jq -s '.')
-    jq --arg arch "$1" --argjson url "$unique_urls_json" '(.["Nightly"][$arch]["url"] = $url)' <sources.json >sources.json.tmp && mv sources.json.tmp sources.json
+    jq --arg arch "$1" --argjson url "$unique_urls_json" '(.["Nightly"][$arch]["url"] = $url)' <ovmf_sources.json >ovmf_sources.json.tmp && mv ovmf_sources.json.tmp ovmf_sources.json
     if $ci; then
         if [ "$(echo $version | cut -d'-' -f1)" = "nightly" ]; then
             if [ "$commit_nightly" = "" ]; then
