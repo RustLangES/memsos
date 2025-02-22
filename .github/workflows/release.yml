@@ -21,34 +21,73 @@ on:
         default: "false"
 
 jobs:
-  build:
+  generate-matrix:
     runs-on: ubuntu-latest
     outputs:
-      release_name: ${{ steps.release_name.outputs.RELEASE_NAME }}
+      matrix: ${{ steps.generate-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect modified language files (PR only)
+        if: github.event_name == 'pull_request'
+        id: detect-modified-langs
+        run: |
+          git remote -v
+          git fetch origin ${{ github.base_ref }}
+
+          MODIFIED_FILES=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E 'crates/lang/defs/.*\.UTF-8\.json$' || true)
+
+          if [[ -z "$MODIFIED_FILES" ]]; then
+            echo "No language files modified, defaulting to en_US"
+            echo "langs=[\"en_US\"]" >> "$GITHUB_OUTPUT"
+          else
+            LANG_ARRAY=$(echo "$MODIFIED_FILES" | \
+              sed -E 's|crates/lang/defs/(.*)\.UTF-8\.json|\1|g' | \
+              awk 'BEGIN{printf "["} {if(NR>1)printf ","; printf "\"%s\"", $0} END{printf "]"}')
+
+            echo "Modified languages array: $LANG_ARRAY"
+            echo "langs=$LANG_ARRAY" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate matrix
+        id: generate-matrix
+        run: |
+          ARCHITECTURES=("x86_64" "aarch64" "riscv64-imac" "riscv64-gc")
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            LANGUAGES='${{ steps.detect-modified-langs.outputs.langs }}'
+          else
+            LANG_FILES=$(ls crates/lang/defs/*.UTF-8.json)
+            LANGUAGES=$(echo "$LANG_FILES" | \
+              sed -E 's|crates/lang/defs/(.*)\.UTF-8\.json|\1|g' | \
+              awk 'BEGIN{printf "["} {if(NR>1)printf ","; printf "\"%s\"", $0} END{printf "]"}')
+          fi
+
+          MATRIX=$(jq -n '[]')
+          for arch in "${ARCHITECTURES[@]}"; do
+            for lang in $(echo "$LANGUAGES" | jq -r '.[]'); do
+              MATRIX=$(echo "$MATRIX" | jq --arg arch "$arch" --arg lang "$lang" '. += [{"arch": $arch, "lang": $lang}]')
+            done
+          done
+
+          echo "Generated Matrix:"
+          echo "$MATRIX" | jq .
+          echo "matrix=$(echo "$MATRIX" | jq -c .)" >> "$GITHUB_OUTPUT"
+
+  build:
+    runs-on: ubuntu-latest
+    needs: generate-matrix
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - arch: "x86_64"
-            rust_target: "x86_64-unknown-none"
-            name: "x86_64"
-          - arch: "aarch64"
-            rust_target: "aarch64-unknown-none"
-            name: "aarch64"
-          - arch: "aarch64"
-            rust_target: "aarch64-unknown-uefi"
-            name: "aarch64-uefi"
-          - arch: "riscv64"
-            rust_target: "riscv64imac-unknown-none-elf"
-            name: "riscv64-imac"
-          - arch: "riscv64"
-            rust_target: "riscv64gc-unknown-none-elf"
-            name: "riscv64-gc"
+        include: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     env:
       RUST_PROFILE: "release"
       ARCH: "${{ matrix.arch }}"
-      RUST_TARGET: "${{ matrix.rust_target }}"
-      IMAGE_NAME: "memsos_${{ matrix.name }}-${{ github.event.inputs.release_name || (github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name) }}"
+      LANG: "${{ matrix.lang }}"
+      IMAGE_NAME: "memsos_${{ matrix.arch }}-${{ matrix.lang }}-${{ github.event.inputs.release_name || (github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name) }}"
 
     steps:
       - uses: actions/checkout@v4
@@ -63,36 +102,27 @@ jobs:
 
       - name: Normalize IMAGE_NAME
         run: |
-          IMAGE_NAME=$(echo "${{ env.IMAGE_NAME }}" | tr -cd '[:alnum:]._-')
-          echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
+          IMAGE_NAME=$(echo "${{ env.IMAGE_NAME }}" | tr '/ ' '_-' | tr -cd '[:alnum:]._-')
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> "$GITHUB_ENV"
 
       - name: Build with Nix
         run: |
-          echo "Building for ${{ matrix.arch }} with target ${{ matrix.rust_target }}..."
-          nix build .#${{ matrix.name }}
+          echo "Building for ${{ matrix.arch }} with language ${{ matrix.lang }}..."
+          nix build .#${{ matrix.arch }}-${{ matrix.lang }}
 
           mkdir -p isos
-          cp result/memsos-${{ matrix.name }}.iso isos/${{ env.IMAGE_NAME }}.iso
-
-      - name: Get release name
-        id: release_name
-        run: |
-          if [ -n "${{ github.event.inputs.release_name }}" ]; then
-            echo "release_name=${{ github.event.inputs.release_name }}" >> $GITHUB_OUTPUT
-          else
-            echo "release_name=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          fi
+          cp result/memsos-${{ matrix.arch }}-${{ matrix.lang }}.iso isos/${{ env.IMAGE_NAME }}.iso
 
       - name: Upload ISO as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iso-${{ matrix.name }}
+          name: iso-${{ matrix.arch }}-${{ matrix.lang }}
           path: isos/${{ env.IMAGE_NAME }}.iso
 
   create-release:
     runs-on: ubuntu-latest
     needs: build
-    if: ${{ (github.event.inputs.create_release == 'true' || github.event_name == 'push') && github.event_name != 'pull_request' }}
+    if: ${{ github.event.inputs.create_release == 'true' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) }}
     steps:
       - uses: actions/checkout@v4
       - name: Generate a changelog
@@ -104,6 +134,16 @@ jobs:
         env:
           OUTPUT: CHANGES.md
           GITHUB_REPO: ${{ github.repository }}
+
+      - name: Get release name
+        id: release_name
+        run: |
+          if [ -n "${{ github.event.inputs.release_name }}" ]; then
+            echo "RELEASE_NAME=${{ github.event.inputs.release_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "RELEASE_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download ISOs
         uses: actions/download-artifact@v4
         with:
@@ -112,17 +152,15 @@ jobs:
       - name: Combine ISOs into a single folder
         run: |
           mkdir -p combined_isos
-          for iso in isos/iso-*/*.iso; do
-            cp "$iso" combined_isos/
-          done
+          find isos -type f -name "*.iso" -exec cp {} combined_isos/ \;
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           make_latest: true
-          prerelease: ${{ needs.build.outputs.release_name != '' && contains(needs.build.outputs.release_name, 'a') }}
-          tag_name: ${{ needs.build.outputs.release_name }}
-          name: ${{ needs.build.outputs.release_name }}
+          prerelease: ${{ steps.release_name.outputs.release_name != '' && contains(steps.release_name.outputs.release_name, 'a') }}
+          tag_name: ${{ steps.release_name.outputs.release_name }}
+          name: ${{ steps.release_name.outputs.release_name }}
           body: ${{ steps.git-cliff.outputs.content }}
           files: |
             combined_isos/*.iso

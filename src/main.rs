@@ -9,23 +9,26 @@ enum Command {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    let mut cmd = Cmd::new("just");
 
     let command = {
-        let a = match args.len() {
-            n if n < 2 => "uefi",
-            n if n > 2 => {
-                panic!("Only one argument is expected");
+        if args.len() < 2 {
+            Command::Uefi
+        } else {
+            let a = args[1].as_str();
+
+            if args.len() > 2 {
+                cmd.env("LANG", args[2].as_str());
+            } else {
+                cmd.env("LANG", "en_US");
             }
-            _ => args[1].as_str(),
-        };
-        match a {
-            "bios" => Command::Bios,
-            "uefi" => Command::Uefi,
-            _ => panic!("Unknown command"),
+            match a {
+                "bios" => Command::Bios,
+                "uefi" => Command::Uefi,
+                _ => panic!("Unknown command"),
+            }
         }
     };
-
-    let mut cmd = Cmd::new("just");
     match command {
         Command::Uefi => {
             println!("Running in uefi mode");

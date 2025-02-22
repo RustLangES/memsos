@@ -4,9 +4,11 @@ mod test;
 use crate::test::marchc;
 use crate::test::pattern;
 use core::fmt::Arguments;
+use core::fmt::Display;
 use core::fmt::Error;
 use core::ops::{Add, AddAssign};
 use heapless::String;
+use lang::DIALOGS;
 
 #[derive(Default)]
 pub struct TestResult {
@@ -34,7 +36,10 @@ pub fn run_test<M: Mem, L: Logger>(
     region: &MemoryRegion,
     kind: MemTestKind,
 ) -> TestResult {
-    logger.log(format_args!("Checking region {:?}", region));
+    logger.log(format_args!(
+        "{} {}-{}",
+        DIALOGS.debug_info.checking, region.start, region.end
+    ));
     let mut result = TestResult::default();
 
     if kind == MemTestKind::Basic || kind == MemTestKind::Advanced {
@@ -80,15 +85,28 @@ pub enum MemTestKind {
     Advanced,
 }
 
-impl TryFrom<String<256>> for MemTestKind {
-    type Error = Error;
-    fn try_from(value: String<256>) -> Result<Self, Self::Error> {
+impl Display for MemTestKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Basic => f.write_str(DIALOGS.ask.basic)?,
+            Self::Advanced => f.write_str(DIALOGS.ask.advanced)?,
+        };
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct MemTestKindError(&'static str);
+
+impl TryFrom<&'static str> for MemTestKind {
+    type Error = MemTestKindError;
+    fn try_from(value: &'static str) -> Result<Self, Self::Error> {
         let s = value;
-        Ok(match s.as_str() {
-            "basic" => Self::Basic,
-            "advanced" => Self::Advanced,
+        Ok(match s {
+            a if a == DIALOGS.ask.basic => Self::Basic,
+            a if a == DIALOGS.ask.advanced => Self::Advanced,
             _ => {
-                return Err(Error);
+                return Err(MemTestKindError(value));
             }
         })
     }

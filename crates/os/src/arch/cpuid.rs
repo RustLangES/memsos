@@ -8,7 +8,7 @@ pub struct CpuInfo {
     pub stepping: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Vendor {
     Intel,
     Amd,
@@ -16,7 +16,7 @@ pub enum Vendor {
     Arm,
     #[cfg(target_arch = "riscv64")]
     RiscV,
-    Unknown(&'static str),
+    Unknown,
 }
 
 impl CpuInfo {
@@ -42,6 +42,7 @@ impl Default for CpuInfo {
 }
 
 #[cfg(target_arch = "x86_64")]
+#[derive(Debug)]
 struct CpuId {
     edx: u32,
     ecx: u32,
@@ -77,18 +78,28 @@ fn cpuid(mode: u32) -> CpuId {
 }
 
 #[cfg(target_arch = "x86_64")]
+#[inline(never)]
 pub fn get_vendor() -> Vendor {
     let result = cpuid(0);
+
     let vendor = [result.ebx, result.edx, result.ecx];
 
-    let bytes: &[u8; 12] = unsafe { core::mem::transmute(&vendor) };
+    let bytes1 = vendor[0].to_ne_bytes();
+    let bytes2 = vendor[1].to_ne_bytes();
+    let bytes3 = vendor[2].to_ne_bytes();
 
-    let s = unsafe { core::str::from_utf8_unchecked(bytes) };
+    let mut combined = [0u8; 12];
+    combined[..4].copy_from_slice(&bytes1);
+    combined[4..8].copy_from_slice(&bytes2);
+    combined[8..12].copy_from_slice(&bytes3);
+
+    let s = core::str::from_utf8(&combined).unwrap();
+
     match s {
         "GenuineIntel" => Vendor::Intel,
-        "AuthenticAMD" => Vendor::Amd, // new amd vendor
-        "AMDisbetter!" => Vendor::Amd, // old amd vendor
-        _ => Vendor::Unknown(s),
+        "AuthenticAMD" => Vendor::Amd,
+        "AMDisbetter!" => Vendor::Amd,
+        _ => Vendor::Unknown,
     }
 }
 
@@ -105,6 +116,7 @@ pub fn get_vendor() -> Vendor {
 #[cfg(target_arch = "x86_64")]
 pub fn get_cpu_family() -> u32 {
     let result = cpuid(1);
+
     let family = (result.eax >> 8) & 0x0f;
     let extended_family = (result.eax >> 20) & 0xff;
 
@@ -158,10 +170,12 @@ pub fn get_cpu_stepping() -> u32 {
 }
 
 #[cfg(target_arch = "x86_64")]
+#[inline(never)]
 pub fn get_cpu_model() -> &'static str {
     let result = cpuid(1);
 
     let base_model = (result.eax >> 4) & 0xF;
+
     let base_family = (result.eax >> 8) & 0xF;
     let extended_model = (result.eax >> 16) & 0xF;
     let extended_family = (result.eax >> 20) & 0xFF;
@@ -171,7 +185,6 @@ pub fn get_cpu_model() -> &'static str {
     } else {
         base_model
     };
-
     let family = if base_family == 0x0F {
         base_family + extended_family
     } else {

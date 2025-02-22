@@ -1,0 +1,36 @@
+{
+  "ask": {
+    "test_kind": "What kind of tests do you want?",
+    "advanced": "Anvanced",
+    "basic": "Basic"
+  },
+  "info": {
+    "bootloader_version": "limine version",
+    "love_message": "Made with love by RustLangEs (Rust Lang en Español)"
+  },
+  "memtest_info": {
+    "info": "Memtest Info",
+    "actual_tests": "Actual test:",
+    "kind_test": "Kind of tests"
+  },
+  "mem_info": {
+    "info": "Mem Info",
+    "size": "Mem Size:"
+  },
+  "cpu_info": {
+    "info": "Cpu Info",
+    "model": "Model",
+    "vendor": "Vendor",
+    "family": "family",
+    "stepping": "Stepping"
+  },
+  "debug_info": {
+    "checking": "Checking region",
+    "omitting": "Omitting region"
+  },
+  "test_result_info": {
+    "info": "Test result",
+    "completed_message": "Test completed...",
+    "number_of_errors": "Number of faulty memory addrs:"
+  }
+}

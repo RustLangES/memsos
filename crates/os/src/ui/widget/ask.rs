@@ -1,25 +1,25 @@
 use crate::drivers::driver::Driver;
 use crate::drivers::keyboard::{Key, KeyState, KEYBOARD};
 use crate::ui::layout::{vertical::VerticalLayout, Layout, LayoutChild, LayoutParams};
-use crate::ui::widget::text::{Text, TextStyle};
+use crate::ui::widget::text::TextStyle;
 use crate::ui::widget::Widget;
 use crate::{render, styled_text, text};
 use core::sync::atomic::{AtomicUsize, Ordering};
-use heapless::String;
+use lang::DIALOGS;
 
 pub struct Ask<'a> {
-    pub options: &'a [Text],
+    pub options: &'a [&'static str],
     selection: AtomicUsize,
 }
 
 impl<'a> Ask<'a> {
-    pub fn new(opts: &'a [Text]) -> Self {
+    pub fn new(opts: &'a [&'static str]) -> Self {
         Self {
             options: opts,
             selection: AtomicUsize::new(0),
         }
     }
-    pub fn get_result(&self) -> String<256> {
+    pub fn get_result(&self) -> &'static str {
         let index = self.selection.load(Ordering::SeqCst);
 
         let i = {
@@ -29,7 +29,7 @@ impl<'a> Ask<'a> {
                 index
             }
         };
-        self.options[i].text.clone()
+        self.options[i]
     }
 }
 
@@ -62,16 +62,16 @@ impl Widget for Ask<'_> {
                 start_pos: (0, 0),
                 line_size: None,
             });
-            let msg = text!(layout.gen_pos(), "What kind of tests do you want?");
+            let msg = text!(layout.gen_pos(), "{}", DIALOGS.ask.test_kind);
             render!(&msg);
             layout.margin(msg.spacing());
             for i in 0..self.options.len() {
                 let w = &self.options[i];
                 let t = {
                     if current == i {
-                        styled_text!(layout.gen_pos(), TextStyle { invert: true }, "{}", w.text)
+                        styled_text!(layout.gen_pos(), TextStyle { invert: true }, "{}", w)
                     } else {
-                        text!(layout.gen_pos(), "{}", w.text)
+                        text!(layout.gen_pos(), "{}", w)
                     }
                 };
                 layout.margin(t.spacing());
@@ -89,22 +89,7 @@ impl Widget for Ask<'_> {
     }
 }
 
-#[macro_export]
-macro_rules! ask {
-    ($($text:expr),*) => {{
-        unsafe {
-            let texts: &[$crate::ui::widget::text::Text] = &[
-                $(
-                    $crate::ui::widget::text::Text::new(
-                        String::try_from($text).unwrap(),
-                        (0, 0),
-                        $crate::ui::widget::text::TextStyle { invert: false }
-                    )
-                ),*
-            ];
-
-            let options: &'static [$crate::ui::widget::text::Text] = ::core::mem::transmute(texts);
-            Ask::new(options)
-        }
-    }};
+#[inline]
+pub fn ask<'a>(options: &'a [&'static str]) -> Ask<'a> {
+    Ask::new(options)
 }

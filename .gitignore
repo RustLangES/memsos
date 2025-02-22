@@ -1,8 +1,11 @@
 kernel/kernel
 kernel/kernel.sym
 /target
+/result
 memfile
 limine
 iso_root
 ovmf
 memsos*.iso
+crates/lang/src/lang_info.rs
+/.pre-commit-config.yaml

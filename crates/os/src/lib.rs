@@ -2,6 +2,7 @@
 #![no_main]
 #![allow(clippy::similar_names)]
 #![feature(sync_unsafe_cell)]
+#![feature(naked_functions)]
 
 pub mod arch;
 pub mod asm;
