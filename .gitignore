@@ -1,6 +1,7 @@
 kernel/kernel
 kernel/kernel.sym
 /target
+/result
 memfile
 limine
 iso_root
