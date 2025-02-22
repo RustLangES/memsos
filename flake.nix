@@ -22,21 +22,22 @@
         lib = nixpkgs.lib;
         hooks = pre-commit-hooks.lib.${system};
         overlays = [ (import rust-overlay) ];
+        variant = (builtins.fromJSON (builtins.readFile ./sources.json));
         pkgs = import nixpkgs {
           inherit system overlays;
         };
         ovmf_hashes = {
           x86_64 = {
-            vars = "sha256-btmHrzo8FVvnFmX1EOrj4Aftqbi5Sv1Z1F6RxKEVZcw=";
-            code = "sha256-EFmqYmMWozpdj/i4T/oA7WfIGpL4dS+LX3i/IA6b5WY=";
+            vars = "${variant.Nightly.x86_64.sha256.vars}";
+            code = "${variant.Nightly.x86_64.sha256.code}";
           };
           aarch64 = {
-              vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
-              code = "sha256-ENkJ8WeMaBDSYFLu6Odqg9ZNJB9eQ57zAQt5GEC1o5k=";
+            vars = "${variant.Nightly.aarch64.sha256.vars}";
+            code = "${variant.Nightly.aarch64.sha256.code}";
           };
           riscv64 = {
-              vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
-              code = "sha256-CzfRDQfFzr5ft2Mukpkxq5QLkNkm3JP5zvwW1Ar7CJc=";
+            vars = "${variant.Nightly.riscv64.sha256.vars}";
+            code = "${variant.Nightly.riscv64.sha256.code}";
           };
         };
         systemToTarget = system:
@@ -203,7 +204,10 @@
           hooks = {
             actionlint.enable = true;
             check-json.enable = true;
-            pretty-format-json.enable = true;
+            pretty-format-json = {
+                enable = true;
+                excludes = [ "sources.json" ];
+            };
             check-executables-have-shebangs.enable = true;
             rustfmt = {
               enable = true;
