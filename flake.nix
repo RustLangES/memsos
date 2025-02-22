@@ -22,22 +22,9 @@
         lib = nixpkgs.lib;
         hooks = pre-commit-hooks.lib.${system};
         overlays = [ (import rust-overlay) ];
+        variant = (builtins.fromJSON (builtins.readFile ./ovmf_sources.json));
         pkgs = import nixpkgs {
           inherit system overlays;
-        };
-        ovmf_hashes = {
-          x86_64 = {
-            vars = "sha256-btmHrzo8FVvnFmX1EOrj4Aftqbi5Sv1Z1F6RxKEVZcw=";
-            code = "sha256-EFmqYmMWozpdj/i4T/oA7WfIGpL4dS+LX3i/IA6b5WY=";
-          };
-          aarch64 = {
-              vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
-              code = "sha256-ENkJ8WeMaBDSYFLu6Odqg9ZNJB9eQ57zAQt5GEC1o5k=";
-          };
-          riscv64 = {
-              vars = "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=";
-              code = "sha256-CzfRDQfFzr5ft2Mukpkxq5QLkNkm3JP5zvwW1Ar7CJc=";
-          };
         };
         systemToTarget = system:
           let
@@ -84,7 +71,7 @@
           pname = "ovmf_${arch}";
           src = pkgs.fetchurl {
             url = "https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-${name}-${arch}.fd";
-            hash = ovmf_hashes.${arch}.${name};
+            hash = variant.Nightly.${arch}.sha256.${name};
           };
 
           unpackPhase = ''
@@ -203,7 +190,10 @@
           hooks = {
             actionlint.enable = true;
             check-json.enable = true;
-            pretty-format-json.enable = true;
+            pretty-format-json = {
+                enable = true;
+                excludes = [ "ovmf_sources.json" ];
+            };
             check-executables-have-shebangs.enable = true;
             rustfmt = {
               enable = true;
