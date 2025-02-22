@@ -13,7 +13,7 @@ pub struct Pixel {
 
 # The widget trait
 
-This is an important yet simple trait that only requires you to have a render function and a clear function.
+This is an important yet simple trait that only requires you to have a render function and a erase function.
 
 ## implementing the Widget trait
 ```
