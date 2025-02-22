@@ -22,23 +22,9 @@
         lib = nixpkgs.lib;
         hooks = pre-commit-hooks.lib.${system};
         overlays = [ (import rust-overlay) ];
-        variant = (builtins.fromJSON (builtins.readFile ./sources.json));
+        variant = (builtins.fromJSON (builtins.readFile ./ovmf_sources.json));
         pkgs = import nixpkgs {
           inherit system overlays;
-        };
-        ovmf_hashes = {
-          x86_64 = {
-            vars = "${variant.Nightly.x86_64.sha256.vars}";
-            code = "${variant.Nightly.x86_64.sha256.code}";
-          };
-          aarch64 = {
-            vars = "${variant.Nightly.aarch64.sha256.vars}";
-            code = "${variant.Nightly.aarch64.sha256.code}";
-          };
-          riscv64 = {
-            vars = "${variant.Nightly.riscv64.sha256.vars}";
-            code = "${variant.Nightly.riscv64.sha256.code}";
-          };
         };
         systemToTarget = system:
           let
@@ -85,7 +71,7 @@
           pname = "ovmf_${arch}";
           src = pkgs.fetchurl {
             url = "https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-${name}-${arch}.fd";
-            hash = ovmf_hashes.${arch}.${name};
+            hash = variant.Nightly.${arch}.sha256.${name};
           };
 
           unpackPhase = ''
@@ -206,7 +192,7 @@
             check-json.enable = true;
             pretty-format-json = {
                 enable = true;
-                excludes = [ "sources.json" ];
+                excludes = [ "ovmf_sources.json" ];
             };
             check-executables-have-shebangs.enable = true;
             rustfmt = {
