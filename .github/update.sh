@@ -21,7 +21,7 @@ fi
 download_update() {
     declare -A urls
     echo -e "${GREEN}ovmf-$1-$arch$RESET: $download_url"
-    for name in $(jq -r '.Nightly.[].sha256 | keys[]' sources.json | sort -u); do
+    for name in $(jq -r '.Nightly.[].sha256 | keys[]' ovmf_sources.json | sort -u); do
         download_url="$url/releases/latest/download/ovmf-$name-$1.fd"
         sha256=$(nix hash convert --hash-algo sha256 "$(nix-prefetch-url $download_url)")
         real_uri=$(echo $download_url | sed "s/download/$version/; s/latest/download/")
@@ -49,7 +49,7 @@ try() {
         echo "should_update=true" >>"$GITHUB_OUTPUT"
         exit 0
     fi
-    for arch in $(jq -r '.Nightly | keys[]' sources.json); do
+    for arch in $(jq -r '.Nightly | keys[]' ovmf_sources.json); do
         download_update $arch
     done
 
