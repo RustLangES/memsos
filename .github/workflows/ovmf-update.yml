@@ -2,6 +2,9 @@ name: Update ovmf hashes
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - dev
   schedule:
     - cron: "0 * * * *"
 
