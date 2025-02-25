@@ -6,6 +6,6 @@ The memsos translation system is quite simple, it reads a LANG environment varia
 
 It doesn't have much magic you can simply copy and paste the structure of one of the existing jsons and simply translate the content of it and it should now follow this structure:
 
-lang_region.UTF-8.json
+lang_REGION.UTF-8.json
 an example of this is:
 en_US.UTF-8.json
