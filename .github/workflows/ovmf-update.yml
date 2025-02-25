@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - main
       - dev
   schedule:
     - cron: "0 * * * *"
@@ -15,8 +16,17 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.COMMITER_APP_ID }}
+          private-key: ${{ secrets.COMMITER_APP_PRIVATE_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
 
       - name: Check if update is needed
         id: check
@@ -28,7 +38,7 @@ jobs:
         uses: cachix/install-nix-action@v27
         with:
           nix_path: nixpkgs=channel:nixpkgs-unstable
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_access_token: ${{ steps.generate-token.outputs.token }}
 
       - name: Setup Nix Magic Cache
         if: steps.check.outputs.should_update == 'true'
@@ -38,7 +48,7 @@ jobs:
         id: update
         if: steps.check.outputs.should_update == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           .github/update.sh --ci
 
