@@ -10,7 +10,6 @@ RESET='\033[0m'
 ci=false
 if echo "$@" | grep -qoE '(--ci)'; then
     ci=true
-
 fi
 
 only_check=false
@@ -41,18 +40,21 @@ download_update() {
             fi
         fi
     fi
-
 }
 
 try() {
     if $only_check; then
-        echo "should_update=true" >>"$GITHUB_OUTPUT"
+        if ! git diff --exit-code ovmf_sources.json >/dev/null; then
+            echo "should_update=true" >>"$GITHUB_OUTPUT"
+        else
+            echo "should_update=false" >>"$GITHUB_OUTPUT"
+        fi
         exit 0
     fi
+
     for arch in $(jq -r '.Nightly | keys[]' ovmf_sources.json); do
         download_update $arch
     done
-
 }
 
 set -e
@@ -63,7 +65,7 @@ if $only_check && $ci; then
     echo "should_update=false" >>"$GITHUB_OUTPUT"
 fi
 
-if ! git diff --exit-code >/dev/null; then
+if ! git diff --exit-code ovmf_sources.json >/dev/null; then
     init_message="Update ovmf_hashes"
     message="$init_message"
 
