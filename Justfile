@@ -28,6 +28,8 @@ run-uefi: build ovmf
     -drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-{{ARCH}}.fd,readonly=on \
     -drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-{{ARCH}}.fd \
     -cdrom {{IMAGE_NAME}}.iso \
+    -smbios type=1,manufacturer="memsos",product="Mem-sos",serial="12345" \
+    -smbios type=2,manufacturer="memsos",product="me-nos",location="Slot1" \
     {{QEMU_FLAGS}}
 
 run-bios: build

@@ -5,7 +5,7 @@ use core::panic::PanicInfo;
 use lang::DIALOGS;
 use limine::memory_map::{Entry, EntryType};
 use memsos_core::{run_test, MemoryRegion, TestResult};
-use os::arch::tsc::rdtsc;
+
 use os::boot::BootInfo;
 use os::{
     arch::{cpuid::CpuInfo, reboot::reboot},
@@ -91,7 +91,7 @@ pub extern "C" fn _start() -> ! {
 
     render!(&memtest_message);
 
-    let tsc = rdtsc();
+    let smbios = os::arch::smbios::check_smbios();
     layout!(
         test_info_layout,
         &text!((0, 0), "{}: {}", DIALOGS.memtest_info.kind_test, response),
@@ -106,7 +106,7 @@ pub extern "C" fn _start() -> ! {
             "{} {:.2} GB, {}",
             DIALOGS.mem_info.size,
             calculate_total_memory_gb(regions),
-            tsc,
+            smbios,
         ),
         &text!("TODO: Mem Speed")
     );
