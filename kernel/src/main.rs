@@ -91,7 +91,6 @@ pub extern "C" fn _start() -> ! {
 
     render!(&memtest_message);
 
-    let smbios = os::arch::smbios::check_smbios();
     layout!(
         test_info_layout,
         &text!((0, 0), "{}: {}", DIALOGS.memtest_info.kind_test, response),
@@ -103,10 +102,9 @@ pub extern "C" fn _start() -> ! {
         ),
         &text!(
             (0, 0),
-            "{} {:.2} GB, {}",
+            "{} {:.2} GB",
             DIALOGS.mem_info.size,
             calculate_total_memory_gb(regions),
-            smbios,
         ),
         &text!("TODO: Mem Speed")
     );
@@ -129,6 +127,16 @@ pub extern "C" fn _start() -> ! {
             cpuinfo.stepping
         )
     );
+
+    #[cfg(target_arch = "x86_64")]
+    {
+        let smbios = os::arch::smbios::check_smbios();
+        layout!(
+            test_info_layout,
+            &styled_text!((0, 0), TextStyle { invert: true }, "Compatibility checks"),
+            &text!("SMBIOS: {smbios}")
+        );
+    }
 
     layout!(
         info_layout,
