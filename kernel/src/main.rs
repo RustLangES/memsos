@@ -130,11 +130,11 @@ pub extern "C" fn _start() -> ! {
 
     #[cfg(target_arch = "x86_64")]
     {
-        let smbios = os::arch::smbios::check_smbios();
+        let smbios = os::arch::smbios::read_smbios();
         layout!(
             test_info_layout,
             &styled_text!((0, 0), TextStyle { invert: true }, "Compatibility checks"),
-            &text!("SMBIOS: {smbios}")
+            &text!((0, 0), "SMBIOS: {:?}", unsafe { (*smbios.unwrap()) }.anchor)
         );
     }
 

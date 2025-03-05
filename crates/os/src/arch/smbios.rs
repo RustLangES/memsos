@@ -1,4 +1,25 @@
 use crate::request;
+use core::result::Result;
+
+#[repr(C, packed)]
+#[derive(Debug, Copy, Clone)]
+pub struct SmbiosEntry {
+    pub anchor: [u8; 5],
+    pub checksum: u8,
+    pub entry_length: u8,
+    pub major_version: u8,
+    pub minor_version: u8,
+    pub docrev: u8,
+    pub entry_revision: u8,
+    pub reserved: u8,
+    pub max_structure_size: u32,
+    pub table_address: u64,
+}
+
+#[derive(Debug)]
+pub enum SmbiosError {
+    NoSmbiosEntry,
+}
 
 pub fn check_smbios() -> bool {
     let response = request::SMBIOS_REQUEST.get_response().unwrap();
@@ -8,4 +29,15 @@ pub fn check_smbios() -> bool {
     }
 
     return false;
+}
+
+pub fn read_smbios() -> Result<*const SmbiosEntry, SmbiosError> {
+    if !check_smbios() {
+        return Err(SmbiosError::NoSmbiosEntry);
+    }
+
+    let response = request::SMBIOS_REQUEST.get_response().unwrap();
+    let addr = response.entry_64().unwrap();
+
+    Ok(addr.as_ptr() as *const SmbiosEntry)
 }
