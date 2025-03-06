@@ -16,9 +16,18 @@ pub struct SmbiosEntry {
     pub table_address: u64,
 }
 
+#[derive(Debug, Clone, Copy)]
+#[repr(C, packed)]
+pub struct SmbiosHeader {
+    smbios_type: u8,
+    length: u8,
+    handle: u16,
+}
+
 #[derive(Debug)]
 pub enum SmbiosError {
     NoSmbiosEntry,
+    InvalidSmbiosEntry,
 }
 
 pub fn check_smbios() -> bool {
@@ -38,6 +47,15 @@ pub fn read_smbios() -> Result<*const SmbiosEntry, SmbiosError> {
 
     let response = request::SMBIOS_REQUEST.get_response().unwrap();
     let addr = response.entry_64().unwrap();
+    let entry = addr.as_ptr() as *const SmbiosEntry;
 
-    Ok(addr.as_ptr() as *const SmbiosEntry)
+    if entry.is_null() {
+        return Err(SmbiosError::NoSmbiosEntry);
+    }
+
+    if unsafe { (*entry).anchor } != *b"_SM3_" {
+        return Err(SmbiosError::InvalidSmbiosEntry);
+    }
+
+    Ok(entry)
 }
