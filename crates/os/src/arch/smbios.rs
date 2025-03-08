@@ -19,9 +19,9 @@ pub struct SmbiosEntry {
 #[derive(Debug, Clone, Copy)]
 #[repr(C, packed)]
 pub struct SmbiosHeader {
-    smbios_type: u8,
-    length: u8,
-    handle: u16,
+    pub smbios_type: u8,
+    pub length: u8,
+    pub handle: u16,
 }
 
 #[derive(Debug)]
@@ -56,6 +56,10 @@ pub fn read_smbios() -> Result<*const SmbiosEntry, SmbiosError> {
     if unsafe { (*entry).anchor } != *b"_SM3_" {
         return Err(SmbiosError::InvalidSmbiosEntry);
     }
+
+    let header = unsafe { (*entry).table_address } as *const SmbiosHeader;
+
+    crate::render!(&crate::text!((0, 0), "{:?}", unsafe { *header }));
 
     Ok(entry)
 }
