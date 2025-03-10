@@ -40,6 +40,20 @@ pub fn check_smbios() -> bool {
     return false;
 }
 
+fn smbios_header_len(hd: &SmbiosHeader) -> usize {
+    let mut i = 1;
+    let strtab = &hd as *const _ as *const u8;
+    let strtab = unsafe { strtab.add(hd.length.into()) };
+
+    unsafe {
+        while *strtab.add(i - 1) != 0 || *strtab.add(i) != 0 {
+            i += 1;
+        }
+    }
+
+    (hd.length + (i as u8) + 1).into()
+}
+
 pub fn read_smbios() -> Result<*const SmbiosEntry, SmbiosError> {
     if !check_smbios() {
         return Err(SmbiosError::NoSmbiosEntry);
@@ -57,9 +71,10 @@ pub fn read_smbios() -> Result<*const SmbiosEntry, SmbiosError> {
         return Err(SmbiosError::InvalidSmbiosEntry);
     }
 
-    let header = unsafe { (*entry).table_address } as *const SmbiosHeader;
+    let current = unsafe { *((*entry).table_address as *const SmbiosHeader) };
 
-    crate::render!(&crate::text!((0, 0), "{:?}", unsafe { *header }));
+    crate::render!(&crate::text!((0, 0), "{}", smbios_header_len(&current)));
 
     Ok(entry)
 }
+
