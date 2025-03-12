@@ -77,4 +77,3 @@ pub fn read_smbios() -> Result<*const SmbiosEntry, SmbiosError> {
 
     Ok(entry)
 }
-
