@@ -24,6 +24,27 @@ pub struct SmbiosHeader {
     pub handle: u16,
 }
 
+#[repr(C, packed)]
+#[derive(Debug, Clone, Copy)]
+pub struct SmbiosCpuInfo {
+    pub type_: u8,
+    pub length: u8,
+    pub handle: u16,
+    pub socket_designation: u8,
+    pub processor_type: u8,
+    pub processor_family: u8,
+    pub processor_manufacturer: u8,
+    pub processor_id_low: u32,
+    pub processor_id_high: u32,
+    pub processor_version: u8,
+    pub voltage: u8,
+    pub external_clock: u16,
+    pub max_speed: u16,
+    pub current_speed: u16,
+    pub status: u8,
+    pub processor_upgrade: u8,
+}
+
 #[derive(Debug)]
 pub enum SmbiosError {
     NoSmbiosEntry,
@@ -75,21 +96,24 @@ pub fn read_smbios() -> Result<*const SmbiosEntry, SmbiosError> {
         return Err(SmbiosError::InvalidSmbiosEntry);
     }
 
-    let mut current = unsafe { *((*entry).table_address as *const SmbiosHeader) };
+    let table_addr = unsafe { (*entry).table_address } as *const SmbiosHeader;
+    let mut current = unsafe { table_addr.read_volatile() };
     let mut addr = unsafe { (*entry).table_address };
 
     loop {
         if current.smbios_type == 4 {
-            crate::render!(&crate::text!((0, 0), "{:?}", current));
+            let cpu_info = unsafe { *(addr as *const SmbiosCpuInfo) };
+
+            crate::render!(&crate::text!((0, 0), "{:?}", cpu_info));
             break;
         }
 
         addr += smbios_header_len(&current) as u64;
 
-        current = unsafe { *(addr as *const SmbiosHeader) };
+        current = unsafe { (addr as *const SmbiosHeader).read_volatile() };
     }
-
-    //crate::render!(&crate::text!((0, 0), "{}", smbios_header_len(&current)));
 
     Ok(entry)
 }
+
+fn read_smbios_cpu() {}
