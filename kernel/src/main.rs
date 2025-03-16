@@ -132,9 +132,20 @@ pub extern "C" fn _start() -> ! {
     {
         let speed = os::arch::smbios::read_smbios_cpu();
         if let Ok(s) = speed {
-            layout!(test_info_layout, &text!((0, 0), "Cpu Speed: {:?}", s));
+            layout!(
+                test_info_layout,
+                &text!((0, 0), "{}: {}", DIALOGS.cpu_info.speed, s)
+            );
         } else {
-            layout!(test_info_layout, &text!("Cpu Speed: Smbios not detected"));
+            layout!(
+                test_info_layout,
+                &text!(
+                    (0, 0),
+                    "{}: {}",
+                    DIALOGS.cpu_info.speed,
+                    DIALOGS.errors.smbios_not_found
+                )
+            );
         }
     }
 
