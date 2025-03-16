@@ -76,8 +76,6 @@ pub extern "C" fn _start() -> ! {
         (width() / 3 + 40, 0),
     );
 
-    clear();
-
     render!(&question);
 
     clear();
