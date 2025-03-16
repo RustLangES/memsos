@@ -2,10 +2,10 @@
 #![no_main]
 
 use core::panic::PanicInfo;
-use heapless::String;
 use lang::DIALOGS;
 use limine::memory_map::{Entry, EntryType};
 use memsos_core::{run_test, MemoryRegion, TestResult};
+
 use os::boot::BootInfo;
 use os::{
     arch::{cpuid::CpuInfo, reboot::reboot},
@@ -104,7 +104,7 @@ pub extern "C" fn _start() -> ! {
             (0, 0),
             "{} {:.2} GB",
             DIALOGS.mem_info.size,
-            calculate_total_memory_gb(regions)
+            calculate_total_memory_gb(regions),
         ),
         &text!("TODO: Mem Speed")
     );
@@ -127,6 +127,27 @@ pub extern "C" fn _start() -> ! {
             cpuinfo.stepping
         )
     );
+
+    #[cfg(target_arch = "x86_64")]
+    {
+        let speed = os::arch::smbios::read_smbios_cpu();
+        if let Ok(s) = speed {
+            layout!(
+                test_info_layout,
+                &text!((0, 0), "{}: {}", DIALOGS.cpu_info.speed, s)
+            );
+        } else {
+            layout!(
+                test_info_layout,
+                &text!(
+                    (0, 0),
+                    "{}: {}",
+                    DIALOGS.cpu_info.speed,
+                    DIALOGS.errors.smbios_not_found
+                )
+            );
+        }
+    }
 
     layout!(
         info_layout,

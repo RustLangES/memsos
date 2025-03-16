@@ -11,7 +11,7 @@ const BACKUP_CHAR: char = '?';
 const FONT_WEIGHT: FontWeight = FontWeight::Regular;
 const LINE_SPACING: usize = 2;
 const BORDER_PADDING: usize = 1;
-const STRING_SIZE: usize = 256;
+const STRING_SIZE: usize = 1200;
 
 #[derive(Debug, Clone, Default)]
 pub struct TextStyle {
