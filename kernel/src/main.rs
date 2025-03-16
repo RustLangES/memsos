@@ -130,14 +130,11 @@ pub extern "C" fn _start() -> ! {
 
     #[cfg(target_arch = "x86_64")]
     {
-        let smbios = os::arch::smbios::read_smbios();
-        if let Ok(entry) = smbios {
-            layout!(
-                test_info_layout,
-                &text!((0, 0), "SMBIOS: {:?}", unsafe { *entry }.anchor)
-            );
+        let speed = os::arch::smbios::read_smbios_cpu();
+        if let Ok(s) = speed {
+            layout!(test_info_layout, &text!((0, 0), "Cpu Speed: {:?}", s));
         } else {
-            layout!(test_info_layout, &text!("Smbios not detected"));
+            layout!(test_info_layout, &text!("Cpu Speed: Smbios not detected"));
         }
     }
 

@@ -96,6 +96,12 @@ pub fn read_smbios() -> Result<*const SmbiosEntry, SmbiosError> {
         return Err(SmbiosError::InvalidSmbiosEntry);
     }
 
+    Ok(entry)
+}
+
+pub fn read_smbios_cpu() -> Result<u16, SmbiosError> {
+    let entry = read_smbios()?;
+
     let table_addr = unsafe { (*entry).table_address } as *const SmbiosHeader;
     let mut current = unsafe { table_addr.read_volatile() };
     let mut addr = unsafe { (*entry).table_address };
@@ -104,16 +110,11 @@ pub fn read_smbios() -> Result<*const SmbiosEntry, SmbiosError> {
         if current.smbios_type == 4 {
             let cpu_info = unsafe { *(addr as *const SmbiosCpuInfo) };
 
-            crate::render!(&crate::text!((0, 0), "{:?}", cpu_info));
-            break;
+            return Ok(cpu_info.max_speed);
         }
 
         addr += smbios_header_len(&current) as u64;
 
         current = unsafe { (addr as *const SmbiosHeader).read_volatile() };
     }
-
-    Ok(entry)
 }
-
-fn read_smbios_cpu() {}
