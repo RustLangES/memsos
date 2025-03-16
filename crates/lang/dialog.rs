@@ -8,6 +8,7 @@ pub struct Dialogs {
     pub cpu_info: CpuInfo,
     pub debug_info: MemTestDebug,
     pub test_result_info: TestResult,
+    pub errors: Errors,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -43,6 +44,12 @@ pub struct CpuInfo {
     pub vendor: String,
     pub family: String,
     pub stepping: String,
+    pub speed: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Errors {
+    pub smbios_not_found: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

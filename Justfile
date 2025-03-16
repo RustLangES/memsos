@@ -32,7 +32,7 @@ run-uefi: build ovmf
 
 run-bios: build
   qemu-system-{{ARCH}} \
-    -M q35 \
+    -M pc-q35-9.2  \
     -cdrom {{IMAGE_NAME}}.iso \
     -d int \
     -no-reboot \
