@@ -75,7 +75,6 @@ pub extern "C" fn _start() -> ! {
         &[DIALOGS.ask.basic, DIALOGS.ask.advanced],
         (width() / 3 + 40, 0),
     );
-
     render!(&question);
 
     clear();
