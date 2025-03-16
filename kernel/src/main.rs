@@ -71,7 +71,10 @@ pub extern "C" fn _start() -> ! {
 
     let cpuinfo = CpuInfo::new();
 
-    let question = ask(&[DIALOGS.ask.basic, DIALOGS.ask.advanced]);
+    let question = ask(
+        &[DIALOGS.ask.basic, DIALOGS.ask.advanced],
+        (width() / 3 + 40, 0),
+    );
 
     clear();
 
