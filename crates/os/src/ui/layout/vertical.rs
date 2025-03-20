@@ -2,6 +2,7 @@ use crate::ui::layout::{Layout, LayoutArgs, LayoutParams};
 use crate::ui::writer::get_ui;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
+#[derive(Debug)]
 pub struct VerticalLayout {
     y: AtomicUsize,
     pub line_size: usize,

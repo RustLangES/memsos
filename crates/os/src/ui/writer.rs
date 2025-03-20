@@ -5,14 +5,16 @@ use core::cell::SyncUnsafeCell;
 use limine::framebuffer::Framebuffer;
 
 pub static UI_WRITER: SyncUnsafeCell<Option<UiWriter>> = SyncUnsafeCell::new(None);
+pub static mut STATE: &[Option<&dyn Widget>; 125] = &[const { None }; 125];
 
 pub struct UiWriter {
     pub buffer: Framebuffer<'static>,
+    pub head: usize,
 }
 
 impl UiWriter {
     pub const fn new(buffer: Framebuffer<'static>) -> Self {
-        Self { buffer }
+        Self { buffer, head: 0 }
     }
     pub fn width(&self) -> usize {
         usize::try_from(self.buffer.width()).expect("Cannot convert u64 to usize")
@@ -62,9 +64,22 @@ impl UiWriter {
             *buffer = color;
         }
     }
-    pub fn render<T: Widget>(&mut self, widget: &T) {
+    pub fn render<T: Widget + 'static>(
+        &mut self,
+        widget: &T,
+        buffer: Option<&'static mut [Option<*const dyn Widget>; 125]>,
+    ) {
+        if buffer != None {
+            buffer.unwrap()[self.head] = Some(widget);
+            if self.head == 125 {
+                self.head = 0;
+            }
+            self.head += 1;
+        }
+
         widget.render(self);
     }
+    fn recover<T: Widget>(&mut self) {}
     pub fn erase<T: Widget>(&mut self, widget: &T) {
         widget.erase(self);
     }
@@ -93,15 +108,20 @@ pub const fn get_ui() -> UiWriter {
 
 #[macro_export]
 macro_rules! render {
-    ($widget: expr) => {
+    ($state: expr, $widget: expr) => {
         let mut ui = $crate::ui::writer::get_ui();
-        ui.render($widget);
+        let mut s: &[Option<&dyn $crate::ui::widget::Widget>; 125] = &[const { None }; 125];
+
+        ui.render($widget, unsafe { $state });
+        $crate::ui::writer::STATES = $state;
     };
-    ( $( $widget:expr ),* ) => {
+    ( $state: expr, $( $widget:expr ),* ) => {
         let mut ui = $crate::ui::writer::get_ui();
         $(
-            ui.render($widget);
+            ui.render($widget, $state);
         )*
+
+        $crate::ui::writer::STATES = $state;
     };
 }
 

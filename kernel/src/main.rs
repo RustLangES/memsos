@@ -27,7 +27,7 @@ pub extern "C" fn _start() -> ! {
     let regions = &boot_info.memory_regions;
 
     let limine_info = &boot_info.info;
-
+    let mut state: &[Option<&dyn os::ui::widget::Widget>; 125] = &[const { None }; 125];
     let memory_writer = MemWriter::create(*mem_offset);
 
     init_ui();
@@ -75,7 +75,7 @@ pub extern "C" fn _start() -> ! {
         &[DIALOGS.ask.basic, DIALOGS.ask.advanced],
         (width() / 3 + 40, 0),
     );
-    render!(&question);
+    render!(state, &question);
 
     clear();
     let response = memsos_core::MemTestKind::try_from(question.get_result()).unwrap();
@@ -89,7 +89,7 @@ pub extern "C" fn _start() -> ! {
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
 
-    render!(&memtest_message);
+    render!(state, &memtest_message);
 
     layout!(
         test_info_layout,
