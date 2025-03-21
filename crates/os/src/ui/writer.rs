@@ -1,5 +1,6 @@
 use crate::request::FRAMEBUFFER_REQUEST;
 use crate::ui::widget::Widget;
+use crate::StoreType;
 use crate::PADDING;
 use core::cell::SyncUnsafeCell;
 use limine::framebuffer::Framebuffer;
@@ -67,11 +68,7 @@ impl UiWriter {
     pub fn render<T: Widget>(&mut self, widget: &T) {
         widget.render(self);
     }
-    pub fn render_store<'a, T: Widget>(
-        &mut self,
-        widget: &'a T,
-        buffer: &mut [Option<&'a dyn Widget>; 125],
-    ) {
+    pub fn render_store<'a, T: Widget>(&mut self, widget: &'a T, buffer: &mut StoreType<'a>) {
         buffer[self.head] = Some(widget);
         if self.head == 125 {
             self.head = 0;

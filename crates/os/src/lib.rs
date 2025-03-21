@@ -13,3 +13,4 @@ pub mod request;
 pub mod ui;
 
 pub const PADDING: isize = 20;
+pub type StoreType<'a> = [Option<&'a dyn crate::ui::widget::Widget>];
