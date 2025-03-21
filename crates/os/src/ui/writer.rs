@@ -64,18 +64,19 @@ impl UiWriter {
             *buffer = color;
         }
     }
-    pub fn render<T: Widget + 'static>(
+    pub fn render<T: Widget>(&mut self, widget: &T) {
+        widget.render(self);
+    }
+    pub fn render_store<'a, T: Widget>(
         &mut self,
-        widget: &T,
-        buffer: Option<&'static mut [Option<*const dyn Widget>; 125]>,
+        widget: &'a T,
+        buffer: &mut [Option<&'a dyn Widget>; 125],
     ) {
-        if buffer != None {
-            buffer.unwrap()[self.head] = Some(widget);
-            if self.head == 125 {
-                self.head = 0;
-            }
-            self.head += 1;
+        buffer[self.head] = Some(widget);
+        if self.head == 125 {
+            self.head = 0;
         }
+        self.head += 1;
 
         widget.render(self);
     }
@@ -106,22 +107,34 @@ pub const fn get_ui() -> UiWriter {
     unsafe { UI_WRITER.get().read().expect("UI_WRITER is empty") }
 }
 
+// store render
 #[macro_export]
-macro_rules! render {
+macro_rules! srender {
     ($state: expr, $widget: expr) => {
         let mut ui = $crate::ui::writer::get_ui();
-        let mut s: &[Option<&dyn $crate::ui::widget::Widget>; 125] = &[const { None }; 125];
 
-        ui.render($widget, unsafe { $state });
-        $crate::ui::writer::STATES = $state;
+        ui.render_store($widget, unsafe { $state });
     };
     ( $state: expr, $( $widget:expr ),* ) => {
         let mut ui = $crate::ui::writer::get_ui();
         $(
-            ui.render($widget, $state);
+            ui.render_store($widget, $state);
         )*
+    };
+}
 
-        $crate::ui::writer::STATES = $state;
+#[macro_export]
+macro_rules! render {
+    ($widget: expr) => {
+        let mut ui = $crate::ui::writer::get_ui();
+
+        ui.render($widget);
+    };
+    ($(  $widget:expr ),* ) => {
+        let mut ui = $crate::ui::writer::get_ui();
+        $(
+            ui.render($widget);
+        )*
     };
 }
 

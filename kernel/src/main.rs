@@ -18,7 +18,7 @@ use os::{
     },
     PADDING,
 };
-use os::{layout, render, styled_text, text};
+use os::{layout, render, srender, styled_text, text};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -27,7 +27,6 @@ pub extern "C" fn _start() -> ! {
     let regions = &boot_info.memory_regions;
 
     let limine_info = &boot_info.info;
-    let mut state: &[Option<&dyn os::ui::widget::Widget>; 125] = &[const { None }; 125];
     let memory_writer = MemWriter::create(*mem_offset);
 
     init_ui();
@@ -69,13 +68,15 @@ pub extern "C" fn _start() -> ! {
         max_y: None,
     });
 
+    let state: &mut [Option<&dyn os::ui::widget::Widget>; 125] = &mut [None; 125];
+
     let cpuinfo = CpuInfo::new();
 
     let question = ask(
         &[DIALOGS.ask.basic, DIALOGS.ask.advanced],
         (width() / 3 + 40, 0),
     );
-    render!(state, &question);
+    render!(&question);
 
     clear();
     let response = memsos_core::MemTestKind::try_from(question.get_result()).unwrap();
@@ -89,7 +90,11 @@ pub extern "C" fn _start() -> ! {
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
 
-    render!(state, &memtest_message);
+    srender!(state, &memtest_message);
+    os::erase!(&memtest_message);
+
+    let a = state[0];
+    a.unwrap().render(&mut os::ui::writer::get_ui());
 
     layout!(
         test_info_layout,
