@@ -1,4 +1,5 @@
-use crate::ui::layout::{Layout, LayoutArgs, LayoutParams};
+use crate::ui::layout::{ChildArgs, Layout, LayoutParams};
+use crate::ui::widget::Widget;
 use crate::ui::writer::get_ui;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
@@ -35,7 +36,7 @@ impl VerticalLayout {
 }
 
 impl Layout for VerticalLayout {
-    fn spawn<T: super::LayoutChild>(&self, widget: &T) {
+    fn spawn<T: Widget>(&self, widget: &T) {
         let mut writer = get_ui();
 
         let (_, y) = self.gen_pos();
@@ -56,9 +57,9 @@ impl Layout for VerticalLayout {
             return;
         }
 
-        widget.render_child(
+        widget.render_as_child(
             &mut writer,
-            LayoutArgs {
+            ChildArgs {
                 pos: (self.params.start_pos.0, y),
                 line_size: self.line_size,
             },

@@ -1,4 +1,4 @@
-use crate::ui::{layout::LayoutChild, widget::Widget, writer::UiWriter};
+use crate::ui::{layout::ChildArgs, widget::Widget, writer::UiWriter};
 use core::fmt::{Arguments, Write};
 use heapless::String;
 use noto_sans_mono_bitmap::{
@@ -48,16 +48,13 @@ impl Widget for Text {
             self.write_char(' ', writer, acc, writer.width())
         });
     }
-}
-
-impl LayoutChild for Text {
-    fn render_child(&self, writer: &mut UiWriter, args: crate::ui::layout::LayoutArgs) {
+    fn spacing(&self) -> usize {
+        self.pos.1 + CHAR_RASTER_HEIGHT.val() + LINE_SPACING
+    }
+    fn render_as_child(&self, writer: &mut UiWriter, args: ChildArgs) {
         self.text.chars().fold(args.pos, |acc, c| {
             self.write_char(c, writer, acc, args.line_size)
         });
-    }
-    fn spacing(&self) -> usize {
-        self.pos.1 + CHAR_RASTER_HEIGHT.val() + LINE_SPACING
     }
 }
 

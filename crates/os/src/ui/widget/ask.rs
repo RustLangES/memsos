@@ -1,6 +1,6 @@
 use crate::drivers::driver::Driver;
 use crate::drivers::keyboard::{Key, KeyState, KEYBOARD};
-use crate::ui::layout::{vertical::VerticalLayout, Layout, LayoutChild, LayoutParams};
+use crate::ui::layout::{vertical::VerticalLayout, Layout, LayoutParams};
 use crate::ui::widget::text::TextStyle;
 use crate::ui::widget::Widget;
 use crate::{render, styled_text, text};
@@ -88,6 +88,16 @@ impl Widget for Ask<'_> {
     }
     fn erase(&self, _writer: &mut crate::ui::writer::UiWriter) {
         unimplemented!();
+    }
+    fn spacing(&self) -> usize {
+        todo!()
+    }
+    fn render_as_child(
+        &self,
+        writer: &mut crate::ui::writer::UiWriter,
+        args: crate::ui::layout::ChildArgs,
+    ) {
+        todo!()
     }
 }
 
