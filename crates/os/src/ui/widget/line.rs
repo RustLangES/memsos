@@ -23,7 +23,7 @@ impl Widget for Line {
             p.1 += y_inc;
         });
     }
-    fn render_as_child(&self, writer: &mut UiWriter, args: crate::ui::layout::ChildArgs) {
+    fn render_as_child(&self, _writer: &mut UiWriter, _args: crate::ui::layout::ChildArgs) {
         todo!();
     }
     fn spacing(&self) -> usize {

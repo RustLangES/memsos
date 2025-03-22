@@ -1,4 +1,5 @@
 use crate::ui::widget::Widget;
+use crate::StoreFb;
 
 #[derive(Debug)]
 pub struct ChildArgs {
@@ -16,7 +17,7 @@ pub struct LayoutParams {
 
 pub trait Layout {
     fn spawn<T: Widget>(&self, widget: &T);
-    fn spawn_store<T: Widget>(&self, widget: &T);
+    fn spawn_store<'a, T: Widget>(&self, store: &mut StoreFb<'a>, widget: &T);
     fn gen_pos(&self) -> (usize, usize);
     fn margin(&self, size: usize);
 }

@@ -7,6 +7,7 @@ use limine::memory_map::{Entry, EntryType};
 use memsos_core::{run_test, MemoryRegion, TestResult};
 
 use os::boot::BootInfo;
+use os::StoreFb;
 use os::{
     arch::{cpuid::CpuInfo, reboot::reboot},
     mem::MemWriter,
@@ -68,8 +69,7 @@ pub extern "C" fn _start() -> ! {
         max_y: None,
     });
 
-    let state: &mut [Option<&dyn os::ui::widget::Widget>; 125] = &mut [None; 125];
-
+    let state: &mut StoreFb = &mut StoreFb::new();
     let cpuinfo = CpuInfo::new();
 
     let question = ask(

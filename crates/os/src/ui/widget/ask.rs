@@ -94,8 +94,8 @@ impl Widget for Ask<'_> {
     }
     fn render_as_child(
         &self,
-        writer: &mut crate::ui::writer::UiWriter,
-        args: crate::ui::layout::ChildArgs,
+        _writer: &mut crate::ui::writer::UiWriter,
+        _args: crate::ui::layout::ChildArgs,
     ) {
         todo!()
     }

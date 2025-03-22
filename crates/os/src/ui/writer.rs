@@ -1,21 +1,19 @@
 use crate::request::FRAMEBUFFER_REQUEST;
 use crate::ui::widget::Widget;
-use crate::StoreType;
+use crate::StoreFb;
 use crate::PADDING;
 use core::cell::SyncUnsafeCell;
 use limine::framebuffer::Framebuffer;
 
 pub static UI_WRITER: SyncUnsafeCell<Option<UiWriter>> = SyncUnsafeCell::new(None);
-pub static mut STATE: &[Option<&dyn Widget>; 125] = &[const { None }; 125];
 
 pub struct UiWriter {
     pub buffer: Framebuffer<'static>,
-    pub head: usize,
 }
 
 impl UiWriter {
     pub const fn new(buffer: Framebuffer<'static>) -> Self {
-        Self { buffer, head: 0 }
+        Self { buffer }
     }
     pub fn width(&self) -> usize {
         usize::try_from(self.buffer.width()).expect("Cannot convert u64 to usize")
@@ -68,12 +66,8 @@ impl UiWriter {
     pub fn render<T: Widget>(&mut self, widget: &T) {
         widget.render(self);
     }
-    pub fn render_store<'a, T: Widget>(&mut self, widget: &'a T, buffer: &mut StoreType<'a>) {
-        buffer[self.head] = Some(widget);
-        if self.head == 125 {
-            self.head = 0;
-        }
-        self.head += 1;
+    pub fn render_store<'a, T: Widget>(&mut self, widget: &'a T, buffer: &mut StoreFb<'a>) {
+        buffer.push(widget);
 
         widget.render(self);
     }
