@@ -7,7 +7,7 @@ use limine::memory_map::{Entry, EntryType};
 use memsos_core::{run_test, MemoryRegion, TestResult};
 
 use os::boot::BootInfo;
-use os::StoreFb;
+use os::ui::store::StoreFb;
 use os::{
     arch::{cpuid::CpuInfo, reboot::reboot},
     mem::MemWriter,

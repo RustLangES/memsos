@@ -1,5 +1,5 @@
+use crate::ui::store::StoreFb;
 use crate::ui::widget::Widget;
-use crate::StoreFb;
 
 #[derive(Debug)]
 pub struct ChildArgs {

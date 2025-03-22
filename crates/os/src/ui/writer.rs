@@ -1,6 +1,6 @@
 use crate::request::FRAMEBUFFER_REQUEST;
+use crate::ui::store::StoreFb;
 use crate::ui::widget::Widget;
-use crate::StoreFb;
 use crate::PADDING;
 use core::cell::SyncUnsafeCell;
 use limine::framebuffer::Framebuffer;
@@ -67,7 +67,7 @@ impl UiWriter {
         widget.render(self);
     }
     pub fn render_store<'a, T: Widget>(&mut self, widget: &'a T, buffer: &mut StoreFb<'a>) {
-        buffer.push(widget);
+        buffer.push(widget).unwrap();
 
         widget.render(self);
     }

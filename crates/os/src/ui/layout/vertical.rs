@@ -1,4 +1,5 @@
 use crate::ui::layout::{ChildArgs, Layout, LayoutParams};
+use crate::ui::store::StoreFb;
 use crate::ui::widget::Widget;
 use crate::ui::writer::get_ui;
 use core::sync::atomic::{AtomicUsize, Ordering};
@@ -67,7 +68,7 @@ impl Layout for VerticalLayout {
 
         self.y.store(new_y, Ordering::SeqCst);
     }
-    fn spawn_store<'a, T: Widget>(&self, store: &mut crate::StoreFb<'a>, widget: &T) {}
+    fn spawn_store<'a, T: Widget>(&self, store: &mut StoreFb<'a>, widget: &T) {}
     fn gen_pos(&self) -> (usize, usize) {
         self.y.fetch_add(self.params.padding, Ordering::SeqCst);
 
