@@ -130,28 +130,23 @@ pub extern "C" fn _start() -> ! {
         )
     );
 
-    #[cfg(target_arch = "x86_64")]
-    {
-        let speed = os::arch::smbios::read_smbios_cpu();
-        if let Ok(s) = speed {
-            layout!(
-                test_info_layout,
-                &text!((0, 0), "{}: {}", DIALOGS.cpu_info.speed, s)
-            );
-        } else {
-            layout!(
-                test_info_layout,
-                &text!(
-                    (0, 0),
-                    "{}: {}",
-                    DIALOGS.cpu_info.speed,
-                    DIALOGS.errors.smbios_not_found
-                )
-            );
-        }
-    }
+    let speed = os::arch::smbios::read_smbios_cpu();
 
-    layout!(
+    let tspeed;
+    if let Ok(s) = speed {
+        tspeed = text!((0, 0), "{}: {}", DIALOGS.cpu_info.speed, s);
+    } else {
+        tspeed = text!(
+            (0, 0),
+            "{}: {}",
+            DIALOGS.cpu_info.speed,
+            DIALOGS.errors.smbios_not_found
+        );
+    }
+    prepare_slayout!(state, test_info_layout, &tspeed);
+
+    prepare_slayout!(
+        state,
         info_layout,
         &text!("memsos v{memsos_version}"),
         &text!(
