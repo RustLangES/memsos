@@ -68,7 +68,11 @@ impl Layout for VerticalLayout {
 
         self.y.store(new_y, Ordering::SeqCst);
     }
-    fn spawn_store<'a, T: Widget>(&self, store: &mut StoreFb<'a>, widget: &T) {}
+    fn spawn_store<'a, T: Widget>(&self, store: &mut StoreFb<'a>, widget: &'a T) {
+        store.push(widget).unwrap();
+
+        self.spawn(widget);
+    }
     fn gen_pos(&self) -> (usize, usize) {
         self.y.fetch_add(self.params.padding, Ordering::SeqCst);
 

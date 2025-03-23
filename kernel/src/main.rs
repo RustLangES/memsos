@@ -19,7 +19,7 @@ use os::{
     },
     PADDING,
 };
-use os::{layout, render, srender, styled_text, text};
+use os::{layout, prepare_slayout, prepare_srender, render, srender, styled_text, text};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -91,12 +91,9 @@ pub extern "C" fn _start() -> ! {
     );
 
     srender!(state, &memtest_message);
-    os::erase!(&memtest_message);
 
-    let a = state[0];
-    a.unwrap().render(&mut os::ui::writer::get_ui());
-
-    layout!(
+    prepare_slayout!(
+        state,
         test_info_layout,
         &text!((0, 0), "{}: {}", DIALOGS.memtest_info.kind_test, response),
         &styled_text!(

@@ -101,11 +101,6 @@ pub const fn get_ui() -> UiWriter {
 // store render
 #[macro_export]
 macro_rules! srender {
-    ($state: expr, $widget: expr) => {
-        let mut ui = $crate::ui::writer::get_ui();
-
-        ui.render_store($widget, unsafe { $state });
-    };
     ( $state: expr, $( $widget:expr ),* ) => {
         let mut ui = $crate::ui::writer::get_ui();
         $(
@@ -116,11 +111,6 @@ macro_rules! srender {
 
 #[macro_export]
 macro_rules! render {
-    ($widget: expr) => {
-        let mut ui = $crate::ui::writer::get_ui();
-
-        ui.render($widget);
-    };
     ($(  $widget:expr ),* ) => {
         let mut ui = $crate::ui::writer::get_ui();
         $(
@@ -135,6 +125,44 @@ macro_rules! layout {
         $(
             $layout.spawn($widget);
         )*
+    };
+}
+
+#[macro_export]
+macro_rules! slayout {
+    ( $store: expr, $layout: expr, $( $widget:expr ),* )  => {
+        $(
+            $layout.spawn_store($store, $widget);
+        )*
+    };
+}
+
+#[macro_export]
+macro_rules! prepare_srender {
+     ($state:expr, $layout:expr, $( $temp:expr ),+ ) => {
+        let temp_vars = [$( $temp ),+];
+
+        for t in temp_vars {
+            $crate::srender!(
+                $state,
+                t
+            );
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! prepare_slayout {
+    ($state:expr, $layout:expr, $( $temp:expr ),+ ) => {
+        let temp_vars = [$( $temp ),+];
+
+        for t in temp_vars {
+             $crate::slayout!(
+                $state,
+                $layout,
+                t
+            );
+        }
     };
 }
 

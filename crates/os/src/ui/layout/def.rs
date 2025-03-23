@@ -17,7 +17,7 @@ pub struct LayoutParams {
 
 pub trait Layout {
     fn spawn<T: Widget>(&self, widget: &T);
-    fn spawn_store<'a, T: Widget>(&self, store: &mut StoreFb<'a>, widget: &T);
+    fn spawn_store<'a, T: Widget>(&self, store: &mut StoreFb<'a>, widget: &'a T);
     fn gen_pos(&self) -> (usize, usize);
     fn margin(&self, size: usize);
 }
