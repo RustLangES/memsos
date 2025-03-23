@@ -12,11 +12,6 @@ if echo "$@" | grep -qoE '(--ci)'; then
     ci=true
 fi
 
-only_check=false
-if echo "$@" | grep -qoE '(--only-check)'; then
-    only_check=true
-fi
-
 download_update() {
     declare -A urls
     echo -e "${GREEN}ovmf-$1-$arch$RESET: $download_url"
@@ -43,15 +38,6 @@ download_update() {
 }
 
 try() {
-    if $only_check; then
-        if ! git diff --exit-code ovmf_sources.json >/dev/null; then
-            echo "should_update=true" >>"$GITHUB_OUTPUT"
-        else
-            echo "should_update=false" >>"$GITHUB_OUTPUT"
-        fi
-        exit 0
-    fi
-
     for arch in $(jq -r '.Nightly | keys[]' ovmf_sources.json); do
         download_update $arch
     done
@@ -61,10 +47,6 @@ set -e
 
 try
 
-if $only_check && $ci; then
-    echo "should_update=false" >>"$GITHUB_OUTPUT"
-fi
-
 if ! git diff --exit-code ovmf_sources.json >/dev/null; then
     init_message="Update ovmf_hashes"
     message="$init_message"
@@ -73,5 +55,8 @@ if ! git diff --exit-code ovmf_sources.json >/dev/null; then
         message="${message}_$(echo $version | cut -d'-' -f1) @ $commit_nightly to $version"
     fi
 
+    echo "should_update=true" >>"$GITHUB_OUTPUT"
     echo "commit_message=$message" >>"$GITHUB_OUTPUT"
+else
+    echo "should_update=false" >>"$GITHUB_OUTPUT"
 fi
