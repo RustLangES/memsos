@@ -71,7 +71,15 @@ impl UiWriter {
 
         widget.render(self);
     }
-    fn recover<T: Widget>(&mut self) {}
+    pub fn recover<'a>(&mut self, buffer: &mut StoreFb<'a>) {
+        for widget in buffer.buffer {
+            if let Some(w) = widget {
+                w.render(self);
+            } else {
+                break;
+            }
+        }
+    }
     pub fn erase<T: Widget>(&mut self, widget: &T) {
         widget.erase(self);
     }
@@ -96,6 +104,15 @@ pub fn init_ui() {
 #[inline]
 pub const fn get_ui() -> UiWriter {
     unsafe { UI_WRITER.get().read().expect("UI_WRITER is empty") }
+}
+
+#[macro_export]
+macro_rules! recover {
+    ($state: expr) => {
+        let mut ui = $crate::ui::writer::get_ui();
+
+        ui.recover($state);
+    };
 }
 
 // store render

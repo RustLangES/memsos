@@ -19,7 +19,7 @@ use os::{
     },
     PADDING,
 };
-use os::{layout, prepare_slayout, prepare_srender, render, srender, styled_text, text};
+use os::{layout, prepare_slayout, prepare_srender, recover, render, srender, styled_text, text};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -81,7 +81,8 @@ pub extern "C" fn _start() -> ! {
     clear();
     let response = memsos_core::MemTestKind::try_from(question.get_result()).unwrap();
 
-    render!(
+    prepare_srender!(
+        state,
         &line((PADDING, PADDING), (PADDING, h - PADDING)),
         &line((PADDING, h - PADDING), (w - PADDING, h - PADDING)),
         &line((w - PADDING, PADDING), (w - PADDING, h - PADDING)),
@@ -89,6 +90,8 @@ pub extern "C" fn _start() -> ! {
         &line((PADDING, h / 2), (w - PADDING, h / 2)),
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
+
+    render!(&line((PADDING, PADDING), (PADDING, h - PADDING)));
 
     srender!(state, &memtest_message);
 
@@ -158,6 +161,9 @@ pub extern "C" fn _start() -> ! {
         &text!((0, 0), "{}", DIALOGS.info.love_message)
     );
 
+    clear();
+    recover!(state);
+
     let mut test_result = TestResult::default();
 
     for region in regions.iter() {
@@ -185,7 +191,8 @@ pub extern "C" fn _start() -> ! {
         );
     }
 
-    layout!(
+    prepare_slayout!(
+        state,
         &test_info_layout,
         &styled_text!(
             (0, 0),
