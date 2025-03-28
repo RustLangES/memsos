@@ -67,12 +67,12 @@ impl UiWriter {
         widget.render(self);
     }
     pub fn render_store<'a, T: Widget>(&mut self, widget: &'a T, buffer: &mut StoreFb<'a>) {
-        buffer.push(widget).unwrap();
+        buffer.push(widget, None).unwrap();
 
         widget.render(self);
     }
     pub fn recover<'a>(&mut self, buffer: &mut StoreFb<'a>) {
-        for widget in buffer.buffer {
+        for widget in &buffer.buffer {
             if let Some(w) = widget {
                 w.render(self);
             } else {

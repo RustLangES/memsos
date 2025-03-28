@@ -1,6 +1,7 @@
 use crate::ui::widget::Widget;
 use crate::ui::writer::UiWriter;
 
+#[derive(Clone, Debug)]
 pub struct Line {
     from: (isize, isize),
     to: (isize, isize),

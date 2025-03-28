@@ -5,6 +5,7 @@ use crate::drivers::keyboard::{Key, KEYBOARD};
 use crate::ui::layout::ChildArgs;
 
 // Just a text wrapper that makes the program wait for the user to press space
+#[derive(Debug)]
 pub struct Input<'a> {
     pub text: &'a Text,
 }

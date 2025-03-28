@@ -7,6 +7,7 @@ use crate::{render, styled_text, text};
 use core::sync::atomic::{AtomicUsize, Ordering};
 use lang::DIALOGS;
 
+#[derive(Debug)]
 pub struct Ask<'a> {
     pub options: &'a [&'static str],
     pub start_pos: (usize, usize),

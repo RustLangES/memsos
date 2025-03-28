@@ -1,7 +1,7 @@
 use crate::ui::store::StoreFb;
 use crate::ui::widget::Widget;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct ChildArgs {
     pub pos: (usize, usize),
     pub line_size: usize,
