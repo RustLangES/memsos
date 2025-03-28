@@ -114,7 +114,8 @@ pub extern "C" fn _start() -> ! {
         &text!("TODO: Mem Speed")
     );
 
-    layout!(
+    prepare_slayout!(
+        state,
         test_info_layout,
         &styled_text!(
             (0, 0),
