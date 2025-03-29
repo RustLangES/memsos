@@ -156,7 +156,7 @@ macro_rules! slayout {
 
 #[macro_export]
 macro_rules! prepare_srender {
-     ($state:expr, $layout:expr, $( $temp:expr ),+ ) => {
+     ($state:expr,$( $temp:expr ),+ ) => {
         let temp_vars = [$( $temp ),+];
 
         for t in temp_vars {

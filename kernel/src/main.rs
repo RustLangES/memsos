@@ -91,6 +91,11 @@ pub extern "C" fn _start() -> ! {
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
 
+    prepare_srender!(
+        state,
+        &text!((25, height() - 20), "Press m to display menu")
+    );
+
     render!(&line((PADDING, PADDING), (PADDING, h - PADDING)));
 
     srender!(state, &memtest_message);
