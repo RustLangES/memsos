@@ -167,9 +167,6 @@ pub extern "C" fn _start() -> ! {
         &text!((0, 0), "{}", DIALOGS.info.love_message)
     );
 
-    clear();
-    recover!(state);
-
     let mut test_result = TestResult::default();
 
     for region in regions.iter() {
@@ -189,6 +186,7 @@ pub extern "C" fn _start() -> ! {
         test_result += run_test(
             &mut logger,
             &memory_writer,
+            &os::drivers::keyboard::KEYBOARD,
             &MemoryRegion {
                 start: region.base,
                 end: region.base + region.length,
