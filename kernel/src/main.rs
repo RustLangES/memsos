@@ -8,6 +8,7 @@ use memsos_core::{run_test, MemoryRegion, TestResult};
 
 use os::boot::BootInfo;
 use os::ui::store::StoreFb;
+use os::ui::widget::menu::Menu;
 use os::{
     arch::{cpuid::CpuInfo, reboot::reboot},
     mem::MemWriter,
@@ -91,11 +92,6 @@ pub extern "C" fn _start() -> ! {
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
 
-    prepare_srender!(
-        state,
-        &text!((25, height() - 20), "Press m to display menu")
-    );
-
     render!(&line((PADDING, PADDING), (PADDING, h - PADDING)));
 
     srender!(state, &memtest_message);
@@ -141,6 +137,13 @@ pub extern "C" fn _start() -> ! {
 
     let speed = os::arch::smbios::read_smbios_cpu();
 
+    clear();
+
+    let binding = [text!("Test")];
+    let menu = Menu::new(&binding, None, 30);
+    render!(&menu);
+
+    loop {}
     let tspeed;
     if let Ok(s) = speed {
         tspeed = text!((0, 0), "{}: {}", DIALOGS.cpu_info.speed, s);

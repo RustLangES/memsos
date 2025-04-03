@@ -1,6 +1,7 @@
 pub mod ask;
 pub mod input;
 pub mod line;
+pub mod menu;
 pub mod text;
 
 use crate::ui::layout::ChildArgs;
