@@ -35,18 +35,27 @@ impl Widget for Menu<'_> {
         let w = width() as isize;
         let h = height() as isize;
         let s = self.pixels;
-        let mut layout = VerticalLayout::new(LayoutParams {
+        let layout = VerticalLayout::new(LayoutParams {
             padding: 0,
-            start_pos: (PADDING as usize + 5, PADDING as usize + 5),
+            start_pos: (
+                PADDING as usize + 5 + s as usize,
+                PADDING as usize + 5 + s as usize,
+            ),
             line_size: None,
             max_y: None,
         });
 
         render!(
-            &line((PADDING, PADDING), (PADDING, h - PADDING)),
-            &line((PADDING, h - PADDING), (w - PADDING, h - PADDING)),
-            &line((w - PADDING, PADDING), (w - PADDING, h - PADDING)),
-            &line((PADDING, PADDING), (w - PADDING, PADDING))
+            &line((PADDING + s, PADDING + s), (PADDING - s, (h - PADDING) - s)), // left
+            &line(
+                (PADDING + s, h - PADDING - s),
+                (w - PADDING - s, (h - PADDING) - s)
+            ), // down
+            &line(
+                (w - PADDING - s, PADDING + s),
+                (w - PADDING - s, (h - PADDING) - s)
+            ), // right
+            &line((PADDING + s, PADDING + s), (w - PADDING - s, PADDING + s))    // up
         );
 
         self.texts.iter().for_each(|t| layout.spawn(t));
