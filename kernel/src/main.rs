@@ -140,7 +140,7 @@ pub extern "C" fn _start() -> ! {
     clear();
 
     let binding = [text!("Test")];
-    let menu = Menu::new(&binding, None, 30);
+    let menu = Menu::new(&binding, None, 100);
     render!(&menu);
 
     loop {}
