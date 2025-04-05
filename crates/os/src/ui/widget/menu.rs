@@ -1,4 +1,5 @@
 use super::{ask::Ask, line::line, text::Text, Widget};
+use crate::ui::layout::Layout;
 use crate::ui::layout::{vertical::VerticalLayout, LayoutParams};
 use crate::ui::writer::{height, width};
 use crate::{render, PADDING};
@@ -34,6 +35,13 @@ impl Widget for Menu<'_> {
         let w = width() as isize;
         let h = height() as isize;
         let s = self.pixels;
+        let mut layout = VerticalLayout::new(LayoutParams {
+            padding: 0,
+            start_pos: (PADDING as usize + 5, PADDING as usize + 5),
+            line_size: None,
+            max_y: None,
+        });
+
         render!(
             &line((PADDING, PADDING), (PADDING, h - PADDING)),
             &line((PADDING, h - PADDING), (w - PADDING, h - PADDING)),
@@ -41,7 +49,7 @@ impl Widget for Menu<'_> {
             &line((PADDING, PADDING), (w - PADDING, PADDING))
         );
 
-        self.texts.iter().for_each(|t| writer.render(t));
+        self.texts.iter().for_each(|t| layout.spawn(t));
     }
     fn spacing(&self) -> usize {
         unimplemented!();
