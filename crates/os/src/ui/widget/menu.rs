@@ -1,7 +1,7 @@
 use super::{ask::Ask, line::line, text::Text, Widget};
 use crate::ui::layout::Layout;
 use crate::ui::layout::{vertical::VerticalLayout, LayoutParams};
-use crate::ui::writer::{height, width};
+use crate::ui::writer::{get_ui, height, width};
 use crate::{render, PADDING};
 
 pub struct Menu<'a> {
@@ -17,6 +17,23 @@ impl<'a> Menu<'a> {
             ask,
             pixels: distance,
         }
+    }
+    pub fn clear_zone(&self) {
+        let mut writer = get_ui();
+        let s = self.pixels;
+        let w = width() as isize;
+        let h = height() as isize;
+
+        writer.clear_zone(
+            (
+                (PADDING + s).try_into().unwrap(),
+                (PADDING + s).try_into().unwrap(),
+            ),
+            (
+                (w - PADDING - s).try_into().unwrap(),
+                ((h - PADDING) - s).try_into().unwrap(),
+            ),
+        );
     }
 }
 

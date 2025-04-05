@@ -137,13 +137,6 @@ pub extern "C" fn _start() -> ! {
 
     let speed = os::arch::smbios::read_smbios_cpu();
 
-    clear();
-
-    let binding = [text!("Test")];
-    let menu = Menu::new(&binding, None, 100);
-    render!(&menu);
-
-    loop {}
     let tspeed;
     if let Ok(s) = speed {
         tspeed = text!((0, 0), "{}: {}", DIALOGS.cpu_info.speed, s);
@@ -171,6 +164,13 @@ pub extern "C" fn _start() -> ! {
     );
 
     let mut test_result = TestResult::default();
+
+    let binding = [text!("Test")];
+    let menu = Menu::new(&binding, None, 100);
+    menu.clear_zone();
+
+    render!(&menu);
+    loop {}
 
     for region in regions.iter() {
         if region.entry_type != EntryType::USABLE {
