@@ -165,13 +165,6 @@ pub extern "C" fn _start() -> ! {
 
     let mut test_result = TestResult::default();
 
-    let binding = [text!("Test")];
-    let menu = Menu::new(&binding, None, 100);
-    menu.clear_zone();
-
-    render!(&menu);
-    loop {}
-
     for region in regions.iter() {
         if region.entry_type != EntryType::USABLE {
             layout!(
@@ -198,23 +191,25 @@ pub extern "C" fn _start() -> ! {
         );
     }
 
-    prepare_slayout!(
-        state,
-        &test_info_layout,
-        &styled_text!(
+    let binding = [
+        styled_text!(
             (0, 0),
             TextStyle { invert: true },
             "{}",
             DIALOGS.test_result_info.info
         ),
-        &text!((0, 0), "{}", DIALOGS.test_result_info.completed_message),
-        &text!(
+        text!((0, 0), "{}", DIALOGS.test_result_info.completed_message),
+        text!(
             (0, 0),
             "{} {}",
             DIALOGS.test_result_info.number_of_errors,
             test_result.bad_addrs
-        )
-    );
+        ),
+    ];
+    let menu = Menu::new(&binding, None, 100);
+    menu.clear_zone();
+
+    render!(&menu);
 
     #[allow(clippy::empty_loop)]
     loop {}
