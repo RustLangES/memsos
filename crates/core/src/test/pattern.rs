@@ -1,6 +1,5 @@
 use crate::{Mem, MemoryRegion, TestResult};
-use rand::{RngCore, SeedableRng};
-use rand_chacha::ChaCha20Rng;
+use core::sync::atomic::{AtomicU64, Ordering};
 
 pub fn run_test_own_address<M: Mem>(mem: &M, region: &MemoryRegion) -> TestResult {
     let offset_region = mem.parse(region);
@@ -21,22 +20,32 @@ pub fn run_test_own_address<M: Mem>(mem: &M, region: &MemoryRegion) -> TestResul
     TestResult { bad_addrs }
 }
 
+static RSEED: AtomicU64 = AtomicU64::new(0);
+const RAND_MAX: u64 = (1_u64 << 31) - 1;
+
+#[inline]
+fn rand() -> u64 {
+    let rseed = RSEED.load(Ordering::SeqCst);
+    let rand = (rseed * 214013 + 12345) & RAND_MAX;
+
+    RSEED.store(rand, Ordering::SeqCst);
+
+    rand
+}
+
 pub fn run_test_rand_num<M: Mem>(mem: &M, region: &MemoryRegion) -> TestResult {
     let offset_region = mem.parse(region);
-    // TODO: make this dynamic
-    // https://github.com/RustLangES/memsos/pull/8
-    let mut rand = ChaCha20Rng::seed_from_u64(12381293);
     let mut bad_addrs = 0;
 
     for addr in offset_region.start..offset_region.end {
-        let pattern = &rand.next_u64();
+        let pattern = rand();
         if !mem.check(addr) {
             continue;
         }
 
-        mem.write(addr, *pattern);
+        mem.write(addr, pattern);
 
-        if mem.read(addr) != *pattern {
+        if mem.read(addr) != pattern {
             bad_addrs += 1;
         }
     }

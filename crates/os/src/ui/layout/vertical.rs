@@ -1,7 +1,10 @@
-use crate::ui::layout::{Layout, LayoutArgs, LayoutParams};
+use crate::ui::layout::{ChildArgs, Layout, LayoutParams};
+use crate::ui::store::StoreFb;
+use crate::ui::widget::Widget;
 use crate::ui::writer::get_ui;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
+#[derive(Debug)]
 pub struct VerticalLayout {
     y: AtomicUsize,
     pub line_size: usize,
@@ -34,7 +37,7 @@ impl VerticalLayout {
 }
 
 impl Layout for VerticalLayout {
-    fn spawn<T: super::LayoutChild>(&self, widget: &T) {
+    fn spawn<T: Widget>(&self, widget: &T) {
         let mut writer = get_ui();
 
         let (_, y) = self.gen_pos();
@@ -55,9 +58,9 @@ impl Layout for VerticalLayout {
             return;
         }
 
-        widget.render_child(
+        widget.render_as_child(
             &mut writer,
-            LayoutArgs {
+            ChildArgs {
                 pos: (self.params.start_pos.0, y),
                 line_size: self.line_size,
             },
@@ -65,7 +68,21 @@ impl Layout for VerticalLayout {
 
         self.y.store(new_y, Ordering::SeqCst);
     }
+    fn spawn_store<'a, T: Widget>(&self, store: &mut StoreFb<'a>, widget: &'a T) {
+        let (_, y) = self.gen_pos(); // Generating position
 
+        store
+            .push(
+                widget,
+                Some(ChildArgs {
+                    pos: (self.params.start_pos.0, y),
+                    line_size: self.params.line_size.unwrap_or(900),
+                }),
+            )
+            .unwrap();
+
+        self.spawn(widget);
+    }
     fn gen_pos(&self) -> (usize, usize) {
         self.y.fetch_add(self.params.padding, Ordering::SeqCst);
 

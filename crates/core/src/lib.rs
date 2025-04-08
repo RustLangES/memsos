@@ -30,9 +30,10 @@ impl AddAssign for TestResult {
     }
 }
 
-pub fn run_test<M: Mem, L: Logger>(
+pub fn run_test<M: Mem, L: Logger, K: Keyboard>(
     logger: &mut L,
     mem: &M,
+    keyboard: &K,
     region: &MemoryRegion,
     kind: MemTestKind,
 ) -> TestResult {
@@ -72,6 +73,10 @@ pub trait Mem {
     fn check(&self, addr: u64) -> bool;
     fn read(&self, addr: u64) -> u64;
     fn write(&self, addr: u64, value: u64);
+}
+
+pub trait Keyboard {
+    fn m_pressed(&self) -> bool;
 }
 
 pub trait Logger {

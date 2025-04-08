@@ -2,9 +2,10 @@ use super::text::Text;
 use super::Widget;
 use crate::drivers::driver::Driver;
 use crate::drivers::keyboard::{Key, KEYBOARD};
-use crate::ui::layout::LayoutChild;
+use crate::ui::layout::ChildArgs;
 
 // Just a text wrapper that makes the program wait for the user to press space
+#[derive(Debug)]
 pub struct Input<'a> {
     pub text: &'a Text,
 }
@@ -18,18 +19,11 @@ impl Widget for Input<'_> {
 
         KEYBOARD.wait_key(&Key::Space);
     }
-}
-
-impl LayoutChild for Input<'_> {
     fn spacing(&self) -> usize {
         self.text.spacing()
     }
-    fn render_child(
-        &self,
-        writer: &mut crate::ui::writer::UiWriter,
-        args: crate::ui::layout::LayoutArgs,
-    ) {
-        self.text.render_child(writer, args);
+    fn render_as_child(&self, writer: &mut crate::ui::writer::UiWriter, args: ChildArgs) {
+        self.text.render_as_child(writer, args);
 
         KEYBOARD.read();
     }

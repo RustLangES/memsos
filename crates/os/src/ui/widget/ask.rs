@@ -1,22 +1,25 @@
 use crate::drivers::driver::Driver;
 use crate::drivers::keyboard::{Key, KeyState, KEYBOARD};
-use crate::ui::layout::{vertical::VerticalLayout, Layout, LayoutChild, LayoutParams};
+use crate::ui::layout::{vertical::VerticalLayout, Layout, LayoutParams};
 use crate::ui::widget::text::TextStyle;
 use crate::ui::widget::Widget;
 use crate::{render, styled_text, text};
 use core::sync::atomic::{AtomicUsize, Ordering};
 use lang::DIALOGS;
 
+#[derive(Debug)]
 pub struct Ask<'a> {
     pub options: &'a [&'static str],
+    pub start_pos: (usize, usize),
     selection: AtomicUsize,
 }
 
 impl<'a> Ask<'a> {
-    pub fn new(opts: &'a [&'static str]) -> Self {
+    pub fn new(opts: &'a [&'static str], start_pos: (usize, usize)) -> Self {
         Self {
             options: opts,
             selection: AtomicUsize::new(0),
+            start_pos,
         }
     }
     pub fn get_result(&self) -> &'static str {
@@ -59,7 +62,7 @@ impl Widget for Ask<'_> {
             let layout = VerticalLayout::new(LayoutParams {
                 max_y: None,
                 padding: 0,
-                start_pos: (0, 0),
+                start_pos: self.start_pos,
                 line_size: None,
             });
             let msg = text!(layout.gen_pos(), "{}", DIALOGS.ask.test_kind);
@@ -87,9 +90,19 @@ impl Widget for Ask<'_> {
     fn erase(&self, _writer: &mut crate::ui::writer::UiWriter) {
         unimplemented!();
     }
+    fn spacing(&self) -> usize {
+        todo!()
+    }
+    fn render_as_child(
+        &self,
+        _writer: &mut crate::ui::writer::UiWriter,
+        _args: crate::ui::layout::ChildArgs,
+    ) {
+        todo!()
+    }
 }
 
 #[inline]
-pub fn ask<'a>(options: &'a [&'static str]) -> Ask<'a> {
-    Ask::new(options)
+pub fn ask<'a>(options: &'a [&'static str], start_pos: (usize, usize)) -> Ask<'a> {
+    Ask::new(options, start_pos)
 }

@@ -1,4 +1,5 @@
 use crate::request::FRAMEBUFFER_REQUEST;
+use crate::ui::store::StoreFb;
 use crate::ui::widget::Widget;
 use crate::PADDING;
 use core::cell::SyncUnsafeCell;
@@ -65,6 +66,20 @@ impl UiWriter {
     pub fn render<T: Widget>(&mut self, widget: &T) {
         widget.render(self);
     }
+    pub fn render_store<'a, T: Widget>(&mut self, widget: &'a T, buffer: &mut StoreFb<'a>) {
+        buffer.push(widget, None).unwrap();
+
+        widget.render(self);
+    }
+    pub fn recover<'a>(&mut self, buffer: &mut StoreFb<'a>) {
+        for widget in &buffer.buffer {
+            if let Some(w) = widget {
+                w.render(self);
+            } else {
+                break;
+            }
+        }
+    }
     pub fn erase<T: Widget>(&mut self, widget: &T) {
         widget.erase(self);
     }
@@ -92,12 +107,28 @@ pub const fn get_ui() -> UiWriter {
 }
 
 #[macro_export]
-macro_rules! render {
-    ($widget: expr) => {
+macro_rules! recover {
+    ($state: expr) => {
         let mut ui = $crate::ui::writer::get_ui();
-        ui.render($widget);
+
+        ui.recover($state);
     };
-    ( $( $widget:expr ),* ) => {
+}
+
+// store render
+#[macro_export]
+macro_rules! srender {
+    ( $state: expr, $( $widget:expr ),* ) => {
+        let mut ui = $crate::ui::writer::get_ui();
+        $(
+            ui.render_store($widget, $state);
+        )*
+    };
+}
+
+#[macro_export]
+macro_rules! render {
+    ($(  $widget:expr ),* ) => {
         let mut ui = $crate::ui::writer::get_ui();
         $(
             ui.render($widget);
@@ -111,6 +142,44 @@ macro_rules! layout {
         $(
             $layout.spawn($widget);
         )*
+    };
+}
+
+#[macro_export]
+macro_rules! slayout {
+    ( $store: expr, $layout: expr, $( $widget:expr ),* )  => {
+        $(
+            $layout.spawn_store($store, $widget);
+        )*
+    };
+}
+
+#[macro_export]
+macro_rules! prepare_srender {
+     ($state:expr,$( $temp:expr ),+ ) => {
+        let temp_vars = [$( $temp ),+];
+
+        for t in temp_vars {
+            $crate::srender!(
+                $state,
+                t
+            );
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! prepare_slayout {
+    ($state:expr, $layout:expr, $( $temp:expr ),+ ) => {
+        let temp_vars = [$( $temp ),+];
+
+        for t in temp_vars {
+             $crate::slayout!(
+                $state,
+                $layout,
+                t
+            );
+        }
     };
 }
 

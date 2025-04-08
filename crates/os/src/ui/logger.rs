@@ -6,6 +6,7 @@ use crate::{erase, render};
 use crate::{layout, text};
 use memsos_core::Logger;
 
+#[derive(Debug)]
 pub struct DebugLogger<'a> {
     pub debug_layout: &'a VerticalLayout,
     pub actual_test: Text,

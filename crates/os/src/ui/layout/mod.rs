@@ -1,4 +1,4 @@
 mod def;
 pub mod vertical;
 
-pub use crate::ui::layout::def::{Layout, LayoutArgs, LayoutChild, LayoutParams};
+pub use crate::ui::layout::def::{ChildArgs, Layout, LayoutParams};

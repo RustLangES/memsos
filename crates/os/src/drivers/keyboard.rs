@@ -1,4 +1,5 @@
 use crate::drivers::driver::Driver;
+use memsos_core::Keyboard as CoreKeyboard;
 
 macro_rules! make_keys {
     ($( $name:ident -> $value:literal ),*) => {
@@ -28,6 +29,15 @@ impl Driver for Keyboard {
         let scancode = KEYBOARD_PORT.read();
 
         Event::from(scancode)
+    }
+}
+
+impl CoreKeyboard for Keyboard {
+    fn m_pressed(&self) -> bool {
+        KEYBOARD_CTRL.write(0xFF);
+        let event = Event::from(KEYBOARD_PORT.read());
+
+        event.state == KeyState::Press && event.key == Key::M
     }
 }
 
@@ -105,6 +115,14 @@ impl From<u8> for Event {
                 key: Key::Down,
                 state: KeyState::Release,
             },
+            0x32 => Event {
+                key: Key::M,
+                state: KeyState::Press,
+            },
+            0xB2 => Event {
+                key: Key::M,
+                state: KeyState::Release,
+            },
             _ => Event {
                 key: Key::Unknown(value),
                 state: KeyState::None,
@@ -125,5 +143,6 @@ pub enum Key {
     Space,
     Up,
     Down,
+    M,
     Unknown(u8),
 }

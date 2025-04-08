@@ -1,6 +1,7 @@
 use crate::ui::widget::Widget;
 use crate::ui::writer::UiWriter;
 
+#[derive(Clone, Debug)]
 pub struct Line {
     from: (isize, isize),
     to: (isize, isize),
@@ -22,6 +23,12 @@ impl Widget for Line {
             p.0 += x_inc;
             p.1 += y_inc;
         });
+    }
+    fn render_as_child(&self, _writer: &mut UiWriter, _args: crate::ui::layout::ChildArgs) {
+        todo!();
+    }
+    fn spacing(&self) -> usize {
+        todo!();
     }
     fn erase(&self, writer: &mut UiWriter) {
         let mut p = (self.from.0, self.from.1);

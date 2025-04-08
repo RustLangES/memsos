@@ -7,6 +7,8 @@ use limine::memory_map::{Entry, EntryType};
 use memsos_core::{run_test, MemoryRegion, TestResult};
 
 use os::boot::BootInfo;
+use os::ui::store::StoreFb;
+use os::ui::widget::menu::Menu;
 use os::{
     arch::{cpuid::CpuInfo, reboot::reboot},
     mem::MemWriter,
@@ -18,7 +20,7 @@ use os::{
     },
     PADDING,
 };
-use os::{layout, render, styled_text, text};
+use os::{layout, prepare_slayout, prepare_srender, recover, render, srender, styled_text, text};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -27,7 +29,6 @@ pub extern "C" fn _start() -> ! {
     let regions = &boot_info.memory_regions;
 
     let limine_info = &boot_info.info;
-
     let memory_writer = MemWriter::create(*mem_offset);
 
     init_ui();
@@ -69,18 +70,20 @@ pub extern "C" fn _start() -> ! {
         max_y: None,
     });
 
+    let state: &mut StoreFb = &mut StoreFb::new();
     let cpuinfo = CpuInfo::new();
 
-    let question = ask(&[DIALOGS.ask.basic, DIALOGS.ask.advanced]);
-
-    clear();
-
+    let question = ask(
+        &[DIALOGS.ask.basic, DIALOGS.ask.advanced],
+        (width() / 3 + 40, 0),
+    );
     render!(&question);
 
     clear();
     let response = memsos_core::MemTestKind::try_from(question.get_result()).unwrap();
 
-    render!(
+    prepare_srender!(
+        state,
         &line((PADDING, PADDING), (PADDING, h - PADDING)),
         &line((PADDING, h - PADDING), (w - PADDING, h - PADDING)),
         &line((w - PADDING, PADDING), (w - PADDING, h - PADDING)),
@@ -89,9 +92,12 @@ pub extern "C" fn _start() -> ! {
         &line((w / 2, PADDING), (w / 2, h / 2))
     );
 
-    render!(&memtest_message);
+    render!(&line((PADDING, PADDING), (PADDING, h - PADDING)));
 
-    layout!(
+    srender!(state, &memtest_message);
+
+    prepare_slayout!(
+        state,
         test_info_layout,
         &text!((0, 0), "{}: {}", DIALOGS.memtest_info.kind_test, response),
         &styled_text!(
@@ -109,7 +115,8 @@ pub extern "C" fn _start() -> ! {
         &text!("TODO: Mem Speed")
     );
 
-    layout!(
+    prepare_slayout!(
+        state,
         test_info_layout,
         &styled_text!(
             (0, 0),
@@ -128,28 +135,23 @@ pub extern "C" fn _start() -> ! {
         )
     );
 
-    #[cfg(target_arch = "x86_64")]
-    {
-        let speed = os::arch::smbios::read_smbios_cpu();
-        if let Ok(s) = speed {
-            layout!(
-                test_info_layout,
-                &text!((0, 0), "{}: {}", DIALOGS.cpu_info.speed, s)
-            );
-        } else {
-            layout!(
-                test_info_layout,
-                &text!(
-                    (0, 0),
-                    "{}: {}",
-                    DIALOGS.cpu_info.speed,
-                    DIALOGS.errors.smbios_not_found
-                )
-            );
-        }
-    }
+    let speed = os::arch::smbios::read_smbios_cpu();
 
-    layout!(
+    let tspeed;
+    if let Ok(s) = speed {
+        tspeed = text!((0, 0), "{}: {}", DIALOGS.cpu_info.speed, s);
+    } else {
+        tspeed = text!(
+            (0, 0),
+            "{}: {}",
+            DIALOGS.cpu_info.speed,
+            DIALOGS.errors.smbios_not_found
+        );
+    }
+    prepare_slayout!(state, test_info_layout, &tspeed);
+
+    prepare_slayout!(
+        state,
         info_layout,
         &text!("memsos v{memsos_version}"),
         &text!(
@@ -180,6 +182,7 @@ pub extern "C" fn _start() -> ! {
         test_result += run_test(
             &mut logger,
             &memory_writer,
+            &os::drivers::keyboard::KEYBOARD,
             &MemoryRegion {
                 start: region.base,
                 end: region.base + region.length,
@@ -188,22 +191,25 @@ pub extern "C" fn _start() -> ! {
         );
     }
 
-    layout!(
-        &test_info_layout,
-        &styled_text!(
+    let binding = [
+        styled_text!(
             (0, 0),
             TextStyle { invert: true },
             "{}",
             DIALOGS.test_result_info.info
         ),
-        &text!((0, 0), "{}", DIALOGS.test_result_info.completed_message),
-        &text!(
+        text!((0, 0), "{}", DIALOGS.test_result_info.completed_message),
+        text!(
             (0, 0),
             "{} {}",
             DIALOGS.test_result_info.number_of_errors,
             test_result.bad_addrs
-        )
-    );
+        ),
+    ];
+    let menu = Menu::new(&binding, None, 100);
+    menu.clear_zone();
+
+    render!(&menu);
 
     #[allow(clippy::empty_loop)]
     loop {}
