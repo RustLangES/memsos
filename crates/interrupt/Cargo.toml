@@ -1,0 +1,8 @@
+[package]
+name = "interrupt"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lazy_static = { version = "1.5.0", features = ["spin_no_std"], default-features = false }
+x86_64 = { version = "0.15.2", default-features = false, features = ["abi_x86_interrupt", "instructions"] }

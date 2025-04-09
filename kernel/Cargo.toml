@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 os = { path = "../crates/os" }
 memsos_core = { path = "../crates/core" }
+interrupt = { path = "../crates/interrupt" }
 heapless = "0.8.0"
 limine = "0.3.1"
 lang = { path = "../crates/lang" }

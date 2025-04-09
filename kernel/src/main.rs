@@ -6,6 +6,7 @@ use lang::DIALOGS;
 use limine::memory_map::{Entry, EntryType};
 use memsos_core::{run_test, MemoryRegion, TestResult};
 
+use interrupt::handle_interrupts;
 use os::boot::BootInfo;
 use os::ui::store::StoreFb;
 use os::ui::widget::menu::Menu;
@@ -32,6 +33,7 @@ pub extern "C" fn _start() -> ! {
     let memory_writer = MemWriter::create(*mem_offset);
 
     init_ui();
+    handle_interrupts();
 
     let memsos_version = env!("CARGO_PKG_VERSION");
     let h: isize = height().try_into().unwrap();
