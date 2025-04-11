@@ -1,11 +1,27 @@
 use core::arch::asm;
+use heapless::Vec;
+
+const VEC_SIZE: usize = 121;
+const CPUID_FLAG_MSR: u32 = 1 << 5;
 
 #[derive(Debug)]
 pub struct CpuInfo {
     pub vendor: Vendor,
     pub model: &'static str,
     pub family: u32,
+    pub features: Vec<Feature, 121>,
     pub stepping: u32,
+}
+
+impl CpuInfo {
+    pub fn has_feature(&self, feat: Feature) -> bool {
+        self.features.contains(&feat)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Feature {
+    Msr,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -25,12 +41,14 @@ impl CpuInfo {
         let family = get_cpu_family();
         let stepping = get_cpu_stepping();
         let model = get_cpu_model();
+        let features = get_features();
 
         Self {
             vendor,
             family,
             stepping,
             model,
+            features,
         }
     }
 }
@@ -125,6 +143,17 @@ pub fn get_cpu_family() -> u32 {
     } else {
         family
     }
+}
+
+pub fn get_features() -> Vec<Feature, VEC_SIZE> {
+    let result = cpuid(1);
+    let mut features = Vec::new();
+
+    if result.edx & CPUID_FLAG_MSR == 32 {
+        features.push(Feature::Msr).unwrap();
+    }
+
+    features
 }
 
 #[cfg(target_arch = "aarch64")]

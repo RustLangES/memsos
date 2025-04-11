@@ -10,7 +10,7 @@ use os::boot::BootInfo;
 use os::ui::store::StoreFb;
 use os::ui::widget::menu::Menu;
 use os::{
-    arch::{cpuid::CpuInfo, reboot::reboot},
+    arch::{cpuid::CpuInfo, msr::has_msr, reboot::reboot},
     mem::MemWriter,
     ui::{
         layout::{vertical::VerticalLayout, Layout, LayoutParams},
@@ -32,6 +32,8 @@ pub extern "C" fn _start() -> ! {
     let memory_writer = MemWriter::create(*mem_offset);
 
     init_ui();
+
+    has_msr();
 
     let memsos_version = env!("CARGO_PKG_VERSION");
     let h: isize = height().try_into().unwrap();
