@@ -33,6 +33,7 @@ pub extern "C" fn _start() -> ! {
 
     init_ui();
 
+    #[cfg(target_arch = "x86_64")]
     has_msr();
 
     let memsos_version = env!("CARGO_PKG_VERSION");
