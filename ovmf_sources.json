@@ -1,36 +1,36 @@
 {
   "Nightly": {
     "x86_64": {
-      "version": "nightly-2025-05-08",
+      "version": "nightly-2025-05-09",
       "sha256": {
         "vars": "sha256-btmHrzo8FVvnFmX1EOrj4Aftqbi5Sv1Z1F6RxKEVZcw=",
         "code": "sha256-cC8n6awryumybt2YrsP8EosABtXU9FPPl3/yi1U2RRY="
       },
       "url": [
-        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-08/ovmf-vars-x86_64.fd",
-        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-08/ovmf-code-x86_64.fd"
+        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-09/ovmf-vars-x86_64.fd",
+        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-09/ovmf-code-x86_64.fd"
       ]
     },
     "aarch64": {
-      "version": "nightly-2025-05-08",
+      "version": "nightly-2025-05-09",
       "sha256": {
         "vars": "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=",
-        "code": "sha256-9DueQ0HrLeOQLKLONa1p7xnp5EkOHNJSNfh2AIX+lLo="
+        "code": "sha256-GzuCYsv7sM0lH1iDV5AoT9AbJBC7IOu4aTX3XSTxYsE="
       },
       "url": [
-        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-08/ovmf-code-aarch64.fd",
-        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-08/ovmf-vars-aarch64.fd"
+        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-09/ovmf-code-aarch64.fd",
+        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-09/ovmf-vars-aarch64.fd"
       ]
     },
     "riscv64": {
-      "version": "nightly-2025-05-08",
+      "version": "nightly-2025-05-09",
       "sha256": {
         "vars": "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=",
-        "code": "sha256-KE9L64c/S/TPduUKUy4u89Tlz6mdr2092G+5anUngkE="
+        "code": "sha256-vzJ23ZDSH4VEgyIoNWD57KiUtARLQjkD13N7R5S4mxY="
       },
       "url": [
-        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-08/ovmf-vars-riscv64.fd",
-        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-08/ovmf-code-riscv64.fd"
+        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-09/ovmf-code-riscv64.fd",
+        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-05-09/ovmf-vars-riscv64.fd"
       ]
     }
   }
