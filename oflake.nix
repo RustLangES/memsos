@@ -60,7 +60,7 @@
             arch = "x86_64";
             name = "x86_64";
             target = "x86_64-unknown-uefi";
-          } 
+          }
         ];
 
         mkDevShell = {
@@ -132,7 +132,7 @@
             };
             doCheck = false;
             cargoBuildCommand =
-              "cargo build --target ${target} -p memsos"
+              "cargo build --target ${target} -p kernel"
               + (
                 if (!debug_symbols)
                 then " --release"
@@ -144,7 +144,7 @@
             "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.llvmPackages.lld}/bin/ld.lld";
             "CARGO_TARGET_${target_name}_RUNNER" = "qemu-${arch}";
 
-            nativeBuildInputs = with pkgs; [gptfdisk];
+            nativeBuildInputs = with pkgs; [gnumake xorriso];
             LANG = "${lang}.UTF-8";
 
             postInstall = ''
@@ -245,7 +245,7 @@
               };
             };
             clippy = {
-              enable = false;
+              enable = true;
               # settings = {
               #   denyWarnings = true;
               #   extraArgs = "-Zbuild-std --workspace";

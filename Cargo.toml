@@ -1,13 +1,6 @@
-[package]
-name = "memsos-boot"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-ovmf-prebuilt = "0.1.0-alpha.1"
-
 [workspace]
-members = ["crates/core", "crates/interrupt", "crates/lang", "crates/os", "kernel"]
+resolver = "2"
+members = ["crates/lang", "memsos"]
 
 [profile.release]
 opt-level = 0
