@@ -1,7 +1,8 @@
 #![feature(uefi_std)]
 use std::os::uefi as uefi_std;
+use uefi::proto::console::gop::GraphicsOutput;
 use uefi::runtime::ResetType;
-use uefi::{Handle, Status};
+use uefi::{boot, Handle, Status};
 
 fn setup() {
     let st = uefi_std::env::system_table();
@@ -17,6 +18,15 @@ fn setup() {
 
 fn main() {
     setup();
-    println!("Hello, world!");
+    let gop_handler = boot::get_handle_for_protocol::<GraphicsOutput>().unwrap();
+    let mut gop = boot::open_protocol_exclusive::<GraphicsOutput>(gop_handler).unwrap();
+    let mut fb = gop.frame_buffer();
+
+    for i in 0..fb.size() {
+        unsafe {
+            fb.write_byte(i, 255);
+        }
+    }
+
     uefi::runtime::reset(ResetType::SHUTDOWN, Status::SUCCESS, None);
 }

@@ -69,7 +69,7 @@
           ...
         }:
           (craneLib target).devShell {
-            packages = with pkgs; [qemu just libisoburn];
+            packages = with pkgs; [qemu gptfdisk just libisoburn];
             buildInputs = hook.enabledPackages;
             shellHook = ''
               echo "DevShell for ${name} (${target})"
@@ -273,7 +273,7 @@
             default = mkDevShell {
               name = "x86_64";
               arch = "x86_64";
-              target = "x86_64-unknown-none";
+              target = "x86_64-unknown-uefi";
             };
           };
 
