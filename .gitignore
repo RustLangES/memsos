@@ -1,5 +1,6 @@
 kernel/kernel
 kernel/kernel.sym
+dist/
 /target
 /result
 memfile
