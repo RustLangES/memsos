@@ -1,4 +1,5 @@
 #![feature(uefi_std)]
+use arch::protocols::UefiProtocols;
 use std::os::uefi as uefi_std;
 use uefi::proto::console::gop::GraphicsOutput;
 use uefi::runtime::ResetType;
@@ -18,8 +19,8 @@ fn setup() {
 
 fn main() {
     setup();
-    let gop_handler = boot::get_handle_for_protocol::<GraphicsOutput>().unwrap();
-    let mut gop = boot::open_protocol_exclusive::<GraphicsOutput>(gop_handler).unwrap();
+    let protocols = UefiProtocols::get();
+    let mut gop = protocols.gop;
     let mut fb = gop.frame_buffer();
 
     for i in 0..fb.size() {

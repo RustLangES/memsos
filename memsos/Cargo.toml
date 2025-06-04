@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 uefi = { version = "0.35.0", features = ["alloc"], default-features = false }
+arch = { path = "../crates/arch/" }
