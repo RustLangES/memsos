@@ -1,5 +1,5 @@
 [toolchain]
 targets = ["aarch64-unknown-uefi", "i686-unknown-uefi", "x86_64-unknown-uefi"]
-channel = "nightly-2024-11-18"
+channel = "nightly"
 profile = "minimal"
 components = ["rust-src", "cargo", "rustc", "llvm-tools", "clippy", "rustfmt"]
