@@ -1,8 +1,9 @@
 export component Ui inherits Window {
+    in property <int> total_cpu;
     Text {
     	x: 0;
 	y: 0;
-        text: "hello from slint";
+        text: total_cpu;
         color: white;
     }
 }

@@ -4,6 +4,7 @@ dist/
 /target
 /result
 memfile
+memsos-x86_64.img
 limine
 iso_root
 ovmf
