@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [ "crates/arch", "memsos"]
+members = [ "crates/arch", "crates/memtest", "memsos"]
 
 [profile.release]
 opt-level = 0

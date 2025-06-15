@@ -21,18 +21,23 @@ impl Default for Platform {
 }
 
 impl slint::platform::Platform for Platform {
-    fn create_window_adapter(&self) -> Result<Rc<dyn slint::platform::WindowAdapter>, slint::PlatformError> {
+    fn create_window_adapter(
+        &self,
+    ) -> Result<Rc<dyn slint::platform::WindowAdapter>, slint::PlatformError> {
         Ok(self.window.clone())
     }
     fn duration_since_start(&self) -> core::time::Duration {
-        Duration::from_secs_f64((self.timer.get_tick() as f64 - self.timer.start_tick as f64) / self.timer.timer_freq as f64)
+        Duration::from_secs_f64(
+            (self.timer.get_tick() as f64 - self.timer.start_tick as f64)
+                / self.timer.timer_freq as f64,
+        )
     }
     fn run_event_loop(&self) -> Result<(), slint::PlatformError> {
-       use uefi::{boot::*, proto::console::gop::*};
+        use uefi::{boot::*, proto::console::gop::*};
 
-       let gop_handle = uefi::boot::get_handle_for_protocol::<GraphicsOutput>().unwrap();
+        let gop_handle = uefi::boot::get_handle_for_protocol::<GraphicsOutput>().unwrap();
 
-               let mut gop = unsafe {
+        let mut gop = unsafe {
             uefi::boot::open_protocol::<GraphicsOutput>(
                 OpenProtocolParams {
                     handle: gop_handle,
@@ -45,7 +50,8 @@ impl slint::platform::Platform for Platform {
         };
 
         let info = gop.current_mode_info();
-        let mut fb = vec![SlintBltPixel(BltPixel::new(0, 0, 0)); info.resolution().0 * info.resolution().1];
+        let mut fb =
+            vec![SlintBltPixel(BltPixel::new(0, 0, 0)); info.resolution().0 * info.resolution().1];
 
         self.window.set_size(slint::PhysicalSize::new(
             info.resolution().0.try_into().unwrap(),
@@ -58,15 +64,17 @@ impl slint::platform::Platform for Platform {
             self.window.draw_if_needed(|renderer| {
                 renderer.render(&mut fb, info.resolution().0);
 
-                let blt_fb = unsafe { core::slice::from_raw_parts(fb.as_ptr() as *const BltPixel, fb.len()) };
-                
+                let blt_fb = unsafe {
+                    core::slice::from_raw_parts(fb.as_ptr() as *const BltPixel, fb.len())
+                };
+
                 gop.blt(BltOp::BufferToVideo {
                     buffer: blt_fb,
                     src: BltRegion::Full,
                     dest: (0, 0),
                     dims: info.resolution(),
                 })
-                .unwrap(); 
+                .unwrap();
             });
         }
     }
@@ -88,4 +96,3 @@ impl software_renderer::TargetPixel for SlintBltPixel {
         SlintBltPixel(BltPixel::new(red, green, blue))
     }
 }
-
