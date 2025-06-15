@@ -2311,6 +2311,7 @@ name = "memsos"
 version = "0.1.0"
 dependencies = [
  "arch",
+ "memtest",
  "slint",
  "slint-build",
  "uefi",
@@ -2319,6 +2320,9 @@ dependencies = [
 [[package]]
 name = "memtest"
 version = "0.1.0"
+dependencies = [
+ "arch",
+]
 
 [[package]]
 name = "minimal-lexical"

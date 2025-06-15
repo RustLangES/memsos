@@ -1,20 +1,9 @@
-use uefi::{boot::{memory_map, MemoryType}, mem::memory_map::MemoryMapOwned};
+use core::ops::RangeInclusive;
 
-pub struct MemoryMap {
-    pub region: MemoryMapOwned,
-    pub unusable_mem: MemoryMapOwned,
-}
+use uefi::boot::MemoryType;
 
-impl MemoryMap {
-    pub fn new() -> Self {
-        let region = memory_map(MemoryType::CONVENTIONAL).unwrap();
-        let unusable_mem = memory_map(MemoryType::UNUSABLE).unwrap();
-
-        Self {
-            region,
-            unusable_mem
-        }
-    }
+pub fn get_usable_mem() -> RangeInclusive<u32> {
+    MemoryType::RESERVED_FOR_OS_LOADER
 }
 
 pub fn read(addr: usize) -> usize {
