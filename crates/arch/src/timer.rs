@@ -1,3 +1,5 @@
+use core::time::Duration;
+
 pub struct Timer {
     pub start_tick: u64,
     pub timer_freq: u64,
@@ -9,6 +11,12 @@ impl Timer {
             start_tick: timer_tick(),
             timer_freq: timer_freq(),
         }
+    }
+    pub fn elapsed(&self) -> Duration {
+        Duration::from_secs_f64(
+            (self.get_tick() as f64 - self.start_tick as f64)
+                / self.timer_freq as f64,
+        )
     }
     pub fn get_tick(&self) -> u64 {
         timer_tick()

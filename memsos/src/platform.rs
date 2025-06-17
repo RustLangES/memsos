@@ -27,10 +27,7 @@ impl slint::platform::Platform for Platform {
         Ok(self.window.clone())
     }
     fn duration_since_start(&self) -> core::time::Duration {
-        Duration::from_secs_f64(
-            (self.timer.get_tick() as f64 - self.timer.start_tick as f64)
-                / self.timer.timer_freq as f64,
-        )
+        self.timer.elapsed()
     }
     fn run_event_loop(&self) -> Result<(), slint::PlatformError> {
         use uefi::{boot::*, proto::console::gop::*};
