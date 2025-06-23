@@ -7,7 +7,8 @@ edition = "2021"
 slint-build = "1.11.0"
 
 [dependencies]
-slint = { version = "1.11.0", default-features = false, features = ["compat-1-2", "renderer-software", "libm", "log", "unsafe-single-threaded"] }
 uefi = { version = "0.35.0", features = ["alloc"], default-features = false }
 arch = { path = "../crates/arch/" }
 memtest = { path = "../crates/memtest/" }
+uefi-graphics2 = "0.5.0"
+embedded-graphics = "0.8.1"

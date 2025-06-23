@@ -1,14 +1,12 @@
 #![feature(uefi_std)]
 
-slint::include_modules!();
+extern crate alloc;
+use alloc::format;
 
-mod platform;
-
-use crate::platform::Platform;
 use arch::mem::{get_usable_mem, write};
-use arch::protocols::UefiProtocols;
+use arch::protocols::{self, UefiProtocols};
+use embedded_graphics::prelude::RgbColor;
 use memtest::own_addr::own_addr_check;
-use slint::{ComponentHandle, Timer, ToSharedString, Weak};
 use uefi::mem::memory_map::MemoryMap as MemoryMapTrait;
 use std::os::uefi as uefi_std;
 use std::ptr::NonNull;
@@ -21,6 +19,14 @@ use uefi::boot::{
 use uefi::proto::console::gop::GraphicsOutput;
 use uefi::runtime::ResetType;
 use uefi::{boot, Event, Handle, Status};
+use uefi_graphics2::UefiDisplay;
+use embedded_graphics::geometry::Point;
+use embedded_graphics::mono_font::ascii::FONT_6X10;
+use embedded_graphics::mono_font::MonoTextStyle;
+use embedded_graphics::pixelcolor::Rgb888;
+use embedded_graphics::text::Text;
+use embedded_graphics::Drawable;
+
 
 fn setup() {
     let st = uefi_std::env::system_table();
@@ -38,26 +44,19 @@ static COUNT: AtomicI32 = AtomicI32::new(0);
 
 fn main() {
     setup();
-    slint::platform::set_platform(Box::<Platform>::default()).unwrap();
 
-    let ui = Ui::new().unwrap();
-    let weak = ui.as_weak();
-    let timer = Timer::default();
-   
-    /*
-    timer.start(
-        slint::TimerMode::Repeated,
-        Duration::from_millis(10),
-        move || {
-            weak.upgrade()
-                .unwrap()
-                .set_total_cpu(COUNT.load(Ordering::SeqCst));
-            COUNT.fetch_add(1, Ordering::SeqCst);
-        },
-    );
-    */
+    boot::set_watchdog_timer(0, 0x10000, None).unwrap();
 
-    ui.run().unwrap();
+    let mut gop = protocols::UefiProtocols::get().gop;
+    let mode = gop.current_mode_info();
+    let mut display = UefiDisplay::new(gop.frame_buffer(), mode).unwrap();
+    
+    let style = MonoTextStyle::new(&FONT_6X10, Rgb888::WHITE);
+    let mut text = Text::new("Hello World!", Point { x: 30, y: 100 }, style);
 
+    text.draw(&mut display).unwrap();
+    display.flush();
+     
     uefi::runtime::reset(ResetType::SHUTDOWN, Status::SUCCESS, None);
 }
+
