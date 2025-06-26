@@ -7,7 +7,7 @@ DIST_DIR := "dist"
 default: run
 
 run: ovmf build
-    qemu-system-{{ARCH}} -M q35 -no-reboot -no-shutdown -d int -drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-{{ARCH}}.fd,readonly=on -drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-{{ARCH}}.fd -cdrom memsos-{{ARCH}}.img {{QEMU_FLAGS}}
+    qemu-system-{{ARCH}} -M q35  -d int -drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-{{ARCH}}.fd,readonly=on -drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-{{ARCH}}.fd -cdrom memsos-{{ARCH}}.img {{QEMU_FLAGS}}
 
 
 ovmf:

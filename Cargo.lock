@@ -972,6 +972,9 @@ name = "memtest"
 version = "0.1.0"
 dependencies = [
  "arch",
+ "embedded-graphics",
+ "uefi",
+ "uefi-graphics2",
 ]
 
 [[package]]

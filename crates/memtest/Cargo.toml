@@ -5,3 +5,6 @@ edition = "2024"
 
 [dependencies]
 arch = { path = "../arch" }
+uefi-graphics2 = "0.5.0"
+uefi = { version = "0.35.0", default-features = false, features = ["alloc"] }
+embedded-graphics = "0.8.1"

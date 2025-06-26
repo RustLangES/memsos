@@ -18,6 +18,9 @@ impl Timer {
                 / self.timer_freq as f64,
         )
     }
+    pub fn reset(&mut self) {
+        self.start_tick = timer_tick();
+    }
     pub fn get_tick(&self) -> u64 {
         timer_tick()
     }
