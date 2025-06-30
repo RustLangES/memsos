@@ -1,14 +1,8 @@
 [package]
 name = "memsos"
 version = "0.1.0"
-edition = "2021"
-
-[build-dependencies]
-slint-build = "1.11.0"
+edition = "2024"
 
 [dependencies]
-uefi = { version = "0.35.0", features = ["alloc"], default-features = false }
-arch = { path = "../crates/arch/" }
-memtest = { path = "../crates/memtest/" }
-uefi-graphics2 = "0.5.0"
-embedded-graphics = "0.8.1"
+r-efi = "5.3.0"
+r-efi-alloc = "2.1.0"
