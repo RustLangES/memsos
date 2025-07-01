@@ -16,7 +16,7 @@ ovmf:
 build: always kernel
 	dd if=/dev/zero of=memsos-{{ARCH}}.img bs=1M count=125 status=progress
 	sgdisk --clear --new=1:1M:10M --typecode=1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B memsos-{{ARCH}}.img
-	mkfs.fat memsos-{{ARCH}}.img
+	mkfs.fat -F 32 memsos-{{ARCH}}.img
 	mmd -i memsos-{{ARCH}}.img ::EFI
 	mmd -i memsos-{{ARCH}}.img ::EFI/BOOT
 	mcopy -i memsos-{{ARCH}}.img {{DIST_DIR}}/memsos.efi ::EFI/BOOT/BOOTX64.EFI

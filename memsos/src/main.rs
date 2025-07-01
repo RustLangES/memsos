@@ -1,17 +1,23 @@
 #![no_std]
 #![no_main]
+#![feature(fn_traits)]
 
 extern crate alloc;
+mod once;
 
 use alloc::{string::String, vec::Vec};
-use r_efi::efi;
+use r_efi::efi::{self, Char16};
 use core::fmt::Write;
+use once::Once;
 
 #[global_allocator]
 static GLOBAL_ALLOCATOR: r_efi_alloc::global::Bridge = r_efi_alloc::global::Bridge::new();
 
+static SYSTEM_TABLE: Once<*mut efi::SystemTable> = Once::new();
 
-static mut SYSTEM_TABLE: *mut efi::SystemTable = core::ptr::null_mut();
+const EFI_BLACK: usize = 0x0;
+const EFI_RED: usize = 0x04;
+const EFI_WHITE: usize = 0x0F;
 
 macro_rules! print {
     ($($arg:tt)*) => {
@@ -39,9 +45,7 @@ macro_rules! println {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn efi_main(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
-    unsafe {
-        //SYSTEM_TABLE = st;
-    }
+    SYSTEM_TABLE.call_once(|| st);
     
     unsafe { 
         let mut allocator = r_efi_alloc::alloc::Allocator::from_system_table(st, efi::LOADER_DATA);
@@ -52,28 +56,32 @@ pub extern "C" fn efi_main(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::S
 }
 
 fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
-    let s: String;
-    let mut v: Vec<u16>;
-    s = String::from("Hello World!\n");
-    v = s.encode_utf16().collect();
+
+    let s = String::from("Hello from memsos!");
+    
+    let mut v: Vec<u16> = s.encode_utf16().collect();
     v.push(0);
-    let r =
-        unsafe { ((*(*st).con_out).output_string)((*st).con_out, v.as_mut_slice().as_mut_ptr()) };
-    if r.is_error() {
-        return r;
+    unsafe {
+        ((*(*st).con_out).set_attribute)((*st).con_out, EFI_WHITE | (EFI_RED << 4));
+
+        ((*(*st).con_out).clear_screen)((*st).con_out);
+         
+//        panic!();
+//
     }
-    let r = unsafe {
-        let mut x: usize = 0;
-        ((*(*st).boot_services).wait_for_event)(1, &mut (*(*st).con_in).wait_for_key, &mut x)
-    };
-    if r.is_error() {
-        return r;
-    }
+
+    loop {}
 
     efi::Status::SUCCESS
 }
 
 #[panic_handler]
 fn panic_handler(_info: &core::panic::PanicInfo) -> ! {
+    let st = *SYSTEM_TABLE;
+
+    unsafe {
+        ((*(*st).runtime_services).reset_system)(efi::RESET_COLD, efi::Status::ABORTED, 0, core::ptr::null_mut());
+
+    }
     loop {}
 }

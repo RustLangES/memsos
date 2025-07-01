@@ -1,13 +1,16 @@
 [workspace]
 resolver = "2"
-members = [ "crates/arch", "crates/memtest", "memsos"]
+members = [ "memsos"]
+
+[profile.dev]
+panic = 'abort'
 
 [profile.release]
 opt-level = 0
 debug = false
 codegen-units = 1
 lto = false
-panic = 'unwind'
+panic = 'abort'
 incremental = false
 overflow-checks = true
 
