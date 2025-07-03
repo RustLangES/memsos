@@ -152,6 +152,9 @@ fn panic_handler(_info: &core::panic::PanicInfo) -> ! {
     let st = *SYSTEM_TABLE;
 
     unsafe {
+        ((*(*st).con_out).set_attribute)((*st).con_out, EFI_WHITE | EFI_RED << 4);
+        ((*(*st).con_out).clear_screen)((*st).con_out);
+        (&(*(*st).boot_services).stall)(5_000_000); 
         ((*(*st).runtime_services).reset_system)(efi::RESET_COLD, efi::Status::ABORTED, 0, core::ptr::null_mut());
 
     }
