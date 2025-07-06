@@ -2,13 +2,18 @@
 #![no_main]
 #![feature(fn_traits)]
 
+//TODO: abstract this in a workspace in a nicer way, for the moment as we are just starting I guess it's ok. 
+
 extern crate alloc;
 mod once;
+mod fb;
 
 use alloc::{string::String, vec::Vec};
-use r_efi::{efi::{self, Char16}, protocols::graphics_output::BltPixel};
+use r_efi::{efi::{self, Char16}, protocols::graphics_output::{BltPixel, GraphicsPixelFormat, ModeInformation, PIXEL_BLUE_GREEN_RED_RESERVED_8_BIT_PER_COLOR, PIXEL_RED_GREEN_BLUE_RESERVED_8_BIT_PER_COLOR}};
 use core::fmt::Write;
 use once::Once;
+
+use crate::fb::{Framebuffer, TextRender};
 
 #[global_allocator]
 static GLOBAL_ALLOCATOR: r_efi_alloc::global::Bridge = r_efi_alloc::global::Bridge::new();
@@ -102,7 +107,7 @@ fn locate_singleton(
 
 fn query_gop(
     gop: *mut efi::protocols::graphics_output::Protocol,
-) -> Result<(u32, u32), efi::Status> {
+) -> Result<ModeInformation, efi::Status> {
     let mut info: *mut efi::protocols::graphics_output::ModeInformation = core::ptr::null_mut();
     let mut z_info: usize = 0;
 
@@ -117,7 +122,8 @@ fn query_gop(
             return Err(efi::Status::UNSUPPORTED);
         }
 
-        Ok(((*info).horizontal_resolution, (*info).vertical_resolution))
+        
+        Ok(*info)
     }
 }
 
@@ -139,8 +145,16 @@ pub extern "C" fn efi_main(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::S
 fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
     let gop = locate_singleton(st, &efi::protocols::graphics_output::PROTOCOL_GUID).unwrap() as *mut efi::protocols::graphics_output::Protocol;
     let mode = unsafe { *((*gop).mode) };
-    let framebuffer =  unsafe { core::slice::from_raw_parts_mut(mode.frame_buffer_base as *mut u8, mode.frame_buffer_size) };
-    framebuffer.fill(0xFF);
+    let info = query_gop(gop).unwrap();
+    let mut fb = Framebuffer {
+        version: info.version,
+        fb: unsafe { core::slice::from_raw_parts_mut(mode.frame_buffer_base as *mut u8, mode.frame_buffer_size) }, 
+        info
+    };
+    fb.clear();
+    let mut writer = TextRender::new(fb);
+    writer.write_str("Hello!");
+      
 
     loop {}
 
@@ -150,6 +164,7 @@ fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
 #[panic_handler]
 fn panic_handler(_info: &core::panic::PanicInfo) -> ! {
     let st = *SYSTEM_TABLE;
+
 
     unsafe {
         ((*(*st).con_out).set_attribute)((*st).con_out, EFI_WHITE | EFI_RED << 4);

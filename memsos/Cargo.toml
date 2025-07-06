@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+noto-sans-mono-bitmap = "0.3.1"
 r-efi = "5.3.0"
 r-efi-alloc = "2.1.0"
