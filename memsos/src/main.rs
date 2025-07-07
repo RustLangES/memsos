@@ -1,17 +1,24 @@
 #![no_std]
 #![no_main]
-#![feature(fn_traits)]
+#![feature(fn_traits, sync_unsafe_cell)]
 
-//TODO: abstract this in a workspace in a nicer way, for the moment as we are just starting I guess it's ok. 
+//TODO: abstract this in a workspace in a nicer way, for the moment as we are just starting I guess it's ok.
 
 extern crate alloc;
-mod once;
 mod fb;
+mod once;
 
-use alloc::{string::String, vec::Vec};
-use r_efi::{efi::{self, Char16}, protocols::graphics_output::{BltPixel, GraphicsPixelFormat, ModeInformation, PIXEL_BLUE_GREEN_RED_RESERVED_8_BIT_PER_COLOR, PIXEL_RED_GREEN_BLUE_RESERVED_8_BIT_PER_COLOR}};
-use core::fmt::Write;
+use alloc::{fmt::format, string::String, vec::Vec};
+use core::{cell::SyncUnsafeCell, ffi::c_void, fmt::Write};
 use once::Once;
+use r_efi::{
+    efi::{self, Char16, MemoryDescriptor, MemoryType, Status},
+    protocols::graphics_output::{
+        BltPixel, GraphicsPixelFormat, ModeInformation,
+        PIXEL_BLUE_GREEN_RED_RESERVED_8_BIT_PER_COLOR,
+        PIXEL_RED_GREEN_BLUE_RESERVED_8_BIT_PER_COLOR,
+    },
+};
 
 use crate::fb::{Framebuffer, TextRender};
 
@@ -19,6 +26,8 @@ use crate::fb::{Framebuffer, TextRender};
 static GLOBAL_ALLOCATOR: r_efi_alloc::global::Bridge = r_efi_alloc::global::Bridge::new();
 
 static SYSTEM_TABLE: Once<*mut efi::SystemTable> = Once::new();
+
+pub static TEXT_OUT: SyncUnsafeCell<Option<TextRender>> = SyncUnsafeCell::new(None);
 
 const EFI_BLACK: usize = 0x0;
 const EFI_RED: usize = 0x04;
@@ -44,10 +53,9 @@ macro_rules! print {
 macro_rules! println {
     ($($arg:tt)*) => {
         let args = format_args!($($arg)*);
-        
+
     }
 }
-
 
 // https://github.com/r-efi/r-efi/blob/main/examples/gop-query.rs
 fn locate_singleton(
@@ -122,39 +130,47 @@ fn query_gop(
             return Err(efi::Status::UNSUPPORTED);
         }
 
-        
         Ok(*info)
     }
 }
 
-
 #[unsafe(no_mangle)]
 pub extern "C" fn efi_main(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
     SYSTEM_TABLE.call_once(|| st);
-    
-    unsafe { 
+
+    unsafe {
         let mut allocator = r_efi_alloc::alloc::Allocator::from_system_table(st, efi::LOADER_DATA);
         let _attachment = GLOBAL_ALLOCATOR.attach(&mut allocator);
     }
-    
+
     efi_run(_h, st)
 }
 
-
-
 fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
-    let gop = locate_singleton(st, &efi::protocols::graphics_output::PROTOCOL_GUID).unwrap() as *mut efi::protocols::graphics_output::Protocol;
+    let gop = locate_singleton(st, &efi::protocols::graphics_output::PROTOCOL_GUID).unwrap()
+        as *mut efi::protocols::graphics_output::Protocol;
     let mode = unsafe { *((*gop).mode) };
     let info = query_gop(gop).unwrap();
     let mut fb = Framebuffer {
         version: info.version,
-        fb: unsafe { core::slice::from_raw_parts_mut(mode.frame_buffer_base as *mut u8, mode.frame_buffer_size) }, 
-        info
+        fb: unsafe {
+            core::slice::from_raw_parts_mut(
+                mode.frame_buffer_base as *mut u8,
+                mode.frame_buffer_size,
+            )
+        },
+        info,
     };
-    fb.clear();
-    let mut writer = TextRender::new(fb);
-    writer.write_str("Hello!");
-      
+
+    unsafe {
+        *TEXT_OUT.get() = Some(TextRender::new(fb));
+    }
+
+    panic!("Error, cause idk");
+
+
+    //let str = alloc::format!(":{}", 2);
+    //    writer.write_str("Helloooooooooooooooooooooooooooooo!!!!");
 
     loop {}
 
@@ -162,16 +178,26 @@ fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
 }
 
 #[panic_handler]
-fn panic_handler(_info: &core::panic::PanicInfo) -> ! {
+fn panic_handler(info: &core::panic::PanicInfo) -> ! {
     let st = *SYSTEM_TABLE;
 
-
+    
     unsafe {
-        ((*(*st).con_out).set_attribute)((*st).con_out, EFI_WHITE | EFI_RED << 4);
-        ((*(*st).con_out).clear_screen)((*st).con_out);
-        (&(*(*st).boot_services).stall)(5_000_000); 
-        ((*(*st).runtime_services).reset_system)(efi::RESET_COLD, efi::Status::ABORTED, 0, core::ptr::null_mut());
-
+            let mut text = TEXT_OUT.get().read().unwrap();
+            text.clear();
+            if let Some(msg) = info.message().as_str() {
+                text.write_str(msg);
+            } else {
+                text.write_str("Error!");
+            }
+        
+        (&(*(*st).boot_services).stall)(5_000_000);
+        ((*(*st).runtime_services).reset_system)(
+            efi::RESET_COLD,
+            efi::Status::ABORTED,
+            0,
+            core::ptr::null_mut(),
+        );
     }
     loop {}
 }

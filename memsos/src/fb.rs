@@ -1,8 +1,13 @@
 use core::ptr::write_bytes;
 
 use alloc::string::String;
-use noto_sans_mono_bitmap::{get_raster, get_raster_width, FontWeight, RasterHeight, RasterizedChar};
-use r_efi::protocols::graphics_output::{ModeInformation, PIXEL_BLUE_GREEN_RED_RESERVED_8_BIT_PER_COLOR, PIXEL_RED_GREEN_BLUE_RESERVED_8_BIT_PER_COLOR};
+use noto_sans_mono_bitmap::{
+    FontWeight, RasterHeight, RasterizedChar, get_raster, get_raster_width,
+};
+use r_efi::protocols::graphics_output::{
+    ModeInformation, PIXEL_BLUE_GREEN_RED_RESERVED_8_BIT_PER_COLOR,
+    PIXEL_RED_GREEN_BLUE_RESERVED_8_BIT_PER_COLOR,
+};
 
 const LETTER_SPACING: usize = 0;
 const LINE_SPACING: usize = 2;
@@ -13,20 +18,15 @@ pub const FONT_WEIGHT: FontWeight = FontWeight::Regular;
 pub const CHAR_RASTER_WIDTH: usize = get_raster_width(FontWeight::Regular, CHAR_RASTER_HEIGHT);
 fn get_char_raster(c: char) -> RasterizedChar {
     fn get(c: char) -> Option<RasterizedChar> {
-        get_raster(
-            c,
-            FONT_WEIGHT,
-            CHAR_RASTER_HEIGHT,
-        )
+        get_raster(c, FONT_WEIGHT, CHAR_RASTER_HEIGHT)
     }
     get(c).unwrap_or_else(|| get('?').expect("Should get raster of backup char."))
 }
 
-
 pub struct Framebuffer<'a> {
     pub version: u32,
     pub fb: &'a mut [u8],
-    pub info: ModeInformation
+    pub info: ModeInformation,
 }
 
 impl<'a> Framebuffer<'a> {
@@ -58,7 +58,7 @@ impl TextRender {
         self.carriage_return();
     }
     pub fn carriage_return(&mut self) {
-        self.x = BORDER_PADDING; 
+        self.x = BORDER_PADDING;
     }
     pub fn clear(&mut self) {
         self.x = BORDER_PADDING;
@@ -91,7 +91,7 @@ impl TextRender {
                     self.clear();
                 }
                 self.write_renderer_char(get_char_raster(c));
-            },
+            }
         }
     }
     fn write_renderer_char(&mut self, rendered_char: RasterizedChar) {
@@ -101,7 +101,6 @@ impl TextRender {
             }
         }
         self.x += rendered_char.width() + LETTER_SPACING;
-
     }
     fn write_pixel(&mut self, x: usize, y: usize, byte: u8) {
         let pixel_offset = self.stride * y + 4 * x;
@@ -110,7 +109,7 @@ impl TextRender {
             PIXEL_BLUE_GREEN_RED_RESERVED_8_BIT_PER_COLOR => [byte / 2, byte, byte, 0],
             _ => {
                 panic!("unknown");
-            },
+            }
         };
         let bytes_per_pixel = 4;
         let byte_offset = pixel_offset * bytes_per_pixel;
