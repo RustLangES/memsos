@@ -151,7 +151,7 @@ fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
         as *mut efi::protocols::graphics_output::Protocol;
     let mode = unsafe { *((*gop).mode) };
     let info = query_gop(gop).unwrap();
-    let mut fb = Framebuffer {
+    let fb = Framebuffer {
         version: info.version,
         fb: unsafe {
             core::slice::from_raw_parts_mut(
@@ -166,12 +166,7 @@ fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
         *TEXT_OUT.get() = Some(TextRender::new(fb));
     }
 
-    panic!("Error, cause idk");
-
-
-    //let str = alloc::format!(":{}", 2);
-    //    writer.write_str("Helloooooooooooooooooooooooooooooo!!!!");
-
+    panic!("Hello!");
     loop {}
 
     efi::Status::SUCCESS

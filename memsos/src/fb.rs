@@ -44,7 +44,7 @@ pub struct TextRender {
 
 impl TextRender {
     pub fn new(framebuffer: Framebuffer<'static>) -> Self {
-        let stride = 4 * framebuffer.info.pixels_per_scan_line;
+        let stride = framebuffer.info.pixels_per_scan_line;
 
         Self {
             fb: framebuffer,
@@ -103,7 +103,7 @@ impl TextRender {
         self.x += rendered_char.width() + LETTER_SPACING;
     }
     fn write_pixel(&mut self, x: usize, y: usize, byte: u8) {
-        let pixel_offset = self.stride * y + 4 * x;
+        let pixel_offset = y * self.stride + x + 4;
         let color = match self.fb.info.pixel_format {
             PIXEL_RED_GREEN_BLUE_RESERVED_8_BIT_PER_COLOR => [byte, byte, byte / 2, 0],
             PIXEL_BLUE_GREEN_RED_RESERVED_8_BIT_PER_COLOR => [byte / 2, byte, byte, 0],
