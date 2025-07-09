@@ -27,33 +27,36 @@ static GLOBAL_ALLOCATOR: r_efi_alloc::global::Bridge = r_efi_alloc::global::Brid
 
 static SYSTEM_TABLE: Once<*mut efi::SystemTable> = Once::new();
 
+//TODO: Refactor this 
+
 pub static TEXT_OUT: SyncUnsafeCell<Option<TextRender>> = SyncUnsafeCell::new(None);
 
 const EFI_BLACK: usize = 0x0;
 const EFI_RED: usize = 0x04;
 const EFI_WHITE: usize = 0x0F;
 
+#[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {
         let args = format_args!($($arg)*);
-        let mut buffer = String::new();
+        let mut buffer = heapless::String::<1024>::new();
         buffer.clear();
-        write!(buffer, "{}", args).unwrap();
-        let mut v: alloc::vec::Vec<u16> = buffer.encode_utf16().collect();
-        v.push(0);
-
-         let r =
-        unsafe { ((*(*$crate::SYSTEM_TABLE).con_out).output_string)((*$crate::SYSTEM_TABLE).con_out, v.as_mut_slice().as_mut_ptr()) };
-    if r.is_error() {
-        //return r;
-    }
+        write!(buffer, "{}", args).expect("Cannot format args");
+        unsafe {
+            let mut t = crate::TEXT_OUT.get().read().unwrap();
+            t.write_str(buffer.as_str());
+        }
     }
 }
 
+#[macro_export]
 macro_rules! println {
     ($($arg:tt)*) => {
-        let args = format_args!($($arg)*);
-
+        crate::print!($($arg)*);
+        unsafe {
+            let mut t = crate::TEXT_OUT.get().read().unwrap();
+            t.write_str("\r\n");
+        }
     }
 }
 
@@ -151,7 +154,7 @@ fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
         as *mut efi::protocols::graphics_output::Protocol;
     let mode = unsafe { *((*gop).mode) };
     let info = query_gop(gop).unwrap();
-    let fb = Framebuffer {
+    let mut fb = Framebuffer {
         version: info.version,
         fb: unsafe {
             core::slice::from_raw_parts_mut(
@@ -162,11 +165,16 @@ fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
         info,
     };
 
+    fb.clear();
     unsafe {
         *TEXT_OUT.get() = Some(TextRender::new(fb));
     }
 
-    panic!("Hello!");
+    println!("{}", "It works!");
+
+    print!("Hello!");
+    
+
     loop {}
 
     efi::Status::SUCCESS
