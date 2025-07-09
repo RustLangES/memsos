@@ -42,9 +42,10 @@ macro_rules! print {
         let mut buffer = heapless::String::<1024>::new();
         buffer.clear();
         write!(buffer, "{}", args).expect("Cannot format args");
-        let writer = unsafe { (*TEXT_OUT.get()).as_mut().unwrap() };
-
-        writer.write_str(buffer.as_str());
+        unsafe {
+            let mut t = crate::TEXT_OUT.get().as_mut().unwrap();
+            t.write_str(buffer.as_str());
+        }
     }
 }
 
@@ -52,9 +53,10 @@ macro_rules! print {
 macro_rules! println {
     ($($arg:tt)*) => {
         crate::print!($($arg)*);
-        let writer = unsafe { (*TEXT_OUT.get()).as_mut().unwrap() };
-
-        writer.newline();
+        unsafe {
+            let mut t = crate::TEXT_OUT.get().read().unwrap();
+            t.write_str("\r\n");
+        }
     }
 }
 
