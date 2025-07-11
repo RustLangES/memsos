@@ -6,10 +6,11 @@
 
 extern crate alloc;
 mod fb;
+mod bump;
 mod once;
 
 use alloc::{fmt::format, string::String, vec::Vec};
-use core::{cell::SyncUnsafeCell, ffi::c_void, fmt::Write};
+use core::{alloc::GlobalAlloc, cell::SyncUnsafeCell, ffi::c_void, fmt::Write};
 use once::Once;
 use r_efi::{
     efi::{self, Char16, MemoryDescriptor, MemoryType, Status},
@@ -20,10 +21,10 @@ use r_efi::{
     },
 };
 
-use crate::fb::{Framebuffer, TextRender};
+use crate::{bump::BumpAllocator, fb::{Framebuffer, TextRender}};
 
 #[global_allocator]
-static GLOBAL_ALLOCATOR: r_efi_alloc::global::Bridge = r_efi_alloc::global::Bridge::new();
+static mut BUMP_ALLOCATOR: BumpAllocator = BumpAllocator::new();
 
 static SYSTEM_TABLE: Once<*mut efi::SystemTable> = Once::new();
 
@@ -140,8 +141,8 @@ pub extern "C" fn efi_main(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::S
     SYSTEM_TABLE.call_once(|| st);
 
     unsafe {
-        let mut allocator = r_efi_alloc::alloc::Allocator::from_system_table(st, efi::LOADER_DATA);
-        let _attachment = GLOBAL_ALLOCATOR.attach(&mut allocator);
+        let alloc = &raw mut BUMP_ALLOCATOR;
+        (*alloc).init(st);
     }
 
     efi_run(_h, st)
@@ -168,9 +169,9 @@ fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
         *TEXT_OUT.get() = Some(TextRender::new(fb));
     }
 
-    println!("{}", "It works!");
+    let temp = alloc::format!("a{}", "!");
+    println!("{}", temp);
 
-    print!("Hello!");
     
 
     loop {}
@@ -184,13 +185,11 @@ fn panic_handler(info: &core::panic::PanicInfo) -> ! {
 
     
     unsafe {
-            let mut text = TEXT_OUT.get().read().unwrap();
-            text.clear();
-            if let Some(msg) = info.message().as_str() {
-                text.write_str(msg);
-            } else {
-                text.write_str("Error!");
-            }
+        let mut text = TEXT_OUT.get().read().unwrap();
+        text.clear();
+        
+        let msg = info.message();
+        println!("{:?}", msg);
         
         (&(*(*st).boot_services).stall)(5_000_000);
         ((*(*st).runtime_services).reset_system)(
