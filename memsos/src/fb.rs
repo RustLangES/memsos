@@ -29,7 +29,7 @@ pub struct Framebuffer<'a> {
     pub info: ModeInformation,
 }
 
-impl<'a> Framebuffer<'a> {
+impl Framebuffer<'_> {
     pub fn clear(&mut self) {
         self.fb.fill(0x00);
     }
@@ -77,6 +77,7 @@ impl TextRender {
             self.write_char(i);
         }
     }
+    #[allow(clippy::similar_names)]
     pub fn write_char(&mut self, c: char) {
         match c {
             '\n' => self.newline(),
@@ -90,11 +91,11 @@ impl TextRender {
                 if new_ypos >= self.height() {
                     self.clear();
                 }
-                self.write_renderer_char(get_char_raster(c));
+                self.write_renderer_char(&get_char_raster(c));
             }
         }
     }
-    fn write_renderer_char(&mut self, rendered_char: RasterizedChar) {
+    fn write_renderer_char(&mut self, rendered_char: &RasterizedChar) {
         for (y, row) in rendered_char.raster().iter().enumerate() {
             for (x, byte) in row.iter().enumerate() {
                 self.write_pixel(self.x + x, self.y + y, *byte);

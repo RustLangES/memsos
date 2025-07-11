@@ -8,17 +8,13 @@ extern crate alloc;
 mod fb;
 mod bump;
 mod once;
+mod mem;
 
-use alloc::{fmt::format, string::String, vec::Vec};
-use core::{alloc::GlobalAlloc, cell::SyncUnsafeCell, ffi::c_void, fmt::Write};
+use core::{cell::SyncUnsafeCell, ffi::c_void, fmt::Write};
 use once::Once;
 use r_efi::{
-    efi::{self, Char16, MemoryDescriptor, MemoryType, Status},
-    protocols::graphics_output::{
-        BltPixel, GraphicsPixelFormat, ModeInformation,
-        PIXEL_BLUE_GREEN_RED_RESERVED_8_BIT_PER_COLOR,
-        PIXEL_RED_GREEN_BLUE_RESERVED_8_BIT_PER_COLOR,
-    },
+    efi,
+    protocols::graphics_output::ModeInformation,
 };
 
 use crate::{bump::BumpAllocator, fb::{Framebuffer, TextRender}};
@@ -31,10 +27,6 @@ static SYSTEM_TABLE: Once<*mut efi::SystemTable> = Once::new();
 //TODO: Refactor this 
 
 pub static TEXT_OUT: SyncUnsafeCell<Option<TextRender>> = SyncUnsafeCell::new(None);
-
-const EFI_BLACK: usize = 0x0;
-const EFI_RED: usize = 0x04;
-const EFI_WHITE: usize = 0x0F;
 
 #[macro_export]
 macro_rules! print {
@@ -76,17 +68,16 @@ fn locate_singleton(
 
         let r = ((*(*st).boot_services).locate_handle_buffer)(
             efi::BY_PROTOCOL,
-            guid as *mut _,
+            guid.cast_mut(),
             core::ptr::null_mut(),
-            &mut n_handles,
-            &mut handles,
+            &raw mut n_handles,
+            &raw mut handles,
         );
         match r {
             efi::Status::SUCCESS => {}
-            efi::Status::NOT_FOUND => return Err(r),
-            efi::Status::OUT_OF_RESOURCES => return Err(r),
+            efi::Status::NOT_FOUND | efi::Status::OUT_OF_RESOURCES => return Err(r),
             _ => panic!(),
-        };
+        }
     }
 
     unsafe {
@@ -94,19 +85,19 @@ fn locate_singleton(
         for i in 0..n_handles {
             r = ((*(*st).boot_services).handle_protocol)(
                 *handles.offset(core::convert::TryFrom::<usize>::try_from(i).unwrap()),
-                guid as *mut _,
-                &mut interface,
+                guid.cast_mut(),
+                &raw mut interface,
             );
             match r {
                 efi::Status::SUCCESS => break,
-                efi::Status::UNSUPPORTED => continue,
+                efi::Status::UNSUPPORTED => {},
                 _ => panic!(),
-            };
+            }
         }
     }
 
     unsafe {
-        let r = ((*(*st).boot_services).free_pool)(handles as *mut core::ffi::c_void);
+        let r = ((*(*st).boot_services).free_pool)(handles.cast::<c_void>());
         assert!(!r.is_error());
     }
     match r {
@@ -122,12 +113,12 @@ fn query_gop(
     let mut z_info: usize = 0;
 
     unsafe {
-        let r = ((*gop).query_mode)(gop, (*(*gop).mode).mode, &mut z_info, &mut info);
+        let r = ((*gop).query_mode)(gop, (*(*gop).mode).mode, &raw mut z_info, &raw mut info);
         match r {
             efi::Status::SUCCESS => {}
             efi::Status::DEVICE_ERROR => return Err(r),
             _ => panic!(),
-        };
+        }
         if z_info < core::mem::size_of_val(&*info) {
             return Err(efi::Status::UNSUPPORTED);
         }
@@ -145,12 +136,11 @@ pub extern "C" fn efi_main(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::S
         (*alloc).init(st);
     }
 
-    efi_run(_h, st)
+    efi_run(st)
 }
 
-fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
-    let gop = locate_singleton(st, &efi::protocols::graphics_output::PROTOCOL_GUID).unwrap()
-        as *mut efi::protocols::graphics_output::Protocol;
+fn efi_run(st: *mut efi::SystemTable) -> efi::Status {
+    let gop = locate_singleton(st, &efi::protocols::graphics_output::PROTOCOL_GUID).expect("Cannot get GOP").cast::<efi::protocols::graphics_output::Protocol>();
     let mode = unsafe { *((*gop).mode) };
     let info = query_gop(gop).unwrap();
     let mut fb = Framebuffer {
@@ -174,6 +164,7 @@ fn efi_run(_h: efi::Handle, st: *mut efi::SystemTable) -> efi::Status {
 
     
 
+    #[allow(clippy::empty_loop)]
     loop {}
 
     efi::Status::SUCCESS
@@ -191,7 +182,7 @@ fn panic_handler(info: &core::panic::PanicInfo) -> ! {
         let msg = info.message();
         println!("{:?}", msg);
         
-        (&(*(*st).boot_services).stall)(5_000_000);
+        ((*(*st).boot_services).stall)(5_000_000);
         ((*(*st).runtime_services).reset_system)(
             efi::RESET_COLD,
             efi::Status::ABORTED,
