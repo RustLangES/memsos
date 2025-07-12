@@ -17,7 +17,7 @@ use r_efi::{
     protocols::graphics_output::ModeInformation,
 };
 
-use crate::{bump::BumpAllocator, fb::{Framebuffer, TextRender}};
+use crate::{bump::BumpAllocator, fb::{Framebuffer, TextRender}, mem::get_mem_map_size};
 
 #[global_allocator]
 static mut BUMP_ALLOCATOR: BumpAllocator = BumpAllocator::new();
@@ -159,8 +159,19 @@ fn efi_run(st: *mut efi::SystemTable) -> efi::Status {
         *TEXT_OUT.get() = Some(TextRender::new(fb));
     }
 
-    let temp = alloc::format!("a{}", "!");
-    println!("{}", temp);
+    let mut memory_size: usize = 0;
+    let mut memory_map_key: usize = 0;
+    let mut memory_descriptor_size: usize = 0;
+    let mut memory_descriptor_version: u32 = 0;
+
+    unsafe {
+        get_mem_map_size(st, &mut memory_size as *mut usize, &mut memory_map_key as *mut usize, &mut memory_descriptor_size as *mut usize, &mut memory_descriptor_version as *mut u32);
+
+    }
+
+    let size = memory_size + 2 * memory_descriptor_size;
+
+    println!("Mem map size: {}", size);
 
     
 
