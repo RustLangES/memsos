@@ -13,11 +13,11 @@ mod mem;
 use core::{cell::SyncUnsafeCell, ffi::c_void, fmt::Write};
 use once::Once;
 use r_efi::{
-    efi,
+    efi::{self, MemoryDescriptor},
     protocols::graphics_output::ModeInformation,
 };
 
-use crate::{bump::BumpAllocator, fb::{Framebuffer, TextRender}, mem::{get_mem_map, get_mem_map_size}};
+use crate::{bump::BumpAllocator, fb::{Framebuffer, TextRender}, mem::{get_mem_map, get_mem_map_size, next_memory_descriptor}};
 
 #[global_allocator]
 static mut BUMP_ALLOCATOR: BumpAllocator = BumpAllocator::new();
@@ -159,9 +159,21 @@ fn efi_run(st: *mut efi::SystemTable) -> efi::Status {
         *TEXT_OUT.get() = Some(TextRender::new(fb));
     }
 
-    let mem_map = get_mem_map(st);
-    unsafe {
-        println!("{:?}", (*mem_map));
+    let (mem_map, mem_size, desc_size) = get_mem_map(st);
+    let mut entry = mem_map;
+    loop {
+        
+        unsafe {
+                println!("{:?}", (*entry));
+
+
+                if !(entry < mem_map.add(mem_size)) {
+                    break
+                }
+                
+
+                entry = next_memory_descriptor(entry, desc_size);
+            }
     }
 
     #[allow(clippy::empty_loop)]

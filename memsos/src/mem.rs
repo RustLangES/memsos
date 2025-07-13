@@ -2,6 +2,12 @@ use core::ffi::c_void;
 
 use r_efi::efi::{self, MemoryDescriptor, Status, SystemTable};
 
+pub fn next_memory_descriptor(descritor: *mut MemoryDescriptor, size: usize) -> *mut MemoryDescriptor {
+    unsafe {
+        descritor.add(size)
+    }
+}
+
 pub fn efi_mem_map_run(st: *mut SystemTable, memory_size: *mut usize, memory_map: *mut MemoryDescriptor, memory_map_key: *mut usize, memory_descriptor_size: *mut usize, memory_descriptor_version: *mut u32) -> Status {
     unsafe { 
         ((*(*st).boot_services).get_memory_map)(memory_size, memory_map, memory_map_key, memory_descriptor_size, memory_descriptor_version)
@@ -12,7 +18,7 @@ pub fn get_mem_map_size(st: *mut SystemTable, memory_size: &mut usize, memory_ma
     efi_mem_map_run(st, memory_size as *mut usize, core::ptr::null_mut(), memory_map_key as *mut usize, memory_descriptor_size as *mut usize, memory_descriptor_version as *mut u32)
 }
 
-pub fn get_mem_map(st: *mut SystemTable) -> *mut MemoryDescriptor {
+pub fn get_mem_map(st: *mut SystemTable) -> (*mut MemoryDescriptor, usize, usize) {
     let mut memory_size: usize = 0;
     let mut memory_map_key: usize = 0;
     let mut memory_descriptor_size: usize = 0;
@@ -30,6 +36,5 @@ pub fn get_mem_map(st: *mut SystemTable) -> *mut MemoryDescriptor {
 
     efi_mem_map_run(st, &mut memory_size as *mut usize, memory_map, &mut memory_map_key as *mut usize, &mut memory_descriptor_size as *mut usize, &mut memory_descriptor_version as *mut u32);
 
-    memory_map
-
+    (memory_map, memory_size, memory_descriptor_size)
 }
