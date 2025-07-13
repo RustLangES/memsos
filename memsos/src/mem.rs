@@ -12,7 +12,7 @@ pub fn get_mem_map_size(st: *mut SystemTable, memory_size: &mut usize, memory_ma
     efi_mem_map_run(st, memory_size as *mut usize, core::ptr::null_mut(), memory_map_key as *mut usize, memory_descriptor_size as *mut usize, memory_descriptor_version as *mut u32)
 }
 
-pub fn get_mem_map(st: *mut SystemTable) {
+pub fn get_mem_map(st: *mut SystemTable) -> *mut MemoryDescriptor {
     let mut memory_size: usize = 0;
     let mut memory_map_key: usize = 0;
     let mut memory_descriptor_size: usize = 0;
@@ -27,4 +27,9 @@ pub fn get_mem_map(st: *mut SystemTable) {
         ((*(*st).boot_services).allocate_pool)(efi::LOADER_DATA, memory_size + 2 * memory_descriptor_size, ptr);
         assert_ne!(memory_map, core::ptr::null_mut())
     }
+
+    efi_mem_map_run(st, &mut memory_size as *mut usize, memory_map, &mut memory_map_key as *mut usize, &mut memory_descriptor_size as *mut usize, &mut memory_descriptor_version as *mut u32);
+
+    memory_map
+
 }

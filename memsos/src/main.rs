@@ -160,8 +160,9 @@ fn efi_run(st: *mut efi::SystemTable) -> efi::Status {
     }
 
     let mem_map = get_mem_map(st);
-    println!("It works!");
-    
+    unsafe {
+        println!("{:?}", (*mem_map));
+    }
 
     #[allow(clippy::empty_loop)]
     loop {}
