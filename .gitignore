@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 kernel/kernel
 kernel/kernel.sym
 dist/
@@ -12,6 +11,3 @@ ovmf
 memsos*.iso
 crates/lang/src/lang_info.rs
 /.pre-commit-config.yaml
-=======
-/target
->>>>>>> 3ebead2 (feat: limine)
