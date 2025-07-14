@@ -115,6 +115,32 @@ pub const fn get_ui() -> &'static mut TextWriter {
     unsafe { WRITER.get().as_mut().expect("WRITER is empty").as_mut().unwrap() }
 }
 
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {
+        let mut buffer = heapless::String::<1024>::new();
+        buffer.clear();
+        write!(buffer, "{}", format_args!($($arg)*)).expect("Cannot format args");
+
+        $crate::writer::get_ui().write_str(buffer.as_str());
+    }
+}
+
+#[macro_export]
+macro_rules! println {
+    () => {
+        $crate::print!("\n");
+    };
+    ($($arg:tt)*) => {
+        let mut buffer = heapless::String::<1024>::new();
+        buffer.clear();
+        write!(buffer, "{}", format_args!($($arg)*)).expect("Cannot format args");
+
+        $crate::writer::get_ui().write_str(buffer.as_str());
+        $crate::writer::get_ui().newline();
+    }
+}
+
 mod font {
     use noto_sans_mono_bitmap::{
         FontWeight, RasterHeight, RasterizedChar, get_raster, get_raster_width,
