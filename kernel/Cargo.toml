@@ -1,0 +1,15 @@
+[package]
+name = "kernel"
+description = "Basic kernel designed for running memsos"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+limine = "0.5.0"
+noto-sans-mono-bitmap = "0.3.1"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"

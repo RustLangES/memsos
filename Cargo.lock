@@ -3,6 +3,7 @@
 version = 4
 
 [[package]]
+<<<<<<< HEAD
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -25,22 +26,48 @@ checksum = "0bfb9eb618601c89945a70e254898da93b13be0388091d42117462b265bb3fad"
 dependencies = [
  "hash32",
  "stable_deref_trait",
+=======
+name = "bitflags"
+version = "2.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
+
+[[package]]
+name = "kernel"
+version = "0.1.0"
+dependencies = [
+ "limine",
+ "noto-sans-mono-bitmap",
+]
+
+[[package]]
+name = "limine"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af6d2ee42712e7bd2c787365cd1dab06ef59a61becbf87bec7b32b970bd2594b"
+dependencies = [
+ "bitflags",
+>>>>>>> 3ebead2 (feat: limine)
 ]
 
 [[package]]
 name = "memsos"
 version = "0.1.0"
+<<<<<<< HEAD
 dependencies = [
  "heapless",
  "noto-sans-mono-bitmap",
  "r-efi",
 ]
+=======
+>>>>>>> 3ebead2 (feat: limine)
 
 [[package]]
 name = "noto-sans-mono-bitmap"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1064d564ae026ae123bf5d607318b42a5b31d70a3c48e6ea7ee44cce4cdb095e"
+<<<<<<< HEAD
 
 [[package]]
 name = "r-efi"
@@ -53,3 +80,5 @@ name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
+=======
+>>>>>>> 3ebead2 (feat: limine)
