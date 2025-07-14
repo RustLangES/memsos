@@ -1,21 +1,4 @@
 [workspace]
-<<<<<<< HEAD
-resolver = "2"
-members = [ "memsos"]
-
-[profile.dev]
-panic = 'abort'
-
-[profile.release]
-opt-level = 0
-debug = false
-codegen-units = 1
-lto = false
-panic = 'abort'
-incremental = false
-overflow-checks = true
-
-=======
 resolver = '2'
 members = [ "memsos", "kernel" ]
 
@@ -24,4 +7,3 @@ panic = "abort"
 
 [profile.release]
 panic = "abort"
->>>>>>> 3ebead2 (feat: limine)

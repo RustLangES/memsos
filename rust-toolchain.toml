@@ -1,11 +1,5 @@
 [toolchain]
-<<<<<<< HEAD
-targets = ["aarch64-unknown-uefi", "i686-unknown-uefi", "x86_64-unknown-uefi"]
-channel = "nightly"
-profile = "minimal"
-components = ["rust-src", "cargo", "rustc", "llvm-tools", "clippy", "rustfmt"]
-=======
 channel = "nightly"
 components = [ "rust-src", "rust-std", "rustc", "cargo" ]
 targets = [ "x86_64-unknown-none" ]
->>>>>>> 3ebead2 (feat: limine)
+
