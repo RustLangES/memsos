@@ -1,5 +1,4 @@
-use core::{cell::SyncUnsafeCell, intrinsics::write_bytes};
-
+use core::cell::SyncUnsafeCell;
 use limine::framebuffer::Framebuffer;
 use noto_sans_mono_bitmap::RasterizedChar;
 
@@ -36,12 +35,14 @@ impl TextWriter {
                 let offset = usize::try_from(pixel_offset)
                     .expect("Cannot convert the pixel offset to usize");
                 unsafe {
+                    #[allow(clippy::cast_ptr_alignment)]
                     let buffer = self.framebuffer.addr().add(offset).cast::<u32>();
                     *buffer = 0x0000_0000;
                 }
             }
         }
     }
+    #[allow(clippy::cast_ptr_alignment)]
     pub fn write_pixel(&mut self, x: u64, y: u64, byte: u32) {
         let pixel_offset = y * self.framebuffer.pitch() + x * 4;
         let offset =
@@ -59,18 +60,25 @@ impl TextWriter {
     pub fn carriage_return(&mut self) {
         self.x = BORDER_PADDING;
     }
+    pub fn width(&self) -> usize {
+        usize::try_from(self.framebuffer.width()).unwrap()
+    }
+    pub fn height(&self) -> usize {
+        usize::try_from(self.framebuffer.height()).unwrap()
+    }
+    #[allow(clippy::similar_names)]
     pub fn write_char(&mut self, c: char) {
         match c {
             '\n' => self.newline(),
             '\r' => self.carriage_return(),
-            c => {
+            c => { 
                 let new_xpos = self.x + CHAR_RASTER_WIDTH;
-                if new_xpos >= self.framebuffer.width() as usize {
+                if new_xpos >= self.width() {
                     self.newline();
                 }
                 let new_ypos = self.y + CHAR_RASTER_HEIGHT.val() + BORDER_PADDING;
 
-                if new_ypos >= self.framebuffer.height() as usize {
+                if new_ypos >= self.height() {
                     self.clear();
                 }
 
@@ -99,15 +107,14 @@ impl TextWriter {
 
 #[inline]
 pub fn init_writer() {
-    if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response() {
-        if let Some(framebuffer) = framebuffer_response.framebuffers().next() {
+    if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response()
+        && let Some(framebuffer) = framebuffer_response.framebuffers().next() {
             let writer = TextWriter::new(framebuffer);
 
             unsafe {
                 *WRITER.get() = Some(writer);
             }
         }
-    }
 }
 
 #[inline]

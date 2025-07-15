@@ -8,7 +8,7 @@ mod writer;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 
-use crate::writer::{get_ui, init_writer};
+use crate::writer::init_writer;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn kmain() {
