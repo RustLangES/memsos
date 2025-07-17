@@ -1,18 +1,11 @@
 [package]
 name = "kernel"
-description = "Basic kernel designed for running memsos"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-heapless = "0.8.0"
 lazy_static = { version = "1.5.0", default-features = false, features = ["spin_no_std"] }
 limine = "0.5.0"
+linked_list_allocator = "0.10.5"
 noto-sans-mono-bitmap = "0.3.1"
-x86_64 = { version = "0.15.2", default-features = false, features = ["instructions", "const_fn", "abi_x86_interrupt", "asm_const"] }
-
-[profile.dev]
-panic = "abort"
-
-[profile.release]
-panic = "abort"
+spin = "0.10.0"
