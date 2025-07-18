@@ -35,11 +35,11 @@ impl PhysFrameAllocator {
         }
     }
     pub fn alloc_frame<P: PageSize>(&mut self) -> PhysFrame<P> {
-        if !self.free_list.is_empty() {
-            if let Some(index) = self.free_list.iter().position(|f| f.size == P::SIZE) {
-                let f = self.free_list.remove(index);
-                return PhysFrame::from_start_address(f.start_addr).unwrap();
-            }
+        if !self.free_list.is_empty()
+            && let Some(index) = self.free_list.iter().position(|f| f.size == P::SIZE)
+        {
+            let f = self.free_list.remove(index);
+            return PhysFrame::from_start_address(f.start_addr).unwrap();
         }
 
         let addr = PhysAddr::new(self.pointer);

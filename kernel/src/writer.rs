@@ -1,10 +1,7 @@
 use crate::requests::FRAMEBUFFER_REQUEST;
 use alloc::{boxed::Box, string::String};
-use core::fmt;
-use lazy_static::lazy_static;
+use core::{cell::SyncUnsafeCell, fmt};
 use limine::framebuffer::Framebuffer;
-use spin::Mutex;
-
 use noto_sans_mono_bitmap::{
     FontWeight, RasterHeight, RasterizedChar, get_raster, get_raster_width,
 };
@@ -25,16 +22,15 @@ pub fn get_char_raster(c: char) -> RasterizedChar {
     get(c).unwrap_or_else(|| get(BACKUP_CHAR).expect("Should get raster of backup char."))
 }
 
-lazy_static! {
-    pub static ref WRITER: Mutex<Option<FrameBufferWriter<'static>>> = Mutex::new(None);
-}
+pub static WRITER: SyncUnsafeCell<Option<FrameBufferWriter<'static>>> = SyncUnsafeCell::new(None);
 
 pub fn init_writer() {
-    if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response() {
-        if let Some(framebuffer) = framebuffer_response.framebuffers().next() {
-            let writer = FrameBufferWriter::new(Box::new(framebuffer));
-            let mut writer_lock = WRITER.lock();
-            *writer_lock = Some(writer);
+    if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response()
+        && let Some(framebuffer) = framebuffer_response.framebuffers().next()
+    {
+        let writer = FrameBufferWriter::new(Box::new(framebuffer));
+        unsafe {
+            *WRITER.get() = Some(writer);
         }
     }
 }
@@ -63,6 +59,7 @@ impl<'a> FrameBufferWriter<'a> {
                 let offset = usize::try_from(pixel_offset)
                     .expect("Cannot convert the pixel offset to usize");
                 unsafe {
+                    #[allow(clippy::cast_ptr_alignment)]
                     let buffer = self.buffer.addr().add(offset).cast::<u32>();
                     *buffer = 0x0000_0000;
                 }
@@ -91,6 +88,7 @@ impl<'a> FrameBufferWriter<'a> {
         let offset =
             usize::try_from(pixel_offset).expect("Cannot convert the pixel offset to usize");
         unsafe {
+            #[allow(clippy::cast_ptr_alignment)]
             let buffer = self.buffer.addr().add(offset).cast::<u32>();
 
             *buffer = color;
@@ -142,13 +140,17 @@ impl fmt::Write for FrameBufferWriter<'_> {
     }
 }
 
+pub fn get_fb_writer() -> &'static mut FrameBufferWriter<'static> {
+    unsafe { WRITER.get().as_mut().unwrap().as_mut().unwrap() }
+}
+
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {{
-        let mut lock = $crate::writer::WRITER.lock();
-        let writer = lock.as_mut().expect("Writer is null");
+        let writer = $crate::writer::get_fb_writer();
+
         writer.write_fmt(format_args!($($arg)*)).expect("Could not write the message");
-        }};
+    }};
 }
 
 #[macro_export]

@@ -48,6 +48,7 @@ unsafe extern "C" fn kmain() -> ! {
 
     println!("It works!");
 
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 
