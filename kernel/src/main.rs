@@ -2,7 +2,6 @@
 #![no_main]
 #![feature(sync_unsafe_cell, fn_traits)]
 
-mod allocator;
 mod mem;
 mod once;
 mod requests;
@@ -10,7 +9,7 @@ mod writer;
 
 use core::fmt::Write;
 
-use allocator::Allocator;
+use mem::allocator::Allocator;
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use x86_64::VirtAddr;
