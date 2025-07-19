@@ -55,6 +55,10 @@ extern "C" fn kmain() -> ! {
     init_frame_allocator(0x1000);
     init_page_map();
 
+    get_kernel_map().kernel_map();
+
+    println!("It works!");
+
     #[allow(clippy::empty_loop)]
     loop {}
 }

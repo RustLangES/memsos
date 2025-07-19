@@ -1,15 +1,19 @@
 // https://github.com/anubis-rs/xernel/blob/main/kernel/src/mem/paging.rs
 
-use crate::mem::{HIGHER_HALF_OFFSET, frame::get_frame_allocator};
-use core::{arch::asm, cell::SyncUnsafeCell};
+use crate::{
+    mem::{HIGHER_HALF_OFFSET, KERNEL_OFFSET, frame::get_frame_allocator},
+    println,
+    requests::KERNEL_ADDRESS,
+};
+use core::{arch::asm, cell::SyncUnsafeCell, fmt::Write};
 use x86_64::{
-    align_down, structures::paging::{
+    PhysAddr, VirtAddr, align_down,
+    structures::paging::{
         Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size1GiB, Size2MiB, Size4KiB,
-    }, PhysAddr, VirtAddr
+    },
 };
 
 pub static KERNEL_MAP: SyncUnsafeCell<Option<Pagemap>> = SyncUnsafeCell::new(None);
-
 
 unsafe extern "C" {
     static _kernel_end: u64;
@@ -56,8 +60,15 @@ impl Pagemap {
     pub fn pml4(&self) -> PhysAddr {
         PhysAddr::new(self.page_table as u64 - *HIGHER_HALF_OFFSET)
     }
-    
-    pub fn map_range(&mut self, phys: PhysAddr, virt: VirtAddr, amount: usize, flags: PageTableFlags, flush_tlb: bool) {
+
+    pub fn map_range(
+        &mut self,
+        phys: PhysAddr,
+        virt: VirtAddr,
+        amount: usize,
+        flags: PageTableFlags,
+        flush_tlb: bool,
+    ) {
         assert!(u16::from(virt.page_offset()) == 0);
         assert!(phys.is_aligned(Size4KiB::SIZE));
 
@@ -95,7 +106,8 @@ impl Pagemap {
             offset += Size2MiB::SIZE;
         }
 
-        let pages_4kb = align_up(aligned_amount - offset as usize, Size4KiB::SIZE as usize) / Size4KiB::SIZE as usize;
+        let pages_4kb = align_up(aligned_amount - offset as usize, Size4KiB::SIZE as usize)
+            / Size4KiB::SIZE as usize;
 
         for _ in 0..pages_4kb {
             self.map::<Size4KiB>(
@@ -206,7 +218,25 @@ impl Pagemap {
             }
         }
     }
-    pub fn kernel_map() {}
+    pub fn kernel_map(&mut self) {
+        let kernel_address = KERNEL_ADDRESS.get_response().unwrap();
+        let kenel_base_addr = kernel_address.physical_base();
+        let kernel_virt_addr = kernel_address.virtual_base();
+
+        println!("Kernel base addr: {:x}", kenel_base_addr);
+        println!("Kernel virt addr: {:x}", kernel_virt_addr);
+
+        let kernel_size = unsafe { ((&_kernel_end as *const u64) as u64) - kernel_virt_addr };
+        println!("Kernel size: {}", kernel_size);
+
+        self.map_range(
+            PhysAddr::new(kenel_base_addr),
+            VirtAddr::new(KERNEL_OFFSET),
+            kernel_size as usize,
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+            false,
+        );
+    }
 }
 
 fn flush(addr: VirtAddr) {
