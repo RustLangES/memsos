@@ -1,9 +1,10 @@
 #![no_std]
 #![no_main]
-#![feature(sync_unsafe_cell)]
+#![feature(sync_unsafe_cell, fn_traits)]
 
 mod allocator;
 mod mem;
+mod once;
 mod requests;
 mod writer;
 
@@ -12,8 +13,12 @@ use core::fmt::Write;
 use allocator::Allocator;
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
+use x86_64::VirtAddr;
+use x86_64::structures::paging::{Page, PageTableFlags, Size4KiB};
 
-use crate::mem::frame::init_frame_allocator;
+use crate::mem::HIGHER_HALF_OFFSET;
+use crate::mem::frame::{get_frame_allocator, init_frame_allocator};
+use crate::mem::paging::{get_kernel_map, init_page_map};
 use crate::requests::HHDM_REQUEST;
 use crate::writer::init_writer;
 
@@ -34,7 +39,7 @@ static _START_MARKER: RequestsStartMarker = RequestsStartMarker::new();
 static _END_MARKER: RequestsEndMarker = RequestsEndMarker::new();
 
 #[unsafe(no_mangle)]
-unsafe extern "C" fn kmain() -> ! {
+extern "C" fn kmain() -> ! {
     assert!(BASE_REVISION.is_supported());
 
     ALLOCATOR.init();
@@ -44,9 +49,11 @@ unsafe extern "C" fn kmain() -> ! {
         .get_response()
         .expect("Cannot get HHDM")
         .offset();
-    init_frame_allocator(hhdm);
 
-    println!("It works!");
+    HIGHER_HALF_OFFSET.call_once(|| hhdm);
+
+    init_frame_allocator(0x1000);
+    init_page_map();
 
     #[allow(clippy::empty_loop)]
     loop {}

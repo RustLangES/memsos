@@ -45,4 +45,9 @@ SECTIONS
         *(.eh_frame*)
         *(.note .note.*)
     }
+
+    
+    . += CONSTANT(MAXPAGESIZE);
+
+    _kernel_end = .;
 }
