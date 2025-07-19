@@ -1,4 +1,4 @@
-use crate::requests::FRAMEBUFFER_REQUEST;
+use crate::boot::requests::FRAMEBUFFER_REQUEST;
 use alloc::{boxed::Box, string::String};
 use core::{cell::SyncUnsafeCell, fmt};
 use limine::framebuffer::Framebuffer;

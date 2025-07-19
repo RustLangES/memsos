@@ -2,9 +2,9 @@
 #![no_main]
 #![feature(sync_unsafe_cell, fn_traits)]
 
+mod boot;
 mod mem;
 mod once;
-mod requests;
 mod writer;
 
 use core::fmt::Write;
@@ -16,8 +16,8 @@ use mem::allocator::Allocator;
 use crate::mem::HIGHER_HALF_OFFSET;
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::{get_kernel_map, init_page_map};
-use crate::requests::HHDM_REQUEST;
 use crate::writer::init_writer;
+use boot::requests::HHDM_REQUEST;
 
 #[global_allocator]
 static ALLOCATOR: Allocator = Allocator::new();

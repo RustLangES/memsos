@@ -39,7 +39,7 @@ unsafe impl GlobalAlloc for Allocator {
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: core::alloc::Layout) {
-        unsafe { 
+        unsafe {
             #[allow(static_mut_refs)]
             let heap = &mut *self.heap.get();
             heap.deallocate(NonNull::new_unchecked(ptr), layout);

@@ -1,11 +1,11 @@
 // https://github.com/anubis-rs/xernel/blob/main/kernel/src/mem/paging.rs
 
 use crate::{
+    boot::requests::KERNEL_ADDRESS,
     mem::{HIGHER_HALF_OFFSET, KERNEL_OFFSET, frame::get_frame_allocator},
     println,
-    requests::KERNEL_ADDRESS,
 };
-use core::{arch::asm, cell::SyncUnsafeCell, fmt::Write};
+use core::{cell::SyncUnsafeCell, fmt::Write};
 use x86_64::{
     PhysAddr, VirtAddr, align_down,
     structures::paging::{
@@ -71,7 +71,7 @@ impl Pagemap {
     ) {
         assert!(u16::from(virt.page_offset()) == 0);
         assert!(phys.is_aligned(Size4KiB::SIZE));
-        
+
         let size = usize::try_from(Size4KiB::SIZE).unwrap();
 
         let aligned_amount = align_up(amount, size);
@@ -108,8 +108,10 @@ impl Pagemap {
             offset += Size2MiB::SIZE;
         }
 
-        let pages_4kb = align_up(aligned_amount - usize::try_from(offset).expect("Invalid offset"), size)
-            / size;
+        let pages_4kb = align_up(
+            aligned_amount - usize::try_from(offset).expect("Invalid offset"),
+            size,
+        ) / size;
 
         for _ in 0..pages_4kb {
             self.map::<Size4KiB>(
