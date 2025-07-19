@@ -21,9 +21,10 @@ impl<T> Once<T> {
     where
         F: FnOnce() -> T,
     {
-        if self.is_set.load(Ordering::Acquire) {
-            panic!("Struct Once can only be set once.");
-        }
+        assert!(
+            !self.is_set.load(Ordering::Acquire),
+            "Struct Once can only be set once."
+        );
 
         unsafe {
             let val = func.call_once(());
@@ -41,9 +42,10 @@ impl<T> Deref for Once<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        if !self.is_set.load(Ordering::Acquire) {
-            panic!("The value cannot be accessed if it has not yet been initialized");
-        }
+        assert!(
+            self.is_set.load(Ordering::Acquire),
+            "The value cannot be accessed if it has not yet been initialized"
+        );
 
         unsafe { &*(*self.val.get()).as_ptr() }
     }

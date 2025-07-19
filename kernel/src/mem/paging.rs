@@ -71,8 +71,10 @@ impl Pagemap {
     ) {
         assert!(u16::from(virt.page_offset()) == 0);
         assert!(phys.is_aligned(Size4KiB::SIZE));
+        
+        let size = usize::try_from(Size4KiB::SIZE).unwrap();
 
-        let aligned_amount = align_up(amount, Size4KiB::SIZE as usize);
+        let aligned_amount = align_up(amount, size);
 
         let mut offset: u64 = 0;
 
@@ -106,8 +108,8 @@ impl Pagemap {
             offset += Size2MiB::SIZE;
         }
 
-        let pages_4kb = align_up(aligned_amount - offset as usize, Size4KiB::SIZE as usize)
-            / Size4KiB::SIZE as usize;
+        let pages_4kb = align_up(aligned_amount - usize::try_from(offset).expect("Invalid offset"), size)
+            / size;
 
         for _ in 0..pages_4kb {
             self.map::<Size4KiB>(
@@ -226,13 +228,13 @@ impl Pagemap {
         println!("Kernel base addr: {:x}", kenel_base_addr);
         println!("Kernel virt addr: {:x}", kernel_virt_addr);
 
-        let kernel_size = unsafe { ((&_kernel_end as *const u64) as u64) - kernel_virt_addr };
+        let kernel_size = (((&raw const _kernel_end).cast::<u64>()) as u64) - kernel_virt_addr;
         println!("Kernel size: {}", kernel_size);
 
         self.map_range(
             PhysAddr::new(kenel_base_addr),
             VirtAddr::new(KERNEL_OFFSET),
-            kernel_size as usize,
+            usize::try_from(kernel_size).expect("Invalid kernel size"),
             PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
             false,
         );

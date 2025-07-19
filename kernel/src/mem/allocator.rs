@@ -29,17 +29,21 @@ impl Allocator {
 
 unsafe impl GlobalAlloc for Allocator {
     unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
-        #[allow(static_mut_refs)]
-        let heap = &mut *self.heap.get();
-        heap.allocate_first_fit(layout)
-            .expect("Cannot allocate memory")
-            .as_ptr()
+        unsafe {
+            #[allow(static_mut_refs)]
+            let heap = &mut *self.heap.get();
+            heap.allocate_first_fit(layout)
+                .expect("Cannot allocate memory")
+                .as_ptr()
+        }
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: core::alloc::Layout) {
-        #[allow(static_mut_refs)]
-        let heap = &mut *self.heap.get();
-        heap.deallocate(NonNull::new_unchecked(ptr), layout);
+        unsafe { 
+            #[allow(static_mut_refs)]
+            let heap = &mut *self.heap.get();
+            heap.deallocate(NonNull::new_unchecked(ptr), layout);
+        }
     }
 }
 

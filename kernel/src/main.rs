@@ -9,14 +9,12 @@ mod writer;
 
 use core::fmt::Write;
 
-use mem::allocator::Allocator;
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
-use x86_64::VirtAddr;
-use x86_64::structures::paging::{Page, PageTableFlags, Size4KiB};
+use mem::allocator::Allocator;
 
 use crate::mem::HIGHER_HALF_OFFSET;
-use crate::mem::frame::{get_frame_allocator, init_frame_allocator};
+use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::{get_kernel_map, init_page_map};
 use crate::requests::HHDM_REQUEST;
 use crate::writer::init_writer;
