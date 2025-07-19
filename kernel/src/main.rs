@@ -13,6 +13,7 @@ use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use mem::allocator::Allocator;
 
+use crate::boot::module::{self, get_limine_module};
 use crate::mem::HIGHER_HALF_OFFSET;
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::{get_kernel_map, init_page_map};
@@ -54,8 +55,14 @@ extern "C" fn kmain() -> ! {
 
     get_kernel_map().kernel_map();
 
-    println!("It works!");
-
+    let module = get_limine_module("test").unwrap();
+    for i in 0..module.size() {
+        unsafe {
+            let ptr = module.addr().add(i as usize);
+            let w = ptr.read_volatile();
+            print!("{}", w as char);
+        }
+    }
     #[allow(clippy::empty_loop)]
     loop {}
 }
