@@ -1,6 +1,14 @@
 [workspace]
 resolver = '2'
-members = [ "memsos", "kernel" ]
+members = [ "memsos", "kernel" , "crates/commons", "crates/sync", "crates/march-c", "crates/fb", "crates/boot"]
+
+[workspace.dependencies]
+commons.path = "./crates/commons"
+sync.path = "./crates/sync"
+march-c.path = "./crates/march-c"
+fb.path = "./crates/fb"
+boot.path = "./crates/boot"
+limine = "0.5.0"
 
 [profile.dev]
 panic = "abort"

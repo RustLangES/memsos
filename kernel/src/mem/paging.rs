@@ -1,11 +1,10 @@
 // https://github.com/anubis-rs/xernel/blob/main/kernel/src/mem/paging.rs
 
-use crate::{
-    boot::requests::KERNEL_ADDRESS,
-    mem::{HIGHER_HALF_OFFSET, KERNEL_OFFSET, frame::get_frame_allocator},
-    println,
-};
+use crate::mem::{HIGHER_HALF_OFFSET, KERNEL_OFFSET, frame::get_frame_allocator};
+use boot::requests::KERNEL_ADDRESS;
+
 use core::{cell::SyncUnsafeCell, fmt::Write};
+use fb::println;
 use x86_64::{
     PhysAddr, VirtAddr, align_down,
     structures::paging::{

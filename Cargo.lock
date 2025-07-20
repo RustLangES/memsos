@@ -21,13 +21,41 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
 
 [[package]]
+name = "boot"
+version = "0.1.0"
+dependencies = [
+ "limine",
+]
+
+[[package]]
+name = "commons"
+version = "0.1.0"
+dependencies = [
+ "limine",
+ "sync",
+]
+
+[[package]]
+name = "fb"
+version = "0.1.0"
+dependencies = [
+ "boot",
+ "limine",
+ "noto-sans-mono-bitmap",
+]
+
+[[package]]
 name = "kernel"
 version = "0.1.0"
 dependencies = [
+ "boot",
+ "commons",
+ "fb",
  "lazy_static",
  "limine",
  "linked_list_allocator",
- "noto-sans-mono-bitmap",
+ "march-c",
+ "sync",
  "x86_64",
 ]
 
@@ -69,6 +97,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "march-c"
+version = "0.1.0"
+dependencies = [
+ "commons",
+ "fb",
+]
+
+[[package]]
 name = "memsos"
 version = "0.1.0"
 
@@ -104,6 +140,10 @@ checksum = "5b9eb1a2f4c41445a3a0ff9abc5221c5fcd28e1f13cd7c0397706f9ac938ddb0"
 dependencies = [
  "lock_api",
 ]
+
+[[package]]
+name = "sync"
+version = "0.1.0"
 
 [[package]]
 name = "volatile"

@@ -1,4 +1,4 @@
-use crate::once::Once;
+use sync::Once;
 
 pub mod allocator;
 pub mod frame;

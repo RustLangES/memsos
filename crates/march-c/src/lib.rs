@@ -3,6 +3,8 @@
 extern crate alloc;
 use alloc::vec::Vec;
 use commons::mem::{MemModule, MemoryMap, MemoryReport};
+use fb::println;
+use core::fmt::Write;
 
 pub struct MarchC {
     mem_map: MemoryMap
@@ -16,6 +18,6 @@ impl MemModule for MarchC {
     }
 
     fn run(&mut self, reports: &mut Vec<MemoryReport>) {
-        todo!(); 
+        println!("running... {}", Self::NAME);
     }
 }

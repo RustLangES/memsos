@@ -2,23 +2,21 @@
 #![no_main]
 #![feature(sync_unsafe_cell, fn_traits)]
 
-mod boot;
 mod mem;
-mod once;
-mod writer;
-
+use alloc::vec::Vec;
+use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
-
+use fb::println;
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
+use march_c::MarchC;
 use mem::allocator::Allocator;
 
-use crate::boot::module::{self, get_limine_module};
 use crate::mem::HIGHER_HALF_OFFSET;
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::{get_kernel_map, init_page_map};
-use crate::writer::init_writer;
 use boot::requests::HHDM_REQUEST;
+use fb::init_writer;
 
 #[global_allocator]
 static ALLOCATOR: Allocator = Allocator::new();
@@ -55,14 +53,16 @@ extern "C" fn kmain() -> ! {
 
     get_kernel_map().kernel_map();
 
-    let module = get_limine_module("test").unwrap();
-    for i in 0..module.size() {
-        unsafe {
-            let ptr = module.addr().add(i as usize);
-            let w = ptr.read_volatile();
-            print!("{}", w as char);
-        }
-    }
+    let mem_map = &boot::requests::MEMORY_MAP_REQUEST;
+    let entries = mem_map.get_response().unwrap().entries();
+    let mut reports = Vec::new();
+
+    init_mem_module(entries);
+
+    load_memtest::<MarchC>(&mut reports);
+
+    println!("It works!");
+
     #[allow(clippy::empty_loop)]
     loop {}
 }
