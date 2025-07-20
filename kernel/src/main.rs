@@ -12,9 +12,9 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
 
-use crate::mem::HIGHER_HALF_OFFSET;
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::{get_kernel_map, init_page_map};
+use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
 use fb::init_writer;
 

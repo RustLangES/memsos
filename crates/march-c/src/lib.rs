@@ -18,6 +18,6 @@ impl MemModule for MarchC {
     }
 
     fn run(&mut self, reports: &mut Vec<MemoryReport>) {
-        println!("running... {}", Self::NAME);
+
     }
 }

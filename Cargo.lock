@@ -25,6 +25,7 @@ name = "boot"
 version = "0.1.0"
 dependencies = [
  "limine",
+ "sync",
 ]
 
 [[package]]

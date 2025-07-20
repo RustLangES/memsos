@@ -2,6 +2,9 @@ use sync::Once;
 use limine::memory_map::Entry;
 use alloc::vec::Vec;
 
+
+const ALIGNMENT: usize = core::mem::align_of::<u64>();
+
 pub type MemoryMap = &'static [&'static Entry];
 
 pub static MEMORY_MAP: Once<MemoryMap> = Once::new();
@@ -39,4 +42,6 @@ pub fn load_memtest<T: MemModule>(reports: &mut Vec<MemoryReport>) {
    test.run(reports);
 }
 
-
+pub fn check_addr(ptr: *mut u64) -> bool {
+    ptr as usize % ALIGNMENT == 0 && !ptr.is_null()
+}
