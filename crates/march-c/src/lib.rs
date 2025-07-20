@@ -1,6 +1,8 @@
 #![no_std]
 
-use commons::mem::{MemModule, MemoryMap};
+extern crate alloc;
+use alloc::vec::Vec;
+use commons::mem::{MemModule, MemoryMap, MemoryReport};
 
 pub struct MarchC {
     mem_map: MemoryMap
@@ -13,7 +15,7 @@ impl MemModule for MarchC {
         Self { mem_map: memory_map } 
     }
 
-    fn run(&mut self) {
+    fn run(&mut self, reports: &mut Vec<MemoryReport>) {
         todo!(); 
     }
 }
