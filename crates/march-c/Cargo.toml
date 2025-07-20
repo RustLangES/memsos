@@ -6,3 +6,5 @@ edition = "2024"
 [dependencies]
 fb.workspace = true
 commons.workspace = true
+limine.workspace = true
+boot.workspace = true

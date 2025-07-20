@@ -101,8 +101,10 @@ dependencies = [
 name = "march-c"
 version = "0.1.0"
 dependencies = [
+ "boot",
  "commons",
  "fb",
+ "limine",
 ]
 
 [[package]]

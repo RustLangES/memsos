@@ -3,7 +3,7 @@ use limine::memory_map::Entry;
 use alloc::vec::Vec;
 
 
-const ALIGNMENT: usize = core::mem::align_of::<u64>();
+const ALIGNMENT: usize = core::mem::align_of::<u8>();
 
 pub type MemoryMap = &'static [&'static Entry];
 
@@ -29,7 +29,7 @@ pub enum MemoryError {
 
 #[derive(Debug)]
 pub struct MemoryReport {
-    pub address: u64,
+    pub address: usize,
     pub kind: MemoryError
 }
 
@@ -42,6 +42,6 @@ pub fn load_memtest<T: MemModule>(reports: &mut Vec<MemoryReport>) {
    test.run(reports);
 }
 
-pub fn check_addr(ptr: *mut u64) -> bool {
+pub fn check_addr(ptr: *mut u8) -> bool {
     ptr as usize % ALIGNMENT == 0 && !ptr.is_null()
 }
