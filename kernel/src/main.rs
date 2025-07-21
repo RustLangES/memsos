@@ -3,6 +3,9 @@
 #![feature(sync_unsafe_cell, fn_traits)]
 
 mod mem;
+mod timer;
+mod acpi;
+
 use alloc::vec::Vec;
 use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
@@ -49,13 +52,15 @@ extern "C" fn kmain() -> ! {
 
     HIGHER_HALF_OFFSET.call_once(|| hhdm);
 
+    let mem_map = &boot::requests::MEMORY_MAP_REQUEST;
+    let entries = mem_map.get_response().unwrap().entries();
+
     init_frame_allocator(0x1000);
+
     init_page_map();
 
     get_kernel_map().kernel_map();
 
-    let mem_map = &boot::requests::MEMORY_MAP_REQUEST;
-    let entries = mem_map.get_response().unwrap().entries();
     let mut reports = Vec::new();
 
     init_mem_module(entries);
