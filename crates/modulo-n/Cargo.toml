@@ -1,9 +1,10 @@
 [package]
-name = "commons"
+name = "modulo-n"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-boot.workspace = true
+fb.workspace = true
+commons.workspace = true
 limine.workspace = true
-sync.workspace = true
+boot.workspace = true

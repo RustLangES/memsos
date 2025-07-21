@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use fb::println;
 use core::{fmt::Write, ptr::write_bytes};
 use boot::HIGHER_HALF_OFFSET;
-use commons::mem::{check_addr, MemModule, MemoryError, MemoryMap, MemoryReport};
+use commons::mem::{MemModule, MemoryError, MemoryMap, MemoryReport};
 use limine::memory_map::{Entry, EntryType};
 
 

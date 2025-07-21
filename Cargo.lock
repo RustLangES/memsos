@@ -32,6 +32,7 @@ dependencies = [
 name = "commons"
 version = "0.1.0"
 dependencies = [
+ "boot",
  "limine",
  "sync",
 ]
@@ -56,6 +57,7 @@ dependencies = [
  "limine",
  "linked_list_allocator",
  "march-c",
+ "modulo-n",
  "sync",
  "x86_64",
 ]
@@ -110,6 +112,16 @@ dependencies = [
 [[package]]
 name = "memsos"
 version = "0.1.0"
+
+[[package]]
+name = "modulo-n"
+version = "0.1.0"
+dependencies = [
+ "boot",
+ "commons",
+ "fb",
+ "limine",
+]
 
 [[package]]
 name = "noto-sans-mono-bitmap"

@@ -151,7 +151,7 @@ pub fn get_fb_writer() -> &'static mut FrameBufferWriter<'static> {
 
 #[macro_export]
 macro_rules! print {
-    ($($arg:tt)*) => {{
+    ($($arg:tt)*) => {{ 
         let writer = $crate::get_fb_writer();
 
         writer.write_fmt(format_args!($($arg)*)).expect("Could not write the message");

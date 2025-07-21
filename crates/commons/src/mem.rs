@@ -41,7 +41,3 @@ pub fn load_memtest<T: MemModule>(reports: &mut Vec<MemoryReport>) {
    let mut test = T::init(*MEMORY_MAP);
    test.run(reports);
 }
-
-pub fn check_addr(ptr: *mut u8) -> bool {
-    ptr as usize % ALIGNMENT == 0 && !ptr.is_null()
-}

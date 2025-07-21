@@ -9,7 +9,7 @@ boot.workspace = true
 sync.workspace = true
 commons.workspace = true
 march-c.workspace = true
-
+modulo-n.workspace = true
 lazy_static = { version = "1.5.0", default-features = false, features = ["spin_no_std"] }
 limine = "0.5.0"
 linked_list_allocator = "0.10.5"

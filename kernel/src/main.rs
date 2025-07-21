@@ -11,6 +11,7 @@ use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
+use modulo_n::ModuloN;
 
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::{get_kernel_map, init_page_map};
@@ -60,6 +61,7 @@ extern "C" fn kmain() -> ! {
     init_mem_module(entries);
 
     load_memtest::<MarchC>(&mut reports);
+    load_memtest::<ModuloN>(&mut reports);
 
     println!("It works!");
 
