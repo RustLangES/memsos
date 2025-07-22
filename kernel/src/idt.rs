@@ -1,3 +1,4 @@
+use arch::hcf::hcf;
 use core::fmt::Write;
 use fb::println;
 use lazy_static::lazy_static;
@@ -27,5 +28,5 @@ extern "x86-interrupt" fn page_fault_handler(
     println!("Accesed_address: {:?}", Cr2::read());
     println!("Error Code: {:?}", error_code);
     println!("{:#?}", stack_frame);
-    loop {}
+    hcf();
 }

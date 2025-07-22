@@ -8,6 +8,7 @@ mod mem;
 mod timer;
 
 use alloc::vec::Vec;
+use arch::hcf::hcf;
 use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
 use fb::println;
@@ -82,5 +83,5 @@ extern "C" fn kmain() -> ! {
 #[panic_handler]
 fn panic_hnadler(info: &core::panic::PanicInfo) -> ! {
     println!("{:?}", info.message());
-    loop {}
+    hcf();
 }

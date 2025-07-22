@@ -1,8 +1,0 @@
-Continuing.
-
-Program received signal SIGINT, Interrupt.
-kernel::idt::page_fault_handler (stack_frame=..., error_code=...) at kernel/src/idt.rs:30
-30	    loop {}
-=> 0xffffffff80007281 <_ZN6kernel3idt18page_fault_handler17h4a81a13e78e6c2edE+977>:	eb fe              	jmp    0xffffffff80007281 <_ZN6kernel3idt18page_fault_handler17h4a81a13e78e6c2edE+977>
-Detaching from program: /home/juan/projects/memsos/kernel/kernel.sym, process 1
-Remote connection closed
