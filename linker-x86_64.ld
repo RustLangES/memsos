@@ -5,9 +5,10 @@ ENTRY(kmain)
 
 PHDRS
 {
-    text    PT_LOAD;
-    rodata  PT_LOAD;
-    data    PT_LOAD;
+    null    PT_NULL    FLAGS(0);
+    text    PT_LOAD    FLAGS((1 << 0) | (1 << 2));
+    rodata  PT_LOAD    FLAGS((1 << 2));
+    data    PT_LOAD    FLAGS((1 << 1) | (1 << 2));
 }
 
 SECTIONS
@@ -37,8 +38,8 @@ SECTIONS
 
 
     .bss : {
-        *(.bss .bss.*)
-        *(COMMON)
+	*(COMMON)
+        *(.bss .bss.*) 
     } :data
 
     /DISCARD/ : {

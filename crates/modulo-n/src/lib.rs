@@ -11,7 +11,7 @@ const PATTERN_B: u8 = 0xFF;
 const N: usize = 4;
 
 pub struct ModuloN {
-    mem_map: MemoryMap
+    mem_map: MemoryMap,
 }
 
 impl MemModule for ModuloN {
@@ -19,7 +19,7 @@ impl MemModule for ModuloN {
 
     fn init(memory_map: MemoryMap) -> Self {
         Self {
-            mem_map: memory_map
+            mem_map: memory_map,
         }
     }
     fn run(&mut self, reports: &mut Vec<MemoryReport>) {
@@ -29,7 +29,7 @@ impl MemModule for ModuloN {
                     run_modulo_n(offset, entry, reports);
                 }
             }
-        } 
+        }
     }
 }
 
@@ -60,7 +60,7 @@ fn run_modulo_n(offset: usize, entry: &Entry, reports: &mut Vec<MemoryReport>) {
                 if val != PATTERN_A {
                     reports.push(MemoryReport {
                         address: ptr.addr(),
-                        kind: MemoryError::StuckAt
+                        kind: MemoryError::StuckAt,
                     });
                 }
             }
@@ -72,7 +72,7 @@ fn run_modulo_n(offset: usize, entry: &Entry, reports: &mut Vec<MemoryReport>) {
                 if val != PATTERN_B {
                     reports.push(MemoryReport {
                         address: ptr.addr(),
-                        kind: MemoryError::StuckAt
+                        kind: MemoryError::StuckAt,
                     });
                 }
             }

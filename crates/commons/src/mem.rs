@@ -1,7 +1,6 @@
-use sync::Once;
-use limine::memory_map::Entry;
 use alloc::vec::Vec;
-
+use limine::memory_map::Entry;
+use sync::Once;
 
 const ALIGNMENT: usize = core::mem::align_of::<u8>();
 
@@ -17,20 +16,20 @@ pub struct MemoryEntry {
 
 pub trait MemModule {
     const NAME: &'static str;
-    
+
     fn init(memory_map: MemoryMap) -> Self;
     fn run(&mut self, reports: &mut Vec<MemoryReport>);
 }
 
 #[derive(Debug)]
 pub enum MemoryError {
-    StuckAt
+    StuckAt,
 }
 
 #[derive(Debug)]
 pub struct MemoryReport {
     pub address: usize,
-    pub kind: MemoryError
+    pub kind: MemoryError,
 }
 
 pub fn init_mem_module(memory: MemoryMap) {
@@ -38,6 +37,6 @@ pub fn init_mem_module(memory: MemoryMap) {
 }
 
 pub fn load_memtest<T: MemModule>(reports: &mut Vec<MemoryReport>) {
-   let mut test = T::init(*MEMORY_MAP);
-   test.run(reports);
+    let mut test = T::init(*MEMORY_MAP);
+    test.run(reports);
 }

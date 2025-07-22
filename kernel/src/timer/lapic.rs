@@ -1,9 +1,12 @@
-use arch::msr::rdmsr;
-use boot::HIGHER_HALF_OFFSET;
-use x86_64::{structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB}, PhysAddr, VirtAddr};
 use crate::mem::paging::get_kernel_map;
-use fb::println;
+use arch::rdmsr;
+use boot::HIGHER_HALF_OFFSET;
 use core::fmt::Write;
+use fb::println;
+use x86_64::{
+    PhysAddr, VirtAddr,
+    structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
+};
 
 const APIC_BASE_MSR: u32 = 0x1B;
 
@@ -26,7 +29,7 @@ impl LocalApic {
             PhysFrame::containing_address(PhysAddr::new(apic_base)),
             Page::containing_address(VirtAddr::new(apic_base + *HIGHER_HALF_OFFSET)),
             PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE,
-            true
+            true,
         );
 
         let mut lapic = LocalApic {
@@ -35,13 +38,11 @@ impl LocalApic {
         };
 
         lapic.enable_apic();
-        
+
         lapic
     }
     pub fn read(&self, reg: u64) -> u32 {
-        unsafe { 
-            ((self.address + reg) as *const u32).read_volatile()
-        }
+        unsafe { ((self.address + reg) as *const u32).read_volatile() }
     }
     pub fn write(&self, reg: u64, val: u32) {
         unsafe {

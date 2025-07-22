@@ -6,7 +6,7 @@ pub fn wrmsr(msr: u32, value: u64) {
     let hi = (value >> 32) as u32;
 
     unsafe {
-        asm!("wrmsr", in("ecx") msr, in("eax"), lo, in("edx") hi);
+        asm!("wrmsr", in("ecx") msr, in("eax") lo, in("edx") hi);
     }
 }
 
@@ -15,8 +15,8 @@ pub fn rdmsr(msr: u32) -> u64 {
     let (hi, lo): (u32, u32);
 
     unsafe {
-        asm!("rdmsr", out("eax") low, out("edx", high, in("ecx") msr));
+        asm!("rdmsr", out("eax") lo, out("edx") hi, in("ecx") msr);
     }
 
-    ((hi as u64) << 32) | (low as u64)
+    ((hi as u64) << 32) | (lo as u64)
 }

@@ -3,8 +3,8 @@
 #![feature(sync_unsafe_cell)]
 extern crate alloc;
 
+use alloc::boxed::Box;
 use boot::requests::FRAMEBUFFER_REQUEST;
-use alloc::{boxed::Box, string::String};
 use core::{cell::SyncUnsafeCell, fmt};
 use limine::framebuffer::Framebuffer;
 use noto_sans_mono_bitmap::{
@@ -131,18 +131,6 @@ impl fmt::Write for FrameBufferWriter<'_> {
 
         Ok(())
     }
-    fn write_fmt(&mut self, args: fmt::Arguments<'_>) -> fmt::Result {
-        if let Some(s) = &args.as_str() {
-            self.write_str(s).expect("Could not write in the screen");
-        } else {
-            let mut buffer = String::new();
-            write!(&mut buffer, "{args}").expect("Could not format args");
-            self.write_str(&buffer)
-                .expect("Could not write in the screen");
-        }
-
-        Ok(())
-    }
 }
 
 pub fn get_fb_writer() -> &'static mut FrameBufferWriter<'static> {
@@ -151,10 +139,10 @@ pub fn get_fb_writer() -> &'static mut FrameBufferWriter<'static> {
 
 #[macro_export]
 macro_rules! print {
-    ($($arg:tt)*) => {{ 
+    ($($arg:tt)*) => {{
         let writer = $crate::get_fb_writer();
 
-        writer.write_fmt(format_args!($($arg)*)).expect("Could not write the message");
+        write!(writer, "{}", format_args!($($arg)*)).expect("Cannot format args");
     }};
 }
 

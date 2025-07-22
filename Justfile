@@ -36,7 +36,7 @@ ovmf:
 # Limine (bootloader) build
 
 limine:
-  test -d {{LIMINE_DIR}} || git clone https://github.com/limine-bootloader/limine.git --branch=v8.x-binary --depth=1
+  test -d {{LIMINE_DIR}} || git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1
   make -C {{LIMINE_DIR}}
 
 # Kernel build

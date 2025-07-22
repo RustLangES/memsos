@@ -1,10 +1,11 @@
 #![no_std]
 #![no_main]
-#![feature(sync_unsafe_cell, fn_traits)]
+#![feature(sync_unsafe_cell, fn_traits, abi_x86_interrupt)]
 
+mod acpi;
+mod idt;
 mod mem;
 mod timer;
-mod acpi;
 
 use alloc::vec::Vec;
 use commons::mem::{init_mem_module, load_memtest};
@@ -16,8 +17,11 @@ use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
 
+use crate::acpi::init_acpi;
+use crate::idt::init_idt;
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::{get_kernel_map, init_page_map};
+use crate::timer::lapic::LocalApic;
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
 use fb::init_writer;
@@ -56,17 +60,18 @@ extern "C" fn kmain() -> ! {
     let entries = mem_map.get_response().unwrap().entries();
 
     init_frame_allocator(0x1000);
-
     init_page_map();
+    init_idt();
 
+    init_acpi();
     get_kernel_map().kernel_map();
-
-    let mut reports = Vec::new();
 
     init_mem_module(entries);
 
-    load_memtest::<MarchC>(&mut reports);
-    load_memtest::<ModuloN>(&mut reports);
+    //let mut reports = Vec::new();
+
+    //load_memtest::<MarchC>(&mut reports);
+    //load_memtest::<ModuloN>(&mut reports);
 
     println!("It works!");
 
