@@ -2,7 +2,7 @@ use core::cell::SyncUnsafeCell;
 use core::{alloc::GlobalAlloc, mem::MaybeUninit, ptr::NonNull};
 use linked_list_allocator::Heap;
 
-const HEAP_SIZE: usize = 1024;
+const HEAP_SIZE: usize = 4024;
 
 pub struct Allocator {
     pub heap: SyncUnsafeCell<Heap>,

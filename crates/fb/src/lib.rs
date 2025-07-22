@@ -1,9 +1,7 @@
 // Note, at present the ui will remain as simple as this, at some point it may become a little more complex.
 #![no_std]
 #![feature(sync_unsafe_cell)]
-extern crate alloc;
 
-use alloc::boxed::Box;
 use boot::requests::FRAMEBUFFER_REQUEST;
 use core::{cell::SyncUnsafeCell, fmt};
 use limine::framebuffer::Framebuffer;
@@ -33,7 +31,7 @@ pub fn init_writer() {
     if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response()
         && let Some(framebuffer) = framebuffer_response.framebuffers().next()
     {
-        let writer = FrameBufferWriter::new(Box::new(framebuffer));
+        let writer = FrameBufferWriter::new(framebuffer);
         unsafe {
             *WRITER.get() = Some(writer);
         }
@@ -41,13 +39,13 @@ pub fn init_writer() {
 }
 
 pub struct FrameBufferWriter<'a> {
-    buffer: Box<Framebuffer<'a>>,
+    buffer: Framebuffer<'a>,
     x: usize,
     y: usize,
 }
 
 impl<'a> FrameBufferWriter<'a> {
-    pub fn new(buffer: Box<Framebuffer<'a>>) -> Self {
+    pub fn new(buffer: Framebuffer<'a>) -> Self {
         Self { buffer, x: 0, y: 0 }
     }
     pub fn newline(&mut self) {
