@@ -28,6 +28,32 @@ run-bios: build
     {{QEMU_FLAGS}}
 
 
+run-debug-uefi: build ovmf
+  qemu-system-{{ARCH}} \
+    -M q35 \
+    -no-reboot \
+    -no-shutdown \
+    -d int \
+    -s \
+    -S \
+    -drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-{{ARCH}}.fd,readonly=on \
+    -drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-{{ARCH}}.fd \
+    -cdrom {{IMAGE_NAME}}.iso \
+    {{QEMU_FLAGS}}
+
+run-debug-bios: build
+  qemu-system-{{ARCH}} \
+    -M q35 \
+    -cdrom {{IMAGE_NAME}}.iso \
+    -d int \
+    -s \
+    -S \
+    -no-reboot \
+    -no-shutdown \
+    -boot d \
+    {{QEMU_FLAGS}}
+
+
 # OVMF build
 
 ovmf:
@@ -53,10 +79,7 @@ build: limine kernel
   cp -v kernel/kernel iso_root/boot/
   mkdir -p iso_root/boot/limine
   cp -v limine.conf iso_root/boot/limine/
-  mkdir -p iso_root/EFI/BOOT    
-
-  mkdir -p iso_root/modules
-  cp test.txt iso_root/modules/test.txt
+  mkdir -p iso_root/EFI/BOOT 
 
   cp -v limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/boot/limine/
   cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
