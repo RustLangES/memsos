@@ -1,7 +1,10 @@
 use alloc::vec::Vec;
 use core::cell::SyncUnsafeCell;
 use x86_64::{
-    structures::paging::{FrameAllocator, FrameDeallocator, PageSize, PhysFrame, Size1GiB, Size2MiB, Size4KiB}, PhysAddr
+    PhysAddr,
+    structures::paging::{
+        FrameAllocator, FrameDeallocator, PageSize, PhysFrame, Size1GiB, Size2MiB, Size4KiB,
+    },
 };
 
 pub static FRAME_ALLOCATOR: SyncUnsafeCell<Option<PhysFrameAllocator>> = SyncUnsafeCell::new(None);
