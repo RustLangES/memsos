@@ -1,8 +1,7 @@
 use alloc::vec::Vec;
 use core::cell::SyncUnsafeCell;
 use x86_64::{
-    PhysAddr,
-    structures::paging::{PageSize, PhysFrame},
+    structures::paging::{FrameAllocator, FrameDeallocator, PageSize, PhysFrame, Size1GiB, Size2MiB, Size4KiB}, PhysAddr
 };
 
 pub static FRAME_ALLOCATOR: SyncUnsafeCell<Option<PhysFrameAllocator>> = SyncUnsafeCell::new(None);
@@ -42,8 +41,8 @@ impl PhysFrameAllocator {
             return PhysFrame::from_start_address(f.start_addr).unwrap();
         }
 
-        let addr = PhysAddr::new(self.pointer);
         self.pointer += P::SIZE;
+        let addr = PhysAddr::new(self.pointer);
 
         PhysFrame::from_start_address(addr).unwrap()
     }
@@ -52,5 +51,41 @@ impl PhysFrameAllocator {
             start_addr: frame.start_address(),
             size: frame.size(),
         });
+    }
+}
+
+unsafe impl FrameAllocator<Size4KiB> for PhysFrameAllocator {
+    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
+        Some(self.alloc_frame::<Size4KiB>())
+    }
+}
+
+impl FrameDeallocator<Size4KiB> for PhysFrameAllocator {
+    unsafe fn deallocate_frame(&mut self, frame: PhysFrame<Size4KiB>) {
+        self.free_frame(frame);
+    }
+}
+
+unsafe impl FrameAllocator<Size2MiB> for PhysFrameAllocator {
+    fn allocate_frame(&mut self) -> Option<PhysFrame<Size2MiB>> {
+        Some(self.alloc_frame::<Size2MiB>())
+    }
+}
+
+impl FrameDeallocator<Size2MiB> for PhysFrameAllocator {
+    unsafe fn deallocate_frame(&mut self, frame: PhysFrame<Size2MiB>) {
+        self.free_frame(frame);
+    }
+}
+
+unsafe impl FrameAllocator<Size1GiB> for PhysFrameAllocator {
+    fn allocate_frame(&mut self) -> Option<PhysFrame<Size1GiB>> {
+        Some(self.alloc_frame::<Size1GiB>())
+    }
+}
+
+impl FrameDeallocator<Size1GiB> for PhysFrameAllocator {
+    unsafe fn deallocate_frame(&mut self, frame: PhysFrame<Size1GiB>) {
+        self.free_frame(frame);
     }
 }

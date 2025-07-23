@@ -22,7 +22,7 @@ use crate::acpi::init_acpi;
 use crate::idt::init_idt;
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::{get_kernel_map, init_page_map};
-use crate::timer::lapic::LocalApic;
+use crate::timer::lapic::{LocalApic, map_addr};
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
 use fb::init_writer;
@@ -60,12 +60,14 @@ extern "C" fn kmain() -> ! {
     let mem_map = &boot::requests::MEMORY_MAP_REQUEST;
     let entries = mem_map.get_response().unwrap().entries();
 
-    init_frame_allocator(0x1000);
-    init_page_map();
+    // init_frame_allocator(0x2000);
+    // init_page_map();
     init_idt();
 
-    init_acpi();
-    get_kernel_map().kernel_map();
+    // //init_acpi();
+    let local = LocalApic::new();
+
+    // get_kernel_map().kernel_map();
 
     init_mem_module(entries);
 

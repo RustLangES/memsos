@@ -16,3 +16,4 @@ limine = "0.5.0"
 linked_list_allocator = "0.10.5"
 x86_64 = { version = "0.15.2", default-features = false, features = ["instructions", "const_fn", "abi_x86_interrupt", "asm_const"] }
 acpi_parser = { package = "acpi", version = "4.1.1" }
+spin = "0.10.0"
