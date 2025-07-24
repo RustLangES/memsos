@@ -3,15 +3,23 @@
 use crate::mem::{KERNEL_OFFSET, frame::get_frame_allocator};
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::KERNEL_ADDRESS;
+use fb::println;
 use x86_64::{
-    align_down, registers::control::Cr3, structures::paging::{
-        Mapper, OffsetPageTable, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size2MiB, Size4KiB
-    }, PhysAddr, VirtAddr
+    PhysAddr, VirtAddr, align_down,
+    registers::control::Cr3,
+    structures::paging::{
+        Mapper, OffsetPageTable, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size2MiB,
+        Size4KiB,
+    },
 };
 
 use core::{cell::SyncUnsafeCell, fmt::Write};
 
 pub static KERNEL_MAP: SyncUnsafeCell<Option<OffsetPageTable<'static>>> = SyncUnsafeCell::new(None);
+
+unsafe extern "C" {
+    static _kernel_end: u64;
+}
 
 pub fn init_page_map() {
     unsafe {
@@ -49,7 +57,13 @@ pub fn map<P: PageSize + core::fmt::Debug>(
 }
 
 // based from https://github.com/anubis-rs/xernel/blob/main/kernel/src/mem/paging.rs#L177
-pub fn map_range(phys: PhysAddr, virt: VirtAddr, amount: usize, flags: PageTableFlags, flush_tlb: bool) {
+pub fn map_range(
+    phys: PhysAddr,
+    virt: VirtAddr,
+    amount: usize,
+    flags: PageTableFlags,
+    flush_tlb: bool,
+) {
     assert!(u16::from(virt.page_offset()) == 0);
     assert!(phys.is_aligned(Size4KiB::SIZE));
 
@@ -65,42 +79,41 @@ pub fn map_range(phys: PhysAddr, virt: VirtAddr, amount: usize, flags: PageTable
 
         map::<Size4KiB>(
             Page::from_start_address(virt + offset).unwrap(),
-            PhysFrame::from_start_address(phys + offset).unwrap(), 
+            PhysFrame::from_start_address(phys + offset).unwrap(),
             flags,
-            flush_tlb
+            flush_tlb,
         );
 
         offset += Size4KiB::SIZE;
     }
 
-      let pages_2mb = align_down(aligned_amount as u64 - offset, Size2MiB::SIZE) / Size2MiB::SIZE;
+    let pages_2mb = align_down(aligned_amount as u64 - offset, Size2MiB::SIZE) / Size2MiB::SIZE;
 
-      for _ in 0..pages_2mb {
+    for _ in 0..pages_2mb {
         map::<Size2MiB>(
             Page::from_start_address(virt + offset).unwrap(),
             PhysFrame::from_start_address(phys + offset).unwrap(),
             flags,
-            flush_tlb
+            flush_tlb,
         );
 
         offset += Size2MiB::SIZE;
-      }
+    }
 
-    let pages_4kb = align_up(aligned_amount - offset as usize, Size4KiB::SIZE as usize) / Size4KiB::SIZE as usize;
+    let pages_4kb = align_up(aligned_amount - offset as usize, Size4KiB::SIZE as usize)
+        / Size4KiB::SIZE as usize;
 
     for _ in 0..pages_4kb {
         map::<Size4KiB>(
             Page::from_start_address(virt + offset).unwrap(),
             PhysFrame::from_start_address(phys + offset).unwrap(),
             flags,
-            flush_tlb
+            flush_tlb,
         );
 
         offset += Size4KiB::SIZE;
     }
 }
-
-
 
 fn get_mapper() -> OffsetPageTable<'static> {
     let addr = VirtAddr::new(*HIGHER_HALF_OFFSET);

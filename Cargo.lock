@@ -16,6 +16,9 @@ dependencies = [
 [[package]]
 name = "arch"
 version = "0.1.0"
+dependencies = [
+ "x86_64",
+]
 
 [[package]]
 name = "autocfg"

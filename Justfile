@@ -27,6 +27,9 @@ run-bios: build
     -boot d \
     {{QEMU_FLAGS}}
 
+run-sound:
+  QEMU_FLAGS="-audiodev pa,id=snd0 -machine pcspk-audiodev=snd0" just
+
 
 run-debug-uefi: build ovmf
   qemu-system-{{ARCH}} \

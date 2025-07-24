@@ -16,6 +16,7 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
+use x86_64::instructions::port::{Port, PortGeneric};
 
 use crate::idt::init_idt;
 use crate::mem::frame::init_frame_allocator;
@@ -63,8 +64,6 @@ extern "C" fn kmain() -> ! {
     init_idt();
 
     let _local = LocalApic::new();
-
-    // get_kernel_map().kernel_map();
 
     init_mem_module(entries);
 
