@@ -30,6 +30,9 @@ impl MemModule for MarchC {
     }
 }
 
+/// # Panics
+///
+/// It can panics if `entry.length` can't be a usize
 #[inline]
 fn run_march_c(reports: &mut Vec<MemoryReport>, entry: &Entry) {
     let start = entry.base + *HIGHER_HALF_OFFSET;
@@ -37,7 +40,7 @@ fn run_march_c(reports: &mut Vec<MemoryReport>, entry: &Entry) {
     let mut errors = Vec::new();
 
     unsafe {
-        write_bytes(start as *mut u8, 0, entry.length as usize);
+        write_bytes(start as *mut u8, 0, usize::try_from(entry.length).expect("Len is invalid"));
     }
 
     for addr in start..end {

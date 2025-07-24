@@ -33,13 +33,17 @@ impl MemModule for ModuloN {
     }
 }
 
+/// # Panics 
+///
+/// It can panics if `entry.length` can't be usize
+/// Or if `base` can't be a usize
 fn run_modulo_n(offset: usize, entry: &Entry, reports: &mut Vec<MemoryReport>) {
-    let base = (entry.base + *HIGHER_HALF_OFFSET) as usize;
-    let end = base + (entry.length as usize);
+    let base = usize::try_from(entry.base + *HIGHER_HALF_OFFSET).expect("Invalid base");
+    let end = base + usize::try_from(entry.length).expect("Invalid len");
     let start = base + offset;
 
     for i in start..end {
-        if i % N == 0 {
+        if i.is_multiple_of(N) {
             unsafe {
                 let ptr = i as *mut u8;
                 core::ptr::write_volatile(ptr, PATTERN_A);
@@ -53,7 +57,7 @@ fn run_modulo_n(offset: usize, entry: &Entry, reports: &mut Vec<MemoryReport>) {
     }
 
     for i in start..end {
-        if i % N == 0 {
+        if i.is_multiple_of(N) {
             unsafe {
                 let ptr = i as *mut u8;
                 let val = core::ptr::read_volatile(ptr);

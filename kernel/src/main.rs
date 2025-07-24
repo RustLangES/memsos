@@ -2,7 +2,6 @@
 #![no_main]
 #![feature(sync_unsafe_cell, fn_traits, abi_x86_interrupt)]
 
-mod acpi;
 mod idt;
 mod mem;
 mod timer;
@@ -18,7 +17,6 @@ use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
 
-use crate::acpi::init_acpi;
 use crate::idt::init_idt;
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::{get_kernel_map, init_page_map};
@@ -64,8 +62,7 @@ extern "C" fn kmain() -> ! {
     init_page_map();
     init_idt();
 
-    // //init_acpi();
-    let local = LocalApic::new();
+    let _local = LocalApic::new();
 
     // get_kernel_map().kernel_map();
 

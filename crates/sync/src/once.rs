@@ -1,3 +1,5 @@
+#![allow(clippy::new_without_default, clippy::missing_panics_doc)]
+
 use core::{
     cell::UnsafeCell,
     mem::MaybeUninit,
@@ -11,6 +13,7 @@ pub struct Once<T> {
 }
 
 impl<T> Once<T> {
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             is_set: AtomicBool::new(false),

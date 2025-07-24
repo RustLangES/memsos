@@ -5,23 +5,14 @@ use core::fmt::Write;
 use fb::println;
 use x86_64::{
     PhysAddr, VirtAddr,
-    structures::paging::{Page, PageTableFlags, PhysFrame, Size2MiB, Size4KiB},
-};
-
-use alloc::collections::VecDeque;
-use lazy_static::lazy_static;
-
-use x86_64::{
-    registers::control::Cr3,
-    structures::paging::{
-        FrameAllocator, FrameDeallocator, Mapper, OffsetPageTable, PageSize, PageTable,
-    },
+    structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
 };
 
 const APIC_BASE_MSR: u32 = 0x1B;
 
 pub struct LocalApic {
     address: u64,
+    #[allow(dead_code)]
     frequency: u64,
 }
 
@@ -50,6 +41,7 @@ impl LocalApic {
 
         lapic
     }
+    #[allow(dead_code)]
     pub fn read(&self, reg: u64) -> u32 {
         unsafe { ((self.address + reg) as *const u32).read_volatile() }
     }
@@ -58,6 +50,7 @@ impl LocalApic {
             ((self.address + reg) as *mut u32).write_volatile(val);
         }
     }
+    #[allow(dead_code)]
     pub fn siv(&self) -> u32 {
         self.read(LapicReg::SPURIOUS)
     }

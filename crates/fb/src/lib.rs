@@ -14,10 +14,14 @@ pub const LETTER_SPACING: usize = 0;
 pub const BORDER_PADDING: usize = 1;
 
 pub const CHAR_RASTER_HEIGHT: RasterHeight = RasterHeight::Size16;
-pub const BACKUP_CHAR: char = '�';
+pub const BACKUP_CHAR: char = '?';
 pub const FONT_WEIGHT: FontWeight = FontWeight::Regular;
 pub const CHAR_RASTER_WIDTH: usize = get_raster_width(FONT_WEIGHT, CHAR_RASTER_HEIGHT);
 
+/// # Panics
+///
+/// It panics if the `backup_char` is invalid
+#[must_use]
 pub fn get_char_raster(c: char) -> RasterizedChar {
     fn get(c: char) -> Option<RasterizedChar> {
         get_raster(c, FONT_WEIGHT, CHAR_RASTER_HEIGHT)
@@ -45,6 +49,7 @@ pub struct FrameBufferWriter<'a> {
 }
 
 impl<'a> FrameBufferWriter<'a> {
+    #[must_use]
     pub fn new(buffer: Framebuffer<'a>) -> Self {
         Self { buffer, x: 0, y: 0 }
     }
@@ -52,6 +57,9 @@ impl<'a> FrameBufferWriter<'a> {
         self.y += CHAR_RASTER_HEIGHT.val() + LINE_SPACING;
         self.x = 0;
     }
+    /// # Panics
+    /// 
+    /// it panics if `pixel_offset` can't be usize
     pub fn clear(&mut self) {
         let width = self.width() as u64;
         let height = self.height() as u64;
@@ -74,18 +82,21 @@ impl<'a> FrameBufferWriter<'a> {
             '\n' => self.newline(),
             '\r' => self.carriage_return(),
             c => {
-                let new_xpos = self.x + CHAR_RASTER_WIDTH;
-                if new_xpos >= self.width() {
+                let new_horizontal_pos = self.x + CHAR_RASTER_WIDTH;
+                if new_horizontal_pos >= self.width() {
                     self.newline();
                 }
-                let new_ypos = self.y + CHAR_RASTER_HEIGHT.val() + BORDER_PADDING;
-                if new_ypos >= self.height() {
+                let new_vertical_pos = self.y + CHAR_RASTER_HEIGHT.val() + BORDER_PADDING;
+                if new_vertical_pos >= self.height() {
                     self.clear();
                 }
                 self.write_rendered_char(&get_char_raster(c));
             }
         }
     }
+    /// # Panics
+    /// 
+    /// it panics if `pixel_offset` can't be usize
     pub fn write_pixel(&mut self, x: u64, y: u64, color: u32) {
         let pixel_offset = y * self.buffer.pitch() + x * 4;
         let offset =
@@ -131,6 +142,9 @@ impl fmt::Write for FrameBufferWriter<'_> {
     }
 }
 
+/// # Panics
+///
+///  It may cause panic if this function is called before the writer is initialized.
 pub fn get_fb_writer() -> &'static mut FrameBufferWriter<'static> {
     unsafe { WRITER.get().as_mut().unwrap().as_mut().unwrap() }
 }

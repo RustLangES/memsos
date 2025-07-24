@@ -1,8 +1,11 @@
 use core::arch::asm;
 
+/// # Panics
+///
+/// It panics if value can't be u32
 #[inline]
 pub fn wrmsr(msr: u32, value: u64) {
-    let lo = value as u32;
+    let lo = u32::try_from(value).expect("Invalid value");
     let hi = (value >> 32) as u32;
 
     unsafe {
@@ -10,6 +13,7 @@ pub fn wrmsr(msr: u32, value: u64) {
     }
 }
 
+#[must_use]
 #[inline]
 pub fn rdmsr(msr: u32) -> u64 {
     let (hi, lo): (u32, u32);
@@ -18,5 +22,5 @@ pub fn rdmsr(msr: u32) -> u64 {
         asm!("rdmsr", out("eax") lo, out("edx") hi, in("ecx") msr);
     }
 
-    ((hi as u64) << 32) | (lo as u64)
+    (u64::from(hi) << 32) | u64::from(lo)
 }

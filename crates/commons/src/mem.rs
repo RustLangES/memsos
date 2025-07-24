@@ -2,8 +2,6 @@ use alloc::vec::Vec;
 use limine::memory_map::Entry;
 use sync::Once;
 
-const ALIGNMENT: usize = core::mem::align_of::<u8>();
-
 pub type MemoryMap = &'static [&'static Entry];
 
 pub static MEMORY_MAP: Once<MemoryMap> = Once::new();
