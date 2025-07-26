@@ -12,6 +12,7 @@ run-uefi: build ovmf
     -no-reboot \
     -no-shutdown \
     -d int \
+    -rtc base=localtime,clock=host \
     -drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-{{ARCH}}.fd,readonly=on \
     -drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-{{ARCH}}.fd \
     -cdrom {{IMAGE_NAME}}.iso \
@@ -23,6 +24,7 @@ run-bios: build
     -cdrom {{IMAGE_NAME}}.iso \
     -d int \
     -no-reboot \
+    -rtc base=localtime,clock=host \
     -no-shutdown \
     -boot d \
     {{QEMU_FLAGS}}
