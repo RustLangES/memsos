@@ -19,11 +19,32 @@ static mut COMMAND_PORT: Port<u8> = Port::new(CMOS_COMMAND_PORT);
 static mut DATA_PORT: Port<u8> = Port::new(CMOS_DATA_PORT);
 
 // https://wiki.osdev.org/CMOS#Getting_Current_Date_and_Time_from_RTC
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Time {
     pub seconds: u8,
     pub minutes: u8,
     pub hours: u8
+}
+
+pub fn reset_rtc() {
+    while read_cmos_register(CMOS_STATUS_REGISTER_A) & CMOS_UPDATE_IN_PROGRESS_FLAG > 0 {
+        core::hint::spin_loop();
+    }
+
+    write_cmos_register(CMOS_SECOND_REGISTER, 0);
+    write_cmos_register(CMOS_HOUR_REGISTER, 0);
+    write_cmos_register(CMOS_MINUTE_REGISTER, 0);
+}
+
+pub fn sleep_rtc(wait: u8) {
+    let mut time = Time::now();
+    let initial = time.clone();
+    let wait_time = initial.seconds + wait;
+
+    while time.seconds < wait_time {
+        time = Time::now();
+        core::hint::spin_loop();
+    }
 }
 
 impl Time {
@@ -84,6 +105,19 @@ pub fn read_cmos_register(register: u8) -> u8 {
         sti();
 
         port.clone()
+    }
+}
+
+pub fn write_cmos_register(register: u8, value: u8)  {
+    unsafe {
+        cli();
+        disable_nmi(register);
+
+        #[allow(static_mut_refs)]
+        let _ = &mut DATA_PORT.write(value);
+
+        enable_nmi();
+        sti();
     }
 }
 

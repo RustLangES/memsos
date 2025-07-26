@@ -8,7 +8,10 @@ mod timer;
 
 use alloc::vec::Vec;
 use arch::hcf::hcf;
-use arch::rtc::{Time, convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register};
+use arch::rtc::{
+    Time, convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc,
+    sleep_rtc,
+};
 use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
 use fb::println;
@@ -67,11 +70,13 @@ extern "C" fn kmain() -> ! {
 
     init_mem_module(entries);
 
+    reset_rtc();
     let start = Time::now();
     println!("{:?}", start);
-    let mut reports = Vec::new();
-    load_memtest::<ModuloN>(&mut reports);
-    
+    //let mut reports = Vec::new();
+    //load_memtest::<ModuloN>(&mut reports);
+
+    sleep_rtc(5);
     println!("{:?}", start.elapsed());
 
     println!("It works!");
