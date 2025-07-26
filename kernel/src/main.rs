@@ -71,10 +71,8 @@ extern "C" fn kmain() -> ! {
     println!("{:?}", start);
     let mut reports = Vec::new();
     load_memtest::<ModuloN>(&mut reports);
-    let end = Time::now();
-
-    let result = start - end;
-    println!("{:?}", result);
+    
+    println!("{:?}", start.elapsed());
 
     println!("It works!");
 

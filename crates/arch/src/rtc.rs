@@ -42,6 +42,11 @@ impl Time {
             hours,
         }
     }
+    pub fn elapsed(self) -> Self {
+        let end = Self::now();
+
+        self - end
+    }
 }
 
 impl Sub for Time {
