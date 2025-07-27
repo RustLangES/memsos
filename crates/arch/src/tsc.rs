@@ -7,6 +7,24 @@ use sync::Once;
 
 pub static TSC_TICKS_PER_MS: Once<u64> = Once::new();
 
+pub struct Instant {
+    start_tick: u64
+}
+
+impl Instant {
+    pub fn now() -> Self {
+        Self {
+            start_tick: rdtsc()
+        }
+    }
+    pub fn elapsed(&self) -> Duration {
+        let end = rdtsc();
+        let elapsed_ms = (end - self.start_tick) / *TSC_TICKS_PER_MS;
+
+        Duration::from_millis(elapsed_ms)
+    }
+}
+
 pub fn sleep(time: Duration) {
     let ms = time.as_millis() as u64;
     let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
