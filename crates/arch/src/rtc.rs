@@ -39,6 +39,7 @@ pub fn reset_rtc() {
     write_cmos_register(CMOS_MINUTE_REGISTER, 0);
 }
 
+// NOTE: This function should not be used; it only works well in small ranges. For other ranges, use the sleep function provided by the tsc.
 pub fn sleep_rtc(wait: u8) {
     let mut prev = Time::now().seconds;
     let mut elapsed = 0;

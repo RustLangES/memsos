@@ -12,7 +12,7 @@ use arch::rtc::{
     Time, convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc,
     sleep_rtc,
 };
-use arch::tsc::{TSC_TICKS_PER_MS, calibrate_tsc, rdtsc};
+use arch::tsc::{TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
 use core::time::Duration;
@@ -72,13 +72,12 @@ extern "C" fn kmain() -> ! {
     println!("Calibrating tsc...");
     calibrate_tsc();
 
-    reset_rtc();
-    let start = rdtsc();
-
     init_mem_module(entries);
 
-    let mut reports = Vec::new();
-    load_memtest::<ModuloN>(&mut reports);
+    let start = rdtsc();
+    //let mut reports = Vec::new();
+    sleep(Duration::from_secs(10));
+    //load_memtest::<ModuloN>(&mut reports);
     let end = rdtsc();
     let result = (end - start) / *TSC_TICKS_PER_MS;
     let result_s = result / 1000;
