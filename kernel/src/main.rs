@@ -12,8 +12,10 @@ use arch::rtc::{
     Time, convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc,
     sleep_rtc,
 };
+use arch::tsc::{TSC_TICKS_PER_MS, calibrate_tsc, rdtsc};
 use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
+use core::time::Duration;
 use fb::println;
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
@@ -45,6 +47,7 @@ static _START_MARKER: RequestsStartMarker = RequestsStartMarker::new();
 #[unsafe(link_section = ".requests_end_marker")]
 static _END_MARKER: RequestsEndMarker = RequestsEndMarker::new();
 
+/// TODO: save the state of the tsc and restore it at the end
 #[unsafe(no_mangle)]
 extern "C" fn kmain() -> ! {
     assert!(BASE_REVISION.is_supported());
@@ -66,18 +69,20 @@ extern "C" fn kmain() -> ! {
     init_page_map();
     init_idt();
 
-    let _local = LocalApic::new();
+    println!("Calibrating tsc...");
+    calibrate_tsc();
+
+    reset_rtc();
+    let start = rdtsc();
 
     init_mem_module(entries);
 
-    reset_rtc();
-    let start = Time::now();
-    println!("{:?}", start);
-    //let mut reports = Vec::new();
-    //load_memtest::<ModuloN>(&mut reports);
-
-    sleep_rtc(5);
-    println!("{:?}", start.elapsed());
+    let mut reports = Vec::new();
+    load_memtest::<ModuloN>(&mut reports);
+    let end = rdtsc();
+    let result = (end - start) / *TSC_TICKS_PER_MS;
+    let result_s = result / 1000;
+    println!("{}", result_s);
 
     println!("It works!");
 

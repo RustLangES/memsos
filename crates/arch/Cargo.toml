@@ -5,3 +5,5 @@ edition = "2024"
 
 [dependencies]
 x86_64.workspace = true
+sync.workspace = true
+fb.workspace = true

@@ -24,7 +24,7 @@ pub fn play_sound(frequence: u32) {
 
 pub fn stop_sound() {
     let mut tmp_port = Port::new(0x61);
-    unsafe { 
+    unsafe {
         let tmp: u8 = tmp_port.read() & 0xFC;
 
         tmp_port.write(tmp);

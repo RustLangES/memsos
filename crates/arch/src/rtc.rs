@@ -2,7 +2,10 @@ use core::ops::Sub;
 
 use x86_64::instructions::port::Port;
 
-use crate::{interrupt::{cli, sti}, nmi::{disable_nmi, enable_nmi}};
+use crate::{
+    interrupt::{cli, sti},
+    nmi::{disable_nmi, enable_nmi},
+};
 
 pub const CMOS_SECOND_REGISTER: u8 = 0x0;
 pub const CMOS_MINUTE_REGISTER: u8 = 0x02;
@@ -23,7 +26,7 @@ static mut DATA_PORT: Port<u8> = Port::new(CMOS_DATA_PORT);
 pub struct Time {
     pub seconds: u8,
     pub minutes: u8,
-    pub hours: u8
+    pub hours: u8,
 }
 
 pub fn reset_rtc() {
@@ -37,12 +40,19 @@ pub fn reset_rtc() {
 }
 
 pub fn sleep_rtc(wait: u8) {
-    let mut time = Time::now();
-    let initial = time.clone();
-    let wait_time = initial.seconds + wait;
+    let mut prev = Time::now().seconds;
+    let mut elapsed = 0;
 
-    while time.seconds < wait_time {
-        time = Time::now();
+    while elapsed < wait {
+        let current = Time::now().seconds;
+        if current != prev {
+            if current > prev {
+                elapsed += current - prev;
+            } else {
+                elapsed += (60 - prev) + current;
+            }
+            prev = current;
+        }
         core::hint::spin_loop();
     }
 }
@@ -56,7 +66,7 @@ impl Time {
         let seconds = read_datetime_reg(CMOS_SECOND_REGISTER);
         let minutes = read_datetime_reg(CMOS_MINUTE_REGISTER);
         let hours = read_datetime_reg(CMOS_HOUR_REGISTER);
-    
+
         Self {
             seconds,
             minutes,
@@ -77,8 +87,8 @@ impl Sub for Time {
         Self {
             seconds: rhs.seconds.wrapping_sub(self.seconds),
             minutes: rhs.minutes.wrapping_sub(self.minutes),
-            hours: rhs.hours.wrapping_sub(self.hours)
-        } 
+            hours: rhs.hours.wrapping_sub(self.hours),
+        }
     }
 }
 
@@ -92,12 +102,10 @@ pub fn read_datetime_reg(reg: u8) -> u8 {
     }
 }
 
-
 pub fn read_cmos_register(register: u8) -> u8 {
     unsafe {
         cli();
         disable_nmi(register);
-
 
         #[allow(static_mut_refs)]
         let port = &mut DATA_PORT.read();
@@ -108,7 +116,7 @@ pub fn read_cmos_register(register: u8) -> u8 {
     }
 }
 
-pub fn write_cmos_register(register: u8, value: u8)  {
+pub fn write_cmos_register(register: u8, value: u8) {
     unsafe {
         cli();
         disable_nmi(register);
@@ -132,4 +140,3 @@ pub const fn is_binary_format(cmos_format: u8) -> bool {
 pub const fn convert_bcd_value(bcd: u8) -> u8 {
     ((bcd & 0xF0) >> 1) + ((bcd & 0xF0) >> 3) + (bcd & 0xf)
 }
-

@@ -58,7 +58,7 @@ impl<'a> FrameBufferWriter<'a> {
         self.x = 0;
     }
     /// # Panics
-    /// 
+    ///
     /// it panics if `pixel_offset` can't be usize
     pub fn clear(&mut self) {
         let width = self.width() as u64;
@@ -95,7 +95,7 @@ impl<'a> FrameBufferWriter<'a> {
         }
     }
     /// # Panics
-    /// 
+    ///
     /// it panics if `pixel_offset` can't be usize
     pub fn write_pixel(&mut self, x: u64, y: u64, color: u32) {
         let pixel_offset = y * self.buffer.pitch() + x * 4;

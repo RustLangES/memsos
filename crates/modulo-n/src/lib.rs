@@ -33,7 +33,7 @@ impl MemModule for ModuloN {
     }
 }
 
-/// # Panics 
+/// # Panics
 ///
 /// It can panics if `entry.length` can't be usize
 /// Or if `base` can't be a usize

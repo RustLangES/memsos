@@ -1,7 +1,7 @@
 use crate::mem::paging::{get_kernel_map, map};
-use arch::rdmsr;
+use arch::{msr::wrmsr, rdmsr, tsc::TSC_TICKS_PER_MS};
 use boot::HIGHER_HALF_OFFSET;
-use core::fmt::Write;
+use core::{fmt::Write, time::Duration};
 use fb::println;
 use x86_64::{
     PhysAddr, VirtAddr,
@@ -9,6 +9,7 @@ use x86_64::{
 };
 
 const APIC_BASE_MSR: u32 = 0x1B;
+const TSC_DEADLINE_MSR: u32 = 0x6E0;
 
 pub struct LocalApic {
     address: u64,
@@ -62,6 +63,14 @@ impl LocalApic {
 
         self.write(LapicReg::TPR, 0);
     }
+    pub fn deadline(&self, int_no: u8, deadline: &Duration) {
+        self.write(LapicReg::TIMER, (2 << 17) | int_no as u32);
+
+        wrmsr(
+            TSC_DEADLINE_MSR,
+            deadline.as_millis() as u64 * *TSC_TICKS_PER_MS,
+        );
+    }
 }
 
 pub struct LapicReg;
@@ -69,4 +78,5 @@ pub struct LapicReg;
 impl LapicReg {
     pub const SPURIOUS: u64 = 0xF0;
     pub const TPR: u64 = 0x80;
+    pub const TIMER: u64 = 0x320;
 }

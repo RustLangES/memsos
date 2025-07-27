@@ -1,5 +1,5 @@
 use limine::request::{
-    ExecutableAddressRequest, FramebufferRequest, HhdmRequest, MemoryMapRequest, RsdpRequest
+    ExecutableAddressRequest, FramebufferRequest, HhdmRequest, MemoryMapRequest, RsdpRequest,
 };
 
 #[used]

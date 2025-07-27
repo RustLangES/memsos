@@ -40,7 +40,11 @@ fn run_march_c(reports: &mut Vec<MemoryReport>, entry: &Entry) {
     let mut errors = Vec::new();
 
     unsafe {
-        write_bytes(start as *mut u8, 0, usize::try_from(entry.length).expect("Len is invalid"));
+        write_bytes(
+            start as *mut u8,
+            0,
+            usize::try_from(entry.length).expect("Len is invalid"),
+        );
     }
 
     for addr in start..end {

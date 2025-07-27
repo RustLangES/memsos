@@ -8,7 +8,7 @@ pub fn enable_nmi() {
     unsafe {
         let tmp = cmos_port.read();
         cmos_port.write(tmp & 0x7F);
-        
+
         let mut tmp_port: Port<u8> = Port::new(0x71);
         tmp_port.read();
     }
