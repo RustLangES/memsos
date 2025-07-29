@@ -73,17 +73,25 @@ extern "C" fn kmain() -> ! {
     println!("Calibrating tsc...");
     calibrate_tsc();
 
+    restore_rtc();
+
     init_mem_module(entries);
 
     let mut reports = Vec::new();
 
-    load_memtest::<BitFade>(&mut reports);
+    //    load_memtest::<BitFade>(&mut reports);
 
-    //load_memtest::<ModuloN>(&mut reports);
+    load_memtest::<ModuloN>(&mut reports);
+
+    if reports.is_empty() {
+        println!("No reports found!");
+    } else {
+        for report in reports {
+            println!("{:?}", report);
+        }
+    }
 
     println!("It works!");
-
-    restore_rtc();
 
     #[allow(clippy::empty_loop)]
     loop {}

@@ -1,4 +1,5 @@
 # TODO: adapt this flake
+# TODO: sergio fix this pls
 {
   description = "Powered Hardware test tool written in Rust";
 

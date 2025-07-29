@@ -41,9 +41,9 @@ pub fn sleep(time: Duration) {
 }
 
 pub fn calibrate_tsc() {
-    let start = rdtsc();
     reset_rtc();
 
+    let start = rdtsc();
     sleep_rtc(5);
     let end = rdtsc();
 
