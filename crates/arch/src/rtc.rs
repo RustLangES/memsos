@@ -1,4 +1,5 @@
 use core::ops::Sub;
+use sync::Once;
 
 use x86_64::instructions::port::Port;
 
@@ -20,6 +21,7 @@ const CMOS_UPDATE_IN_PROGRESS_FLAG: u8 = 1 << 7;
 
 static mut COMMAND_PORT: Port<u8> = Port::new(CMOS_COMMAND_PORT);
 static mut DATA_PORT: Port<u8> = Port::new(CMOS_DATA_PORT);
+static RTC_BACKUP: Once<Time> = Once::new();
 
 // https://wiki.osdev.org/CMOS#Getting_Current_Date_and_Time_from_RTC
 #[derive(Debug, Clone)]

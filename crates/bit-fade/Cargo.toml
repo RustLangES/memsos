@@ -1,0 +1,10 @@
+[package]
+name = "bit-fade"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+commons.workspace = true
+arch.workspace  = true
+limine.workspace = true
+boot.workspace = true

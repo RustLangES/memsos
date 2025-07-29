@@ -20,6 +20,9 @@ impl<T> Once<T> {
             val: UnsafeCell::new(MaybeUninit::uninit()),
         }
     }
+    pub fn has_value(&self) -> bool {
+        self.is_set.load(Ordering::Relaxed)
+    }
     pub fn call_once<F>(&self, func: F)
     where
         F: FnOnce() -> T,
