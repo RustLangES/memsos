@@ -9,8 +9,7 @@ mod timer;
 use alloc::vec::Vec;
 use arch::hcf::hcf;
 use arch::rtc::{
-    Time, convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc,
-    sleep_rtc,
+    convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc, restore_rtc, sleep_rtc, Time
 };
 use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use commons::mem::{init_mem_module, load_memtest};
@@ -76,7 +75,7 @@ extern "C" fn kmain() -> ! {
 
     let time = Instant::now();
 
-    sleep(Duration::from_secs(10));
+    sleep(Duration::from_secs(3));
 
     println!("{}", time.elapsed().as_secs());
 
@@ -86,6 +85,9 @@ extern "C" fn kmain() -> ! {
 
     println!("It works!");
 
+         
+    restore_rtc();
+    
     #[allow(clippy::empty_loop)]
     loop {}
 }

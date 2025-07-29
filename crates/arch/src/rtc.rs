@@ -31,7 +31,28 @@ pub struct Time {
     pub hours: u8,
 }
 
+pub fn restore_rtc() {
+    let rtc_backup = RTC_BACKUP.clone();
+    let delay = Time::now();
+    let seconds = rtc_backup.seconds.wrapping_add(delay.seconds);
+    let minutes = rtc_backup.minutes.wrapping_add(delay.minutes);
+    let hours = rtc_backup.hours.wrapping_add(delay.hours);
+
+    while read_cmos_register(CMOS_STATUS_REGISTER_A) & CMOS_UPDATE_IN_PROGRESS_FLAG > 0 {
+        core::hint::spin_loop();
+    }
+
+    write_cmos_register(CMOS_SECOND_REGISTER, seconds);
+    write_cmos_register(CMOS_MINUTE_REGISTER, minutes);
+    write_cmos_register(CMOS_HOUR_REGISTER, hours);
+
+}
+
 pub fn reset_rtc() {
+    if !RTC_BACKUP.has_value() {
+       RTC_BACKUP.call_once(Time::now);
+    }
+
     while read_cmos_register(CMOS_STATUS_REGISTER_A) & CMOS_UPDATE_IN_PROGRESS_FLAG > 0 {
         core::hint::spin_loop();
     }
