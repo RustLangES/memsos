@@ -75,14 +75,18 @@ extern "C" fn kmain() -> ! {
 
     restore_rtc();
 
+    
+
     init_mem_module(entries);
 
     let mut reports = Vec::new();
 
-    //    load_memtest::<BitFade>(&mut reports);
-
+    let instant = Instant::now();
+    load_memtest::<BitFade>(&mut reports);
+    load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);
 
+    println!("{}", instant.to_timestamp());
     if reports.is_empty() {
         println!("No reports found!");
     } else {

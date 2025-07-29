@@ -45,12 +45,11 @@ pub fn restore_rtc() {
     write_cmos_register(CMOS_SECOND_REGISTER, seconds);
     write_cmos_register(CMOS_MINUTE_REGISTER, minutes);
     write_cmos_register(CMOS_HOUR_REGISTER, hours);
-
 }
 
 pub fn reset_rtc() {
     if !RTC_BACKUP.has_value() {
-       RTC_BACKUP.call_once(Time::now);
+        RTC_BACKUP.call_once(Time::now);
     }
 
     while read_cmos_register(CMOS_STATUS_REGISTER_A) & CMOS_UPDATE_IN_PROGRESS_FLAG > 0 {

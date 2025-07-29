@@ -3,7 +3,7 @@
 extern crate alloc;
 use alloc::vec::Vec;
 use boot::HIGHER_HALF_OFFSET;
-use commons::mem::{is_usable_memory, MemModule, MemoryError, MemoryMap, MemoryReport};
+use commons::mem::{MemModule, MemoryError, MemoryMap, MemoryReport, is_usable_memory};
 use core::{fmt::Write, ptr::write_bytes};
 use fb::println;
 use limine::memory_map::{Entry, EntryType};

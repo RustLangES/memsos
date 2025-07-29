@@ -7,14 +7,26 @@ use sync::Once;
 
 pub static TSC_TICKS_PER_MS: Once<u64> = Once::new();
 
+pub struct Timestamp {
+    pub minutes: u64,
+    pub seconds: u64,
+    pub hours: u64,
+}
+
+impl core::fmt::Display for Timestamp {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}:{}:{}", self.hours, self.minutes, self.seconds)
+    }
+}
+
 pub struct Instant {
-    start_tick: u64
+    start_tick: u64,
 }
 
 impl Instant {
     pub fn now() -> Self {
         Self {
-            start_tick: rdtsc()
+            start_tick: rdtsc(),
         }
     }
     pub fn elapsed(&self) -> Duration {
@@ -23,12 +35,32 @@ impl Instant {
 
         Duration::from_millis(elapsed_ms)
     }
+    pub fn to_timestamp(&self) -> Timestamp {
+        let mut seconds = self.elapsed().as_secs();
+        let mut minutes = 0;
+        let mut hours = 0;
+
+        if seconds >= 60 {
+            minutes = seconds / 60;
+            seconds = seconds % 60;
+        }
+
+        if minutes >= 60 {
+            hours = minutes / 60;
+            minutes = minutes % 60;
+        }
+
+        Timestamp {
+            minutes,
+            seconds,
+            hours,
+        }
+    }
 }
 
 pub fn sleep(time: Duration) {
     let ms = time.as_millis() as u64;
     let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
-    
 
     let mut tsc_ticks = rdtsc();
     let ticks_to_wait = relative_ticks_to_wait.wrapping_add(tsc_ticks);
@@ -37,7 +69,6 @@ pub fn sleep(time: Duration) {
         tsc_ticks = rdtsc();
         core::hint::spin_loop();
     }
-
 }
 
 pub fn calibrate_tsc() {
