@@ -1,7 +1,7 @@
 use core::time::Duration;
 
 use alloc::vec::Vec;
-use limine::memory_map::Entry;
+use limine::memory_map::{Entry, EntryType};
 use sync::Once;
 use core::fmt::Write;
 use fb::println;
@@ -43,4 +43,9 @@ pub fn load_memtest<T: MemModule>(reports: &mut Vec<MemoryReport>) {
     println!("Running test {}", T::NAME);
     let mut test = T::init(*MEMORY_MAP);
     test.run(reports);
+}
+
+
+pub fn is_usable_memory(entry: &Entry) -> bool {
+    entry.entry_type == EntryType::USABLE
 }

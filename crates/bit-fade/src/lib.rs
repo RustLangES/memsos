@@ -7,7 +7,7 @@ use core::{ptr::write_bytes, time::Duration};
 use alloc::vec::Vec;
 use arch::tsc::sleep;
 use boot::HIGHER_HALF_OFFSET;
-use commons::mem::{MemModule, MemoryError, MemoryMap, MemoryReport};
+use commons::mem::{is_usable_memory, MemModule, MemoryError, MemoryMap, MemoryReport};
 use limine::memory_map::{Entry, EntryType};
 
 const PATTERN_A: u8 = 0b000_101_011;
@@ -34,7 +34,7 @@ impl MemModule for BitFade {
 
     fn run(&mut self, reports: &mut Vec<MemoryReport>) {
        for entry in self.mem_map {
-            if entry.entry_type == EntryType::USABLE {
+            if is_usable_memory(entry) {
                 run_bit_fade(entry, TIME_A, PATTERN_A, reports);
                 run_bit_fade(entry, TIME_B, PATTERN_B, reports);
                 run_bit_fade(entry, TIME_C, PATTERN_C, reports);

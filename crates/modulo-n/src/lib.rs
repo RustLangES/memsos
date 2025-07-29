@@ -3,7 +3,7 @@
 extern crate alloc;
 use alloc::vec::Vec;
 use boot::HIGHER_HALF_OFFSET;
-use commons::mem::{MemModule, MemoryError, MemoryMap, MemoryReport};
+use commons::mem::{is_usable_memory, MemModule, MemoryError, MemoryMap, MemoryReport};
 use limine::memory_map::{Entry, EntryType};
 
 const PATTERN_A: u8 = 0xAA;
@@ -24,7 +24,7 @@ impl MemModule for ModuloN {
     }
     fn run(&mut self, reports: &mut Vec<MemoryReport>) {
         for entry in self.mem_map {
-            if entry.entry_type == EntryType::USABLE {
+            if is_usable_memory(entry) {
                 for offset in 0..N {
                     run_modulo_n(offset, entry, reports);
                 }

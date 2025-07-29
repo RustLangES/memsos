@@ -3,7 +3,7 @@
 extern crate alloc;
 use alloc::vec::Vec;
 use boot::HIGHER_HALF_OFFSET;
-use commons::mem::{MemModule, MemoryError, MemoryMap, MemoryReport};
+use commons::mem::{is_usable_memory, MemModule, MemoryError, MemoryMap, MemoryReport};
 use core::{fmt::Write, ptr::write_bytes};
 use fb::println;
 use limine::memory_map::{Entry, EntryType};
@@ -23,7 +23,7 @@ impl MemModule for MarchC {
 
     fn run(&mut self, reports: &mut Vec<MemoryReport>) {
         for entry in self.mem_map {
-            if entry.entry_type == EntryType::USABLE {
+            if is_usable_memory(entry) {
                 run_march_c(reports, &entry);
             }
         }
