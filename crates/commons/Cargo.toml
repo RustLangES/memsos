@@ -7,3 +7,4 @@ edition = "2024"
 boot.workspace = true
 limine.workspace = true
 sync.workspace = true
+fb.workspace = true

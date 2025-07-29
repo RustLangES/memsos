@@ -13,6 +13,7 @@ modulo-n.workspace = true
 arch.workspace = true
 lazy_static = { version = "1.5.0", default-features = false, features = ["spin_no_std"] }
 limine = "0.5.0"
+bit-fade.workspace = true
 linked_list_allocator = "0.10.5"
 x86_64.workspace = true
 acpi_parser = { package = "acpi", version = "4.1.1" }

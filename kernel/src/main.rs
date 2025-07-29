@@ -9,9 +9,11 @@ mod timer;
 use alloc::vec::Vec;
 use arch::hcf::hcf;
 use arch::rtc::{
-    convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc, restore_rtc, sleep_rtc, Time
+    Time, convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc,
+    restore_rtc, sleep_rtc,
 };
 use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
+use bit_fade::BitFade;
 use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
 use core::time::Duration;
@@ -73,21 +75,16 @@ extern "C" fn kmain() -> ! {
 
     init_mem_module(entries);
 
-    let time = Instant::now();
+    let mut reports = Vec::new();
 
-    sleep(Duration::from_secs(3));
-
-    println!("{}", time.elapsed().as_secs());
-
-    //let mut reports = Vec::new();
+    load_memtest::<BitFade>(&mut reports);
 
     //load_memtest::<ModuloN>(&mut reports);
 
     println!("It works!");
 
-         
     restore_rtc();
-    
+
     #[allow(clippy::empty_loop)]
     loop {}
 }

@@ -1,6 +1,10 @@
+use core::time::Duration;
+
 use alloc::vec::Vec;
 use limine::memory_map::Entry;
 use sync::Once;
+use core::fmt::Write;
+use fb::println;
 
 pub type MemoryMap = &'static [&'static Entry];
 
@@ -22,6 +26,7 @@ pub trait MemModule {
 #[derive(Debug)]
 pub enum MemoryError {
     StuckAt,
+    BitFade(Duration),
 }
 
 #[derive(Debug)]
@@ -35,6 +40,7 @@ pub fn init_mem_module(memory: MemoryMap) {
 }
 
 pub fn load_memtest<T: MemModule>(reports: &mut Vec<MemoryReport>) {
+    println!("Running test {}", T::NAME);
     let mut test = T::init(*MEMORY_MAP);
     test.run(reports);
 }
