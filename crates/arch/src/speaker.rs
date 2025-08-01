@@ -1,4 +1,8 @@
+use core::time::Duration;
+
 use x86_64::instructions::port::Port;
+
+use crate::tsc::sleep;
 
 pub fn play_sound(frequence: u32) {
     let div: u32 = 1193180 / frequence;
@@ -32,5 +36,7 @@ pub fn stop_sound() {
 }
 
 pub fn beep() {
-    // TODO: implement a sleep fn to make beep fn
+    play_sound(1000);
+    sleep(Duration::from_secs_f32(0.2));
+    stop_sound();
 }

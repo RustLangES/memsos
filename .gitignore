@@ -2,7 +2,7 @@ kernel/kernel
 kernel/kernel.sym
 gdb.txt
 dist/
-/target
+target
 /result
 memfile
 memsos-x86_64.img

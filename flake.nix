@@ -274,37 +274,14 @@
             default = mkDevShell {
               name = "x86_64";
               arch = "x86_64";
-              target = "x86_64-unknown-uefi";
+              target = "x86_64-unknown-none";
             };
           };
 
         formatter = pkgs.alejandra;
 
         packages =
-          (lib.listToAttrs (map ({name, ...} @ args: {
-              inherit name;
-              value = mkPackage args;
-            })
-            architectures))
-          // (lib.listToAttrs (lib.concatMap (lang:
-            map ({name, ...} @ args: {
-              name = "${name}-${lang}";
-              value = mkPackage (args // {inherit lang;});
-            })
-            architectures)
-          languages))
-          // (lib.listToAttrs (lib.concatMap (lang:
-            map ({name, ...} @ args: {
-              name = "${name}-${lang}-debug";
-              value = mkPackage (args
-                // {
-                  inherit lang;
-                  debug_symbols = true;
-                });
-            })
-            architectures)
-          languages))
-          // {
+   	 {
             # Default Package
             default = mkPackage {
               name = "x86_64";

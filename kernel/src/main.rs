@@ -12,6 +12,7 @@ use arch::rtc::{
     Time, convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc,
     restore_rtc, sleep_rtc,
 };
+use arch::speaker::beep;
 use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use bit_fade::BitFade;
 use commons::mem::{init_mem_module, load_memtest};
@@ -75,12 +76,11 @@ extern "C" fn kmain() -> ! {
 
     restore_rtc();
 
-    
-
     init_mem_module(entries);
 
     let mut reports = Vec::new();
 
+    beep();
     let instant = Instant::now();
     load_memtest::<BitFade>(&mut reports);
     load_memtest::<MarchC>(&mut reports);
