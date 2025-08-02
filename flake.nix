@@ -41,7 +41,7 @@
           if os == "darwin"
           then "${arch}-apple-darwin"
           else if os == "linux"
-          then "${arch}-unknown-linux-gnu"
+          then "${arch}-unknown-none"
           else throw "Unsupported system: ${system}";
 
         hostTarget = systemToTarget system;
@@ -50,9 +50,6 @@
             targets = [hostTarget target];
           };
         craneLib = target: (crane.mkLib pkgs).overrideToolchain (toolchain target);
-
-        langFiles = builtins.attrNames (lib.filterAttrs (name: _: lib.hasSuffix ".json" name) (builtins.readDir ./crates/lang/defs));
-        languages = map (file: lib.removeSuffix ".UTF-8.json" file) langFiles;
 
         architectures = import ./strategies.nix;
 
@@ -190,8 +187,7 @@
         listApps = pkgs.writeShellScriptBin "list-apps" ''
           echo "Available apps/packages:"
           ${lib.concatMapStringsSep "\n" ({name, ...}: ''echo "  - ${name}"'') architectures}
-          ${lib.concatMapStringsSep "\n" (lang: lib.concatMapStringsSep "\n" ({name, ...}: ''echo "  - ${name}-${lang}"'') architectures) languages}
-          ${lib.concatMapStringsSep "\n" (lang: lib.concatMapStringsSep "\n" ({name, ...}: ''echo "  - ${name}-${lang}-debug"'') architectures) languages}
+          ${lib.concatMapStringsSep "\n" ({name, ...}: ''echo "  - ${name}-debug"'') architectures}
         '';
 
         helpApp = pkgs.writeShellScriptBin "help" ''
@@ -214,10 +210,6 @@
           echo ""
           echo -e "\033[0;35mAvailable architectures:\033[0m"
           ${lib.concatMapStringsSep "\n" ({arch, ...}: ''echo "  - ${arch}"'') architectures}
-
-          echo ""
-          echo -e "\033[0;36mAvailable languages:\033[0m"
-          ${lib.concatMapStringsSep "\n" (lang: ''echo "  - ${lang}"'') languages}
         '';
 
         hook = hooks.run {
@@ -278,24 +270,19 @@
               value = mkPackage args;
             })
             architectures))
-          // (lib.listToAttrs (lib.concatMap (lang:
-            map ({name, ...} @ args: {
-              name = "${name}-${lang}";
-              value = mkPackage (args // {inherit lang;});
-            })
-            architectures)
-          languages))
-          // (lib.listToAttrs (lib.concatMap (lang:
-            map ({name, ...} @ args: {
-              name = "${name}-${lang}-debug";
-              value = mkPackage (args
-                // {
-                  inherit lang;
-                  debug_symbols = true;
-                });
-            })
-            architectures)
-          languages))
+          // (lib.listToAttrs (map ({name, ...} @ args: {
+            name = "${name}";
+            value = mkPackage args;
+          })
+          architectures))
+          // (lib.listToAttrs (map ({name, ...} @ args: {
+            name = "${name}-debug";
+            value = mkPackage (args
+              // {
+                debug_symbols = true;
+              });
+          })
+          architectures))
           // {
             # Default Package
             default = mkPackage {
@@ -306,64 +293,57 @@
           };
 
         apps =
-          (lib.listToAttrs (lib.concatMap (lang:
-            map ({
-                arch,
-                name,
-                target,
-                ...
-              } @ args: let
-                pkg = mkPackage (args // {inherit lang;});
-                run = pkgs.writeShellScriptBin "run-${name}-${lang}" ''
-                  ${pkgs.qemu}/bin/qemu-system-${arch} \
-                    -cdrom ${pkg}/memsos-${name}-${lang}.iso \
-                    -M q35 \
-                    -no-reboot \
-                    -no-shutdown \
-                    -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
-                    -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
-                    -d int
-                '';
-              in {
-                name = "${name}-${lang}";
-                value = {
-                  type = "app";
-                  program = "${run}/bin/run-${name}-${lang}";
-                };
-              })
-            architectures)
-          languages))
-          // (lib.listToAttrs (lib.concatMap (lang:
-            map ({
-                arch,
-                name,
-                target,
-                ...
-              } @ args: let
-                pkg = mkPackage (args
-                  // {
-                    inherit lang;
-                    debug_symbols = true;
-                  });
-                run = pkgs.writeShellScriptBin "run-${name}-${lang}-debug" ''
-                  ${pkgs.qemu}/bin/qemu-system-${arch} \
-                    -cdrom ${pkg}/memsos-${name}-${lang}-debug.iso \
-                    -M q35 \
-                    -no-reboot \
-                    -no-shutdown \
-                    -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
-                    -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
-                    -d int
-                '';
-              in {
-                name = "${name}-${lang}-debug";
-                value = {
-                  type = "app";
-                  program = "${run}/bin/run-${name}-${lang}-debug";
-                };
-              })
-            architectures)
-          languages))
+          (lib.listToAttrs (map ({
+              arch,
+              name,
+              ...
+            } @ args: let
+              pkg = mkPackage args;
+              run = pkgs.writeShellScriptBin "run-${name}" ''
+                ${pkgs.qemu}/bin/qemu-system-${arch} \
+                  -cdrom ${pkg}/memsos-${name}.iso \
+                  -M q35 \
+                  -no-reboot \
+                  -no-shutdown \
+                  -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
+                  -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
+                  -d int
+              '';
+            in {
+              name = "${name}";
+              value = {
+                type = "app";
+                program = "${run}/bin/run-${name}";
+              };
+            })
+          architectures))
+          // (lib.listToAttrs (map ({
+              arch,
+              name,
+              ...
+            } @ args: let
+              pkg = mkPackage (args
+                // {
+                  debug_symbols = true;
+                });
+              run = pkgs.writeShellScriptBin "run-${name}-debug" ''
+                ${pkgs.qemu}/bin/qemu-system-${arch} \
+                  -cdrom ${pkg}/memsos-${name}-debug.iso \
+                  -M q35 \
+                  -no-reboot \
+                  -no-shutdown \
+                  -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
+                  -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
+                  -d int
+              '';
+            in {
+              name = "${name}-debug";
+              value = {
+                type = "app";
+                program = "${run}/bin/run-${name}-debug";
+              };
+            })
+          architectures))
           // {
             list = {
               type = "app";

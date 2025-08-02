@@ -1,5 +1,4 @@
 [toolchain]
 channel = "nightly"
-components = [ "rust-src", "rust-std", "rustc", "cargo" ]
-targets = [ "x86_64-unknown-none" ]
-
+components = ["rust-src", "rust-std", "rustc", "cargo", "rustfmt", "clippy"]
+targets = ["x86_64-unknown-none"]
