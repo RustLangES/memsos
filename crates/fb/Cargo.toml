@@ -1,0 +1,9 @@
+[package]
+name = "fb"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+boot.workspace = true
+limine.workspace = true
+noto-sans-mono-bitmap = "0.3.1"

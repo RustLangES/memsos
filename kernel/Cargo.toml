@@ -1,13 +1,20 @@
 [package]
 name = "kernel"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-os = { path = "../crates/os" }
-memsos_core = { path = "../crates/core" }
-interrupt = { path = "../crates/interrupt" }
-heapless = "0.8.0"
-limine = "0.3.1"
-lang = { path = "../crates/lang" }
-
+fb.workspace = true
+boot.workspace = true
+sync.workspace = true
+commons.workspace = true
+march-c.workspace = true
+modulo-n.workspace = true
+arch.workspace = true
+lazy_static = { version = "1.5.0", default-features = false, features = ["spin_no_std"] }
+limine = "0.5.0"
+bit-fade.workspace = true
+linked_list_allocator = "0.10.5"
+x86_64.workspace = true
+acpi_parser = { package = "acpi", version = "4.1.1" }
+spin = "0.10.0"

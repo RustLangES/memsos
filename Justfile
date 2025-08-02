@@ -1,30 +1,18 @@
-# Arch: x86_64, aarch64, riscv64
-ARCH := env("ARCH", "x86_64")
-RUST_TARGET := env("RUST_TARGET", "x86_64-unknown-none")
-IMAGE_NAME := env("IMAGE_NAME", "memsos_" + ARCH)
-QEMU_FLAGS := env("QEMU_FLAGS", "")
+QEMU_FLAGS :=  env_var_or_default("QEMU_FLAGS", "")
+IMAGE_NAME := "memsos-x86_64"
 OVMF_DIR := "ovmf"
 LIMINE_DIR := "limine"
-
-# UEFI prefix from ARCH
-UEFI_SUFFIX := `\
-  if [ "{{ARCH}}" = "x86_64" ]; then \
-    echo "X64"; \
-  elif [ "{{ARCH}}" = "aarch64" ]; then \
-    echo "AA64"; \
-  elif [ "{{ARCH}}" = "riscv64" ]; then \
-    echo "RISCV64"; \
-  else \
-    echo "IA32"; \
-  fi`
+ARCH := "x86_64"
 
 # Run vm
+
 run-uefi: build ovmf
   qemu-system-{{ARCH}} \
     -M q35 \
     -no-reboot \
     -no-shutdown \
     -d int \
+    -rtc base=localtime,clock=host \
     -drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-{{ARCH}}.fd,readonly=on \
     -drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-{{ARCH}}.fd \
     -cdrom {{IMAGE_NAME}}.iso \
@@ -32,9 +20,39 @@ run-uefi: build ovmf
 
 run-bios: build
   qemu-system-{{ARCH}} \
-    -M pc-q35-9.2  \
+    -M q35 \
     -cdrom {{IMAGE_NAME}}.iso \
     -d int \
+    -no-reboot \
+    -rtc base=localtime,clock=host \
+    -no-shutdown \
+    -boot d \
+    {{QEMU_FLAGS}}
+
+run-sound:
+  QEMU_FLAGS="-audiodev pa,id=snd0 -machine pcspk-audiodev=snd0" just
+
+
+run-debug-uefi: build ovmf
+  qemu-system-{{ARCH}} \
+    -M q35 \
+    -no-reboot \
+    -no-shutdown \
+    -d int \
+    -s \
+    -S \
+    -drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-{{ARCH}}.fd,readonly=on \
+    -drive if=pflash,unit=1,format=raw,file=ovmf/ovmf-vars-{{ARCH}}.fd \
+    -cdrom {{IMAGE_NAME}}.iso \
+    {{QEMU_FLAGS}}
+
+run-debug-bios: build
+  qemu-system-{{ARCH}} \
+    -M q35 \
+    -cdrom {{IMAGE_NAME}}.iso \
+    -d int \
+    -s \
+    -S \
     -no-reboot \
     -no-shutdown \
     -boot d \
@@ -42,39 +60,42 @@ run-bios: build
 
 
 # OVMF build
+
 ovmf:
     test -d {{OVMF_DIR}} || (mkdir -p {{OVMF_DIR}} && curl -Lo {{OVMF_DIR}}/ovmf-code-{{ARCH}}.fd https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-{{ARCH}}.fd &&  curl -Lo {{OVMF_DIR}}/ovmf-vars-{{ARCH}}.fd https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-vars-{{ARCH}}.fd)
 
 # Limine (bootloader) build
 
 limine:
-  test -d {{LIMINE_DIR}} || git clone https://github.com/limine-bootloader/limine.git --branch=v8.x-binary --depth=1
+  test -d {{LIMINE_DIR}} || git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1
   make -C {{LIMINE_DIR}}
 
 # Kernel build
+
 kernel:
-  echo $LANG
   just kernel/
 
 
 # Image build
+
 build: limine kernel
   rm -rf iso_root
   mkdir -p iso_root/boot
   cp -v kernel/kernel iso_root/boot/
   mkdir -p iso_root/boot/limine
   cp -v limine.conf iso_root/boot/limine/
-  mkdir -p iso_root/EFI/BOOT
+  mkdir -p iso_root/EFI/BOOT 
 
   cp -v limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/boot/limine/
-  cp -v limine/BOOT{{UEFI_SUFFIX}}.EFI iso_root/EFI/BOOT/
+  cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
+  cp -v limine/BOOTIA32.EFI iso_root/EFI/BOOT/
   xorriso -as mkisofs -b boot/limine/limine-bios-cd.bin \
     -no-emul-boot -boot-load-size 4 -boot-info-table \
     --efi-boot boot/limine/limine-uefi-cd.bin \
     -efi-boot-part --efi-boot-image --protective-msdos-label \
     iso_root -o {{IMAGE_NAME}}.iso
-
-  ./limine/limine bios-install {{IMAGE_NAME}}.iso
+ 
+  ./limine/limine bios-install {{IMAGE_NAME}}.iso 
   rm -rf iso_root
 
 clean:
@@ -83,21 +104,9 @@ clean:
   rm -rf limine ovmf
 
 format:
-  cargo fmt --all -p kernel
+  just kernel/ format
 
 clippy:
-  cargo clippy -p kernel
+  just kernel/ clippy
 
 default: run-uefi
-
-lint:
-	cargo clippy --all-targets --all-features -- -D warnings
-
-fmt:
-	cargo fmt --all -- --check
-
-fmt-fix:
-	cargo fmt
-
-test:
-	cargo test

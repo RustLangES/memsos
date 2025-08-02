@@ -1,20 +1,21 @@
-[package]
-name = "memsos-boot"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-ovmf-prebuilt = "0.1.0-alpha.1"
-
 [workspace]
-members = ["crates/core", "crates/interrupt", "crates/lang", "crates/os", "kernel"]
+resolver = '2'
+members = [ "memsos", "kernel" , "crates/commons", "crates/sync", "crates/march-c", "crates/fb", "crates/boot", "crates/modulo-n", "crates/arch", "crates/bit-fade"]
+
+[workspace.dependencies]
+commons.path = "./crates/commons"
+sync.path = "./crates/sync"
+march-c.path = "./crates/march-c"
+fb.path = "./crates/fb"
+boot.path = "./crates/boot"
+modulo-n.path = "./crates/modulo-n"
+bit-fade.path = "./crates/bit-fade"
+arch.path = "./crates/arch"
+limine = "0.5.0"
+x86_64 = { version = "0.15.2", default-features = false, features = ["instructions", "const_fn", "abi_x86_interrupt", "asm_const"] }
+
+[profile.dev]
+panic = "abort"
 
 [profile.release]
-opt-level = 0
-debug = false
-codegen-units = 1
-lto = false
-panic = 'unwind'
-incremental = false
-overflow-checks = true
-
+panic = "abort"

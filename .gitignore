@@ -1,11 +1,15 @@
 kernel/kernel
 kernel/kernel.sym
-/target
+gdb.txt
+dist/
+target
 /result
 memfile
+memsos-x86_64.img
 limine
 iso_root
 ovmf
 memsos*.iso
 crates/lang/src/lang_info.rs
 /.pre-commit-config.yaml
+

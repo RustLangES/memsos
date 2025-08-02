@@ -1,0 +1,9 @@
+[package]
+name = "arch"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+x86_64.workspace = true
+sync.workspace = true
+fb.workspace = true
