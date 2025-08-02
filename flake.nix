@@ -1,5 +1,3 @@
-# TODO: adapt this flake
-# TODO: sergio fix this pls
 {
   description = "Powered Hardware test tool written in Rust";
 
@@ -56,13 +54,7 @@
         langFiles = builtins.attrNames (lib.filterAttrs (name: _: lib.hasSuffix ".json" name) (builtins.readDir ./crates/lang/defs));
         languages = map (file: lib.removeSuffix ".UTF-8.json" file) langFiles;
 
-        architectures = [
-          {
-            arch = "x86_64";
-            name = "x86_64";
-            target = "x86_64-unknown-uefi";
-          } 
-        ];
+        architectures = import ./strategies.nix;
 
         mkDevShell = {
           name,
@@ -70,7 +62,7 @@
           ...
         }:
           (craneLib target).devShell {
-            packages = with pkgs; [qemu gptfdisk just libisoburn];
+            packages = with pkgs; [qemu just libisoburn];
             buildInputs = hook.enabledPackages;
             shellHook = ''
               echo "DevShell for ${name} (${target})"
@@ -133,7 +125,7 @@
             };
             doCheck = false;
             cargoBuildCommand =
-              "cargo build --target ${target} -p memsos"
+              "cargo build --target ${target} -p kernel"
               + (
                 if (!debug_symbols)
                 then " --release"
@@ -145,7 +137,7 @@
             "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.llvmPackages.lld}/bin/ld.lld";
             "CARGO_TARGET_${target_name}_RUNNER" = "qemu-${arch}";
 
-            nativeBuildInputs = with pkgs; [gptfdisk];
+            nativeBuildInputs = with pkgs; [gnumake xorriso];
             LANG = "${lang}.UTF-8";
 
             postInstall = ''
@@ -246,7 +238,7 @@
               };
             };
             clippy = {
-              enable = false;
+              enable = true;
               # settings = {
               #   denyWarnings = true;
               #   extraArgs = "-Zbuild-std --workspace";
@@ -281,7 +273,30 @@
         formatter = pkgs.alejandra;
 
         packages =
-   	 {
+          (lib.listToAttrs (map ({name, ...} @ args: {
+              inherit name;
+              value = mkPackage args;
+            })
+            architectures))
+          // (lib.listToAttrs (lib.concatMap (lang:
+            map ({name, ...} @ args: {
+              name = "${name}-${lang}";
+              value = mkPackage (args // {inherit lang;});
+            })
+            architectures)
+          languages))
+          // (lib.listToAttrs (lib.concatMap (lang:
+            map ({name, ...} @ args: {
+              name = "${name}-${lang}-debug";
+              value = mkPackage (args
+                // {
+                  inherit lang;
+                  debug_symbols = true;
+                });
+            })
+            architectures)
+          languages))
+          // {
             # Default Package
             default = mkPackage {
               name = "x86_64";
