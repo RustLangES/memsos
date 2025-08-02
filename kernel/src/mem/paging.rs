@@ -57,6 +57,7 @@ pub fn map<P: PageSize + core::fmt::Debug>(
 }
 
 // based from https://github.com/anubis-rs/xernel/blob/main/kernel/src/mem/paging.rs#L177
+#[allow(clippy::similar_names)]
 pub fn map_range(
     phys: PhysAddr,
     virt: VirtAddr,
@@ -66,8 +67,9 @@ pub fn map_range(
 ) {
     assert!(u16::from(virt.page_offset()) == 0);
     assert!(phys.is_aligned(Size4KiB::SIZE));
+    let size = usize::try_from(Size4KiB::SIZE).unwrap();
 
-    let aligned_amount = align_up(amount, Size4KiB::SIZE as usize);
+    let aligned_amount = align_up(amount, size);
     let mut offset = 0;
 
     let pages_4kb = (virt.align_up(Size2MiB::SIZE).as_u64() - virt.as_u64()) / Size4KiB::SIZE;
@@ -100,8 +102,7 @@ pub fn map_range(
         offset += Size2MiB::SIZE;
     }
 
-    let pages_4kb = align_up(aligned_amount - offset as usize, Size4KiB::SIZE as usize)
-        / Size4KiB::SIZE as usize;
+    let pages_4kb = align_up(aligned_amount - usize::try_from(offset).unwrap(), size) / size;
 
     for _ in 0..pages_4kb {
         map::<Size4KiB>(
@@ -127,6 +128,6 @@ fn get_page_table(virt_addr: VirtAddr) -> &'static mut PageTable {
     unsafe { &mut *(virt as *mut PageTable) }
 }
 
-pub fn align_up(addr: usize, align: usize) -> usize {
+fn align_up(addr: usize, align: usize) -> usize {
     (addr + align - 1) & !(align - 1)
 }

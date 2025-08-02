@@ -4,7 +4,7 @@
 
 mod idt;
 mod mem;
-mod timer;
+//mod timer;
 
 use alloc::vec::Vec;
 use arch::hcf::hcf;
@@ -17,7 +17,6 @@ use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use bit_fade::BitFade;
 use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
-use core::time::Duration;
 use fb::println;
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
@@ -28,7 +27,7 @@ use modulo_n::ModuloN;
 use crate::idt::init_idt;
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::{get_kernel_map, init_page_map};
-use crate::timer::lapic::LocalApic;
+
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
 use fb::init_writer;
@@ -74,13 +73,14 @@ extern "C" fn kmain() -> ! {
     println!("Calibrating tsc...");
     calibrate_tsc();
 
+    beep();
+
     restore_rtc();
 
     init_mem_module(entries);
 
     let mut reports = Vec::new();
 
-    beep();
     let instant = Instant::now();
     load_memtest::<BitFade>(&mut reports);
     load_memtest::<MarchC>(&mut reports);
@@ -95,10 +95,10 @@ extern "C" fn kmain() -> ! {
         }
     }
 
+    beep();
     println!("It works!");
 
-    #[allow(clippy::empty_loop)]
-    loop {}
+    hcf();
 }
 
 #[panic_handler]

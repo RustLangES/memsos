@@ -12,14 +12,14 @@ pub const CMOS_SECOND_REGISTER: u8 = 0x0;
 pub const CMOS_MINUTE_REGISTER: u8 = 0x02;
 pub const CMOS_HOUR_REGISTER: u8 = 0x04;
 
-const CMOS_COMMAND_PORT: u16 = 0x70;
+//const CMOS_COMMAND_PORT: u16 = 0x70;
 const CMOS_STATUS_REGISTER_A: u8 = 0x0A;
 const CMOS_STATUS_REGISTER_B: u8 = 0x0B;
 const CMOS_DATA_PORT: u16 = 0x71;
 const CMOS_BINARY_FORMAT_FLAG: u8 = 1 << 2;
 const CMOS_UPDATE_IN_PROGRESS_FLAG: u8 = 1 << 7;
 
-static mut COMMAND_PORT: Port<u8> = Port::new(CMOS_COMMAND_PORT);
+//static mut COMMAND_PORT: Port<u8> = Port::new(CMOS_COMMAND_PORT);
 static mut DATA_PORT: Port<u8> = Port::new(CMOS_DATA_PORT);
 static RTC_BACKUP: Once<Time> = Once::new();
 
@@ -81,6 +81,7 @@ pub fn sleep_rtc(wait: u8) {
 }
 
 impl Time {
+    #[must_use]
     pub fn now() -> Self {
         while read_cmos_register(CMOS_STATUS_REGISTER_A) & CMOS_UPDATE_IN_PROGRESS_FLAG > 0 {
             core::hint::spin_loop();
@@ -96,6 +97,7 @@ impl Time {
             hours,
         }
     }
+    #[must_use]
     pub fn elapsed(self) -> Self {
         let end = Self::now();
 
@@ -115,6 +117,7 @@ impl Sub for Time {
     }
 }
 
+#[must_use]
 pub fn read_datetime_reg(reg: u8) -> u8 {
     let val = read_cmos_register(reg);
 
@@ -125,6 +128,7 @@ pub fn read_datetime_reg(reg: u8) -> u8 {
     }
 }
 
+#[must_use]
 pub fn read_cmos_register(register: u8) -> u8 {
     unsafe {
         cli();
@@ -135,7 +139,7 @@ pub fn read_cmos_register(register: u8) -> u8 {
         enable_nmi();
         sti();
 
-        port.clone()
+        *port
     }
 }
 
@@ -145,21 +149,24 @@ pub fn write_cmos_register(register: u8, value: u8) {
         disable_nmi(register);
 
         #[allow(static_mut_refs)]
-        let _ = &mut DATA_PORT.write(value);
+        let () = &mut DATA_PORT.write(value);
 
         enable_nmi();
         sti();
     }
 }
 
+#[must_use]
 pub fn get_cmos_format() -> u8 {
     read_cmos_register(CMOS_STATUS_REGISTER_B)
 }
 
+#[must_use]
 pub const fn is_binary_format(cmos_format: u8) -> bool {
     cmos_format & CMOS_BINARY_FORMAT_FLAG > 0
 }
 
+#[must_use]
 pub const fn convert_bcd_value(bcd: u8) -> u8 {
     ((bcd & 0xF0) >> 1) + ((bcd & 0xF0) >> 3) + (bcd & 0xf)
 }

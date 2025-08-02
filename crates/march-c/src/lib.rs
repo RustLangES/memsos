@@ -24,7 +24,7 @@ impl MemModule for MarchC {
     fn run(&mut self, reports: &mut Vec<MemoryReport>) {
         for entry in self.mem_map {
             if is_usable_memory(entry) {
-                run_march_c(reports, &entry);
+                run_march_c(reports, entry);
             }
         }
     }

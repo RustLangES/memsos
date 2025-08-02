@@ -45,6 +45,7 @@ pub fn load_memtest<T: MemModule>(reports: &mut Vec<MemoryReport>) {
     test.run(reports);
 }
 
+#[must_use]
 pub fn is_usable_memory(entry: &Entry) -> bool {
     entry.entry_type == EntryType::USABLE
 }

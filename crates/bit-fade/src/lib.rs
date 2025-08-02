@@ -48,7 +48,7 @@ fn run_bit_fade(mem: &Entry, sleep_time: Duration, pattern: u8, reports: &mut Ve
     let end = start + mem.length;
     let base = start as *mut u8;
     unsafe {
-        write_bytes(base, pattern, mem.length as usize);
+        write_bytes(base, pattern, usize::try_from(mem.length).unwrap());
     }
 
     sleep(sleep_time);
