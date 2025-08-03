@@ -11,6 +11,7 @@ lazy_static! {
     static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
         idt.page_fault.set_handler_fn(page_fault_handler);
+        idt.invalid_opcode.set_handler_fn(invalid_opcode);
 
         idt
     };
@@ -18,6 +19,10 @@ lazy_static! {
 
 pub fn init_idt() {
     IDT.load();
+}
+
+extern "x86-interrupt" fn invalid_opcode(stack_frame: InterruptStackFrame) {
+    panic!("Invalid opcode!\n{:?}", stack_frame);
 }
 
 extern "x86-interrupt" fn page_fault_handler(
