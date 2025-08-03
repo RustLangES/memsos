@@ -1,5 +1,6 @@
 #![no_std]
 
+pub mod cpuid;
 pub mod hcf;
 pub mod interrupt;
 pub mod msr;

@@ -7,6 +7,7 @@ mod mem;
 //mod timer;
 
 use alloc::vec::Vec;
+use arch::cpuid::CpuVendor;
 use arch::hcf::hcf;
 use arch::rtc::{
     Time, convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc,
