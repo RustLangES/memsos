@@ -7,7 +7,7 @@ mod mem;
 //mod timer;
 
 use alloc::vec::Vec;
-use arch::cpuid::CpuVendor;
+use arch::cpuid::{CpuInfo, CpuVendor};
 use arch::hcf::hcf;
 use arch::rtc::{
     Time, convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc,
@@ -74,7 +74,8 @@ extern "C" fn kmain() -> ! {
     println!("Calibrating tsc...");
     calibrate_tsc();
 
-    beep();
+    let cpuinfo = CpuInfo::new();
+    println!("{:?}", cpuinfo);
 
     restore_rtc();
 

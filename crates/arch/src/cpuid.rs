@@ -10,8 +10,8 @@ macro_rules! make_vendor_enum {
             Unknown
         }
 
-        impl From<&'static str> for CpuVendor {
-            fn from(value: &'static str) -> Self {
+        impl<'a> From<&'a str> for CpuVendor {
+            fn from(value: &'a str) -> Self {
                 match value {
                     $(
                         $val => Self::$arg,
@@ -54,9 +54,47 @@ make_vendor_enum! {
     HyperV, "Microsoft Hv"
 }
 
-pub fn check_feature(feature: CpuFeature, val: u32) -> bool {
+#[derive(Debug)]
+pub struct CpuInfo {
+    pub vendor: CpuVendor,
+    pub x2apic_supported: bool,
+    //pub tsc_supported: bool,
+    //pub msr_supported: bool,
+}
+
+impl CpuInfo {
+    // Note: if the computer does not support cpuid, this will generate an invalid opcode fault.
+    pub fn new() -> Self {
+        let ecx = cpuid(1).ecx;
+        CpuInfo {
+            vendor: get_vendor(),
+            x2apic_supported: check_feature(CpuFeature::X2Apic, ecx),
+        }
+    }
+}
+
+pub fn get_vendor() -> CpuVendor {
+    let result = cpuid(0);
+
+    let vendor = [result.ebx, result.edx, result.ecx];
+
+    let bytes1 = vendor[0].to_ne_bytes();
+    let bytes2 = vendor[1].to_ne_bytes();
+    let bytes3 = vendor[2].to_ne_bytes();
+
+    let mut combined = [0u8; 12];
+    combined[..4].copy_from_slice(&bytes1);
+    combined[4..8].copy_from_slice(&bytes2);
+    combined[8..12].copy_from_slice(&bytes3);
+
+    let s = core::str::from_utf8(&combined).unwrap();
+
+    CpuVendor::from(s)
+}
+
+pub fn check_feature(feature: CpuFeature, bit: u32) -> bool {
     let f = feature as u32;
-    (val & f) != 0
+    (bit & f) != 0
 }
 
 fn cpuid(eax: u32) -> CpuidResult {
