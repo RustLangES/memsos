@@ -30,6 +30,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
       - name: Detect modified language files (PR only)
         if: github.event_name == 'pull_request'
         id: detect-modified-langs
@@ -54,7 +62,7 @@ jobs:
       - name: Generate matrix
         id: generate-matrix
         run: |
-          ARCHITECTURES=("x86_64" "aarch64" "riscv64-imac" "riscv64-gc")
+          ARCHITECTURES=$(nix run .#archs | jq -r '.[]')
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             LANGUAGES='${{ steps.detect-modified-langs.outputs.langs }}'
@@ -108,7 +116,7 @@ jobs:
       - name: Build with Nix
         run: |
           echo "Building for ${{ matrix.arch }} with language ${{ matrix.lang }}..."
-          nix build .#${{ matrix.arch }}-${{ matrix.lang }}
+          nix build .#${{ matrix.arch }}
 
           mkdir -p isos
           cp result/memsos-${{ matrix.arch }}-${{ matrix.lang }}.iso isos/${{ env.IMAGE_NAME }}.iso
@@ -116,7 +124,7 @@ jobs:
       - name: Upload ISO as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iso-${{ matrix.arch }}-${{ matrix.lang }}
+          name: iso-${{ matrix.arch }}
           path: isos/${{ env.IMAGE_NAME }}.iso
 
   create-release:

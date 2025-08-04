@@ -190,6 +190,8 @@
           ${lib.concatMapStringsSep "\n" ({name, ...}: ''echo "  - ${name}-debug"'') architectures}
         '';
 
+        generatedArchJson = builtins.toJSON (map ({ arch, ... }: arch) architectures);
+
         helpApp = pkgs.writeShellScriptBin "help" ''
           echo ""
           echo "Welcome to Memsos"
@@ -345,6 +347,13 @@
             })
           architectures))
           // {
+            archs = {
+              type = "app";
+              program = toString (pkgs.writeScript "generate-arch-list" ''
+                #!/bin/sh
+                echo '${generatedArchJson}'
+              '');
+            };
             list = {
               type = "app";
               program = "${listApps}/bin/list-apps";
