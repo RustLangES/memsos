@@ -62,8 +62,15 @@ pub struct CpuInfo {
     //pub msr_supported: bool,
 }
 
+impl Default for CpuInfo {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CpuInfo {
     // Note: if the computer does not support cpuid, this will generate an invalid opcode fault.
+    #[must_use]
     pub fn new() -> Self {
         let ecx = cpuid(1).ecx;
         CpuInfo {
@@ -73,6 +80,9 @@ impl CpuInfo {
     }
 }
 
+/// # Panics
+/// This can panic if combine is not a valid UTF-8 sequence.
+#[must_use]
 pub fn get_vendor() -> CpuVendor {
     let result = cpuid(0);
 
@@ -92,6 +102,7 @@ pub fn get_vendor() -> CpuVendor {
     CpuVendor::from(s)
 }
 
+#[must_use]
 pub fn check_feature(feature: CpuFeature, bit: u32) -> bool {
     let f = feature as u32;
     (bit & f) != 0

@@ -1,20 +1,18 @@
 #![no_std]
 #![no_main]
 #![feature(sync_unsafe_cell, fn_traits, abi_x86_interrupt)]
+#![allow(unused_imports, dead_code)]
 
 mod idt;
 mod mem;
 //mod timer;
 
 use alloc::vec::Vec;
-use arch::cpuid::{CpuInfo, CpuVendor};
+use arch::cpuid::CpuInfo;
 use arch::hcf::hcf;
-use arch::rtc::{
-    Time, convert_bcd_value, get_cmos_format, is_binary_format, read_cmos_register, reset_rtc,
-    restore_rtc, sleep_rtc,
-};
+use arch::rtc::restore_rtc;
 use arch::speaker::beep;
-use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
+use arch::tsc::{Instant, calibrate_tsc};
 use bit_fade::BitFade;
 use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
@@ -27,7 +25,7 @@ use modulo_n::ModuloN;
 
 use crate::idt::init_idt;
 use crate::mem::frame::init_frame_allocator;
-use crate::mem::paging::{get_kernel_map, init_page_map};
+use crate::mem::paging::init_page_map;
 
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
@@ -74,7 +72,7 @@ extern "C" fn kmain() -> ! {
     println!("Calibrating tsc...");
     calibrate_tsc();
 
-    let cpuinfo = CpuInfo::new();
+    let cpuinfo = CpuInfo::default();
     println!("{:?}", cpuinfo);
 
     restore_rtc();

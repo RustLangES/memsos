@@ -4,9 +4,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 use boot::HIGHER_HALF_OFFSET;
 use commons::mem::{MemModule, MemoryError, MemoryMap, MemoryReport, is_usable_memory};
-use core::{fmt::Write, ptr::write_bytes};
-use fb::println;
-use limine::memory_map::{Entry, EntryType};
+use core::ptr::write_bytes;
+use limine::memory_map::Entry;
 
 pub struct MarchC {
     mem_map: MemoryMap,
