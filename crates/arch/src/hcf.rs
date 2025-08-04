@@ -1,9 +1,8 @@
 use core::arch::asm;
 
 pub fn hcf() -> ! {
-    loop {
-        unsafe {
-            asm!("hlt");
-        }
+    unsafe {
+        asm!("hlt");
+        core::hint::unreachable_unchecked()
     }
 }

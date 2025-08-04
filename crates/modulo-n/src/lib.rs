@@ -4,7 +4,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use boot::HIGHER_HALF_OFFSET;
 use commons::mem::{MemModule, MemoryError, MemoryMap, MemoryReport, is_usable_memory};
-use limine::memory_map::{Entry, EntryType};
+use limine::memory_map::Entry;
 
 const PATTERN_A: u8 = 0xAA;
 const PATTERN_B: u8 = 0xFF;

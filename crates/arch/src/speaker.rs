@@ -4,8 +4,7 @@ use x86_64::instructions::port::Port;
 
 use crate::tsc::sleep;
 
-/// # Panics
-/// This function may panic if `div` cannot be converted into a `u8`.
+#[allow(clippy::cast_possible_truncation)]
 pub fn play_sound(frequence: u32) {
     let div: u32 = 1_193_180 / frequence;
 
@@ -14,8 +13,8 @@ pub fn play_sound(frequence: u32) {
         p1.write(0xb6_u8);
 
         let mut p2 = Port::new(0x42);
-        p2.write(u8::try_from(div).unwrap());
-        p2.write(u8::try_from(div >> 8).unwrap());
+        p2.write(div as u8);
+        p2.write((div >> 8) as u8);
     }
 
     let mut tmp_port = Port::new(0x61);
@@ -39,6 +38,6 @@ pub fn stop_sound() {
 
 pub fn beep() {
     play_sound(1000);
-    sleep(Duration::from_secs_f32(0.2));
+    sleep(Duration::from_millis(200));
     stop_sound();
 }

@@ -8,7 +8,7 @@ use alloc::vec::Vec;
 use arch::tsc::sleep;
 use boot::HIGHER_HALF_OFFSET;
 use commons::mem::{MemModule, MemoryError, MemoryMap, MemoryReport, is_usable_memory};
-use limine::memory_map::{Entry, EntryType};
+use limine::memory_map::Entry;
 
 const PATTERN_A: u8 = 0b000_101_011;
 const TIME_A: Duration = Duration::from_secs(90);
