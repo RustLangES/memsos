@@ -24,10 +24,10 @@ use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
 
-use crate::idt::init_idt;
+use crate::idt::{TIMER_VECTOR, init_idt};
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::init_page_map;
-use crate::x2apic::X2Apic;
+use crate::x2apic::{X2APIC, X2Apic, init_x2apic};
 
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
@@ -70,6 +70,7 @@ extern "C" fn kmain() -> ! {
     init_frame_allocator(0x2000);
     init_page_map();
     init_idt();
+    init_x2apic();
 
     println!("Calibrating tsc...");
     calibrate_tsc();
@@ -81,25 +82,23 @@ extern "C" fn kmain() -> ! {
 
     init_mem_module(entries);
 
-    let x2apic = X2Apic::new();
     //x2apic.attach();
 
-    let ms = 3_000u64;
+    let ms = 120u64;
     let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
     let ticks = rdtsc();
     let ticks_to_wait = relative_ticks_to_wait + ticks;
-    x2apic.tsc_enable(40);
-    x2apic.tsc_set(ticks_to_wait);
+    X2APIC.tsc_enable(TIMER_VECTOR);
+    X2APIC.tsc_set(ticks_to_wait);
 
-    //let mut reports = Vec::new();
+    let mut reports = Vec::new();
 
     let instant = Instant::now();
 
     //load_memtest::<BitFade>(&mut reports);
-    //load_memtest::<MarchC>(&mut reports);
-    //load_memtest::<ModuloN>(&mut reports);
+    load_memtest::<MarchC>(&mut reports);
+    load_memtest::<ModuloN>(&mut reports);
 
-    /*
     println!("{}", instant.to_timestamp());
     if reports.is_empty() {
         println!("No reports found!");
@@ -110,7 +109,7 @@ extern "C" fn kmain() -> ! {
     }
 
     beep();
-    */
+
     println!("It works!");
 
     hcf();

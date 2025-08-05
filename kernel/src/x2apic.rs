@@ -1,5 +1,6 @@
 use arch::{msr::wrmsr, rdmsr};
 use bit_field::BitField;
+use sync::Once;
 
 pub const IA32_APIC_BASE: u32 = 0x1b;
 pub const IA32_X2APIC_SIVR: u32 = 0x80f;
@@ -7,6 +8,12 @@ pub const IA32_X2APIC_LVT_LINT0: u32 = 0x835;
 pub const IA32_X2APIC_LVT_TIMER: u32 = 0x832;
 pub const IA32_TSC_DEADLINE: u32 = 0x6e0;
 pub const IA32_X2APIC_EOI: u32 = 0x80b;
+
+pub static X2APIC: Once<X2Apic> = Once::new();
+
+pub fn init_x2apic() {
+    X2APIC.call_once(X2Apic::new);
+}
 
 pub struct X2Apic {
     pub base: u64,

@@ -1,4 +1,7 @@
-use arch::hcf::hcf;
+use arch::{
+    hcf::hcf,
+    tsc::{TSC_TICKS_PER_MS, rdtsc},
+};
 use core::fmt::Write;
 use fb::println;
 use lazy_static::lazy_static;
@@ -7,6 +10,8 @@ use x86_64::{
     registers::control::Cr2,
     structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode},
 };
+
+use crate::x2apic::X2APIC;
 
 pub const TIMER_VECTOR: u8 = 40;
 
@@ -27,7 +32,13 @@ pub fn init_idt() {
 }
 
 extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
-    println!("Apic works!");
+    X2APIC.eoi();
+    let ms = 3_000u64;
+    let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
+    let ticks = rdtsc();
+    let ticks_to_wait = relative_ticks_to_wait + ticks;
+    X2APIC.tsc_enable(40);
+    X2APIC.tsc_set(ticks_to_wait);
 }
 
 extern "x86-interrupt" fn invalid_opcode(stack_frame: InterruptStackFrame) {
