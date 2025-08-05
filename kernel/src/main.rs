@@ -5,17 +5,18 @@
 
 mod idt;
 mod mem;
-//mod timer;
+mod x2apic;
 
 use alloc::vec::Vec;
 use arch::cpuid::CpuInfo;
 use arch::hcf::hcf;
 use arch::rtc::restore_rtc;
 use arch::speaker::beep;
-use arch::tsc::{Instant, calibrate_tsc};
+use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc};
 use bit_fade::BitFade;
 use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
+use core::time::Duration;
 use fb::println;
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
@@ -23,9 +24,10 @@ use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
 
-use crate::idt::init_idt;
+use crate::idt::{TIMER_VECTOR, init_idt};
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::init_page_map;
+use crate::x2apic::{X2APIC, X2Apic, init_x2apic};
 
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
@@ -71,18 +73,22 @@ extern "C" fn kmain() -> ! {
 
     println!("Calibrating tsc...");
     calibrate_tsc();
+    restore_rtc();
+
+    init_x2apic();
 
     let cpuinfo = CpuInfo::default();
     println!("{:?}", cpuinfo);
 
-    restore_rtc();
-
     init_mem_module(entries);
+
+    X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
 
     let mut reports = Vec::new();
 
     let instant = Instant::now();
-    load_memtest::<BitFade>(&mut reports);
+
+    //load_memtest::<BitFade>(&mut reports);
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);
 
@@ -96,6 +102,7 @@ extern "C" fn kmain() -> ! {
     }
 
     beep();
+
     println!("It works!");
 
     hcf();
@@ -103,6 +110,6 @@ extern "C" fn kmain() -> ! {
 
 #[panic_handler]
 fn panic_hnadler(info: &core::panic::PanicInfo) -> ! {
-    println!("{:?}", info.message());
+    println!("{:?}\n{:?}", info.message(), info.location());
     hcf();
 }

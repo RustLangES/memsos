@@ -60,15 +60,20 @@ impl Instant {
     }
 }
 
+#[inline]
+#[must_use]
+pub fn duration_to_ticks(ticks: u64, time: Duration) -> u64 {
+    let ms = time.as_millis() as u64;
+    let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
+
+    relative_ticks_to_wait.wrapping_add(ticks)
+}
+
 /// # Panics
 /// This will trigger a panic if `as_millis` fails to convert to a u64.
 pub fn sleep(time: Duration) {
-    let ms = u64::try_from(time.as_millis()).unwrap();
-    let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
-
     let mut tsc_ticks = rdtsc();
-    let ticks_to_wait = relative_ticks_to_wait.wrapping_add(tsc_ticks);
-
+    let ticks_to_wait = duration_to_ticks(tsc_ticks, time);
     while tsc_ticks < ticks_to_wait {
         tsc_ticks = rdtsc();
         core::hint::spin_loop();

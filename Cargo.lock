@@ -3,17 +3,6 @@
 version = 4
 
 [[package]]
-name = "acpi"
-version = "4.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "654f48ab3178632ea535be1765073b990895cb62f70a7e5671975d7150c26d15"
-dependencies = [
- "bit_field",
- "log",
- "rsdp",
-]
-
-[[package]]
 name = "arch"
 version = "0.1.0"
 dependencies = [
@@ -81,9 +70,9 @@ dependencies = [
 name = "kernel"
 version = "0.1.0"
 dependencies = [
- "acpi",
  "arch",
  "bit-fade",
+ "bit_field",
  "boot",
  "commons",
  "fb",
@@ -135,12 +124,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "log"
-version = "0.4.27"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
-
-[[package]]
 name = "march-c"
 version = "0.1.0"
 dependencies = [
@@ -169,15 +152,6 @@ name = "noto-sans-mono-bitmap"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1064d564ae026ae123bf5d607318b42a5b31d70a3c48e6ea7ee44cce4cdb095e"
-
-[[package]]
-name = "rsdp"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ed5f33bb98eace335c13cdd159fbfc73ce203b597981a76832dfbb9cbd8101b"
-dependencies = [
- "log",
-]
 
 [[package]]
 name = "rustversion"
