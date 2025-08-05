@@ -61,6 +61,7 @@ impl Instant {
 }
 
 #[inline]
+#[must_use]
 pub fn duration_to_ticks(ticks: u64, time: Duration) -> u64 {
     let ms = time.as_millis() as u64;
     let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
