@@ -92,7 +92,6 @@
           debug_symbols ? false,
           ...
         }: let
-          target_name = lib.toUpper (builtins.replaceStrings ["-"] ["_"] target);
           ovmf_vars = ovmf_pkg arch "vars";
           ovmf_code = ovmf_pkg arch "code";
           uefi_suffix =
@@ -122,17 +121,13 @@
             };
             doCheck = false;
             cargoBuildCommand =
-              "cargo build --target ${target} -p kernel"
+              "RUSTFLAGS=\"-C relocation-model=static\" "
+              + "cargo build --target ${target} -p kernel"
               + (
                 if (!debug_symbols)
                 then " --release"
                 else ""
               );
-
-            RUSTFLAGS = "-C relocation-model=static";
-            TARGET_CC = "${pkgs.stdenv.cc.targetPrefix}cc";
-            "CARGO_TARGET_${target_name}_LINKER" = "${pkgs.llvmPackages.lld}/bin/ld.lld";
-            "CARGO_TARGET_${target_name}_RUNNER" = "qemu-${arch}";
 
             nativeBuildInputs = with pkgs; [gnumake xorriso];
             LANG = "${lang}.UTF-8";
@@ -167,13 +162,13 @@
                 -no-emul-boot -boot-load-size 4 -boot-info-table \
                 --efi-boot boot/limine/limine-uefi-cd.bin \
                 -efi-boot-part --efi-boot-image --protective-msdos-label \
-                $out/iso_root -o $out/memsos-${name}-${lang}${
+                $out/iso_root -o $out/memsos-${name}${
                 if debug_symbols
                 then "-debug"
                 else ""
               }.iso
 
-              "$LIMINE_DIR/limine" bios-install $out/memsos-${name}-${lang}${
+              "$LIMINE_DIR/limine" bios-install $out/memsos-${name}${
                 if debug_symbols
                 then "-debug"
                 else ""
@@ -307,6 +302,9 @@
                   -M q35 \
                   -no-reboot \
                   -no-shutdown \
+                  --enable-kvm \
+                  -cpu host \
+                  -rtc base=localtime,clock=host \
                   -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
                   -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
                   -d int
@@ -332,8 +330,9 @@
                 ${pkgs.qemu}/bin/qemu-system-${arch} \
                   -cdrom ${pkg}/memsos-${name}-debug.iso \
                   -M q35 \
-                  -no-reboot \
-                  -no-shutdown \
+                  --enable-kvm \
+                  -cpu host \
+                  -rtc base=localtime,clock=host \
                   -drive if=pflash,unit=0,format=raw,file=${pkg}/ovmf/ovmf-code-${arch}.fd,readonly=on \
                   -drive if=pflash,unit=1,format=raw,file=${pkg}/ovmf/ovmf-vars-${arch}.fd,readonly=on \
                   -d int
