@@ -1,3 +1,4 @@
+// Based from https://docs.rs/x86/0.52.0/src/x86/apic/x2apic.rs.html
 use arch::{msr::wrmsr, rdmsr};
 use bit_field::BitField;
 use sync::Once;

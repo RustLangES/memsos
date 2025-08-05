@@ -31,13 +31,13 @@ pub fn init_idt() {
     IDT.load();
 }
 
-extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
+extern "x86-interrupt" fn x2apic_handle(_stack_frame: InterruptStackFrame) {
     X2APIC.eoi();
-    let ms = 3_000u64;
+    let ms = 120u64;
     let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
     let ticks = rdtsc();
     let ticks_to_wait = relative_ticks_to_wait + ticks;
-    X2APIC.tsc_enable(40);
+    X2APIC.tsc_enable(TIMER_VECTOR);
     X2APIC.tsc_set(ticks_to_wait);
 }
 

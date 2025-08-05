@@ -82,8 +82,6 @@ extern "C" fn kmain() -> ! {
 
     init_mem_module(entries);
 
-    //x2apic.attach();
-
     let ms = 120u64;
     let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
     let ticks = rdtsc();
