@@ -70,15 +70,15 @@ extern "C" fn kmain() -> ! {
     init_frame_allocator(0x2000);
     init_page_map();
     init_idt();
-    init_x2apic();
 
     println!("Calibrating tsc...");
     calibrate_tsc();
+    restore_rtc();
+
+    init_x2apic();
 
     let cpuinfo = CpuInfo::default();
     println!("{:?}", cpuinfo);
-
-    restore_rtc();
 
     init_mem_module(entries);
 
