@@ -5,17 +5,18 @@
 
 mod idt;
 mod mem;
-//mod timer;
+mod x2apic;
 
 use alloc::vec::Vec;
 use arch::cpuid::CpuInfo;
 use arch::hcf::hcf;
 use arch::rtc::restore_rtc;
 use arch::speaker::beep;
-use arch::tsc::{Instant, calibrate_tsc};
+use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc};
 use bit_fade::BitFade;
 use commons::mem::{init_mem_module, load_memtest};
 use core::fmt::Write;
+use core::time::Duration;
 use fb::println;
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
@@ -79,13 +80,26 @@ extern "C" fn kmain() -> ! {
 
     init_mem_module(entries);
 
-    let mut reports = Vec::new();
+    let ms = u64::try_from(Duration::from_secs_f64(3.0).as_millis()).unwrap();
+    let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
+    let ticks = rdtsc();
+    let ticks_to_wait = relative_ticks_to_wait + ticks;
+
+    //let mut x2apic = X2APIC::new();
+    //x2apic.attach();
+
+    //x2apic.tsc_enable(40);
+    //x2apic.tsc_set(ticks_to_wait);
+
+    //let mut reports = Vec::new();
 
     let instant = Instant::now();
-    load_memtest::<BitFade>(&mut reports);
-    load_memtest::<MarchC>(&mut reports);
-    load_memtest::<ModuloN>(&mut reports);
 
+    //load_memtest::<BitFade>(&mut reports);
+    //load_memtest::<MarchC>(&mut reports);
+    //load_memtest::<ModuloN>(&mut reports);
+
+    /*
     println!("{}", instant.to_timestamp());
     if reports.is_empty() {
         println!("No reports found!");
@@ -96,6 +110,7 @@ extern "C" fn kmain() -> ! {
     }
 
     beep();
+    */
     println!("It works!");
 
     hcf();
