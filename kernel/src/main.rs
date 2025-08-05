@@ -27,6 +27,7 @@ use modulo_n::ModuloN;
 use crate::idt::init_idt;
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::init_page_map;
+use crate::x2apic::X2Apic;
 
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
@@ -80,16 +81,15 @@ extern "C" fn kmain() -> ! {
 
     init_mem_module(entries);
 
-    let ms = u64::try_from(Duration::from_secs_f64(3.0).as_millis()).unwrap();
+    let x2apic = X2Apic::new();
+    //x2apic.attach();
+
+    let ms = 3_000u64;
     let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
     let ticks = rdtsc();
     let ticks_to_wait = relative_ticks_to_wait + ticks;
-
-    //let mut x2apic = X2APIC::new();
-    //x2apic.attach();
-
-    //x2apic.tsc_enable(40);
-    //x2apic.tsc_set(ticks_to_wait);
+    x2apic.tsc_enable(40);
+    x2apic.tsc_set(ticks_to_wait);
 
     //let mut reports = Vec::new();
 
@@ -118,6 +118,6 @@ extern "C" fn kmain() -> ! {
 
 #[panic_handler]
 fn panic_hnadler(info: &core::panic::PanicInfo) -> ! {
-    println!("{:?}", info.message());
+    println!("{:?}\n{:?}", info.message(), info.location());
     hcf();
 }

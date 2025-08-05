@@ -5,7 +5,7 @@ use core::arch::asm;
 /// It panics if value can't be u32
 #[inline]
 pub fn wrmsr(msr: u32, value: u64) {
-    let lo = u32::try_from(value).expect("Invalid value");
+    let lo = value as u32;
     let hi = (value >> 32) as u32;
 
     unsafe {
