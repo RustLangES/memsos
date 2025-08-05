@@ -82,12 +82,7 @@ extern "C" fn kmain() -> ! {
 
     init_mem_module(entries);
 
-    let ms = 120u64;
-    let relative_ticks_to_wait = ms.wrapping_mul(*TSC_TICKS_PER_MS);
-    let ticks = rdtsc();
-    let ticks_to_wait = relative_ticks_to_wait + ticks;
-    X2APIC.tsc_enable(TIMER_VECTOR);
-    X2APIC.tsc_set(ticks_to_wait);
+    X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
 
     let mut reports = Vec::new();
 

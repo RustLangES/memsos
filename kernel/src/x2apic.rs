@@ -1,5 +1,11 @@
+use core::time::Duration;
+
 // Based from https://docs.rs/x86/0.52.0/src/x86/apic/x2apic.rs.html
-use arch::{msr::wrmsr, rdmsr};
+use arch::{
+    msr::wrmsr,
+    rdmsr,
+    tsc::{duration_to_ticks, rdtsc},
+};
 use bit_field::BitField;
 use sync::Once;
 
@@ -56,6 +62,11 @@ impl X2Apic {
     pub fn tsc_set(&self, value: u64) {
         mfence();
         wrmsr(IA32_TSC_DEADLINE, value);
+    }
+    pub fn oneshot(&self, vector: u8, time: Duration) {
+        self.tsc_enable(vector);
+        let ticks_to_wait = duration_to_ticks(rdtsc(), time);
+        self.tsc_set(ticks_to_wait);
     }
     pub fn eoi(&self) {
         wrmsr(IA32_X2APIC_EOI, 0);
