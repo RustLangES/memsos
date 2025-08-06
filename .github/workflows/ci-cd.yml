@@ -4,14 +4,6 @@ on:
   workflow_dispatch:
   workflow_call:
   pull_request:
-  push:
-    branches:
-      - main
-      - dev
-    paths:
-      - "src/**/**.rs"
-      - "crates/**/**.rs"
-      - "kernel/*.rs"
 
 jobs:
   quality-gate:
