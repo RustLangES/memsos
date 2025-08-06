@@ -33,13 +33,13 @@ pub fn get_char_raster(c: char) -> RasterizedChar {
     get(c).unwrap_or_else(|| get(BACKUP_CHAR).expect("Should get raster of backup char."))
 }
 
-pub static WRITER: SyncUnsafeCell<Option<FbDisplay>> = SyncUnsafeCell::new(None);
+pub static WRITER: SyncUnsafeCell<Option<FrameBufferWriter>> = SyncUnsafeCell::new(None);
 
 pub fn init_writer() {
     if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response()
         && let Some(framebuffer) = framebuffer_response.framebuffers().next()
     {
-        let writer = FbDisplay::new(framebuffer);
+        let writer = FrameBufferWriter::new(framebuffer);
 
         unsafe { *WRITER.get() = Some(writer) }
     }
@@ -148,7 +148,7 @@ impl fmt::Write for FrameBufferWriter<'_> {
 /// # Panics
 ///
 ///  It may cause panic if this function is called before the writer is initialized.
-pub fn get_fb_writer() -> &'static mut FbDisplay {
+pub fn get_fb_writer() -> &'static mut FrameBufferWriter<'static> {
     unsafe { WRITER.get().as_mut().unwrap().as_mut().unwrap() }
 }
 

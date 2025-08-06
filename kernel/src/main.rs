@@ -14,7 +14,7 @@ use arch::rtc::restore_rtc;
 use arch::speaker::beep;
 use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc};
 use bit_fade::BitFade;
-use commons::mem::{init_mem_module, load_memtest};
+use commons::mem::{MemoryError, init_mem_module, load_memtest};
 use core::fmt::Write;
 use core::time::Duration;
 use embedded_graphics::Drawable;
@@ -77,28 +77,20 @@ extern "C" fn kmain() -> ! {
     init_page_map();
     init_idt();
 
-    let style = MonoTextStyle::new(&FONT_6X10, Rgb888::WHITE);
-
-    let text = Text::new("Hello World!", Point { x: 30, y: 100 }, style);
-
-    text.draw(get_fb_writer()).unwrap();
-
-    ////println!("Calibrating tsc...");
-    // calibrate_tsc();
+    println!("Starting memsos");
+    println!("Calibrating tsc...");
+    calibrate_tsc();
     restore_rtc();
 
     init_x2apic();
-    ////println!("X2apic version: {}", X2APIC.version());
+    println!("X2apic version: {}", X2APIC.version());
 
     let cpuinfo = CpuInfo::default();
-    // //println!("{:?}", cpuinfo);
+    println!("{:?}", cpuinfo);
 
     init_mem_module(entries);
 
-    get_fb_writer();
-    X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
-
-    //let mut reports = Vec::new();
+    let mut reports: Vec<MemoryError> = Vec::new();
 
     let instant = Instant::now();
 
@@ -106,24 +98,24 @@ extern "C" fn kmain() -> ! {
     //  load_memtest::<MarchC>(&mut reports);
     //    load_memtest::<ModuloN>(&mut reports);
 
-    //  //println!("{}", instant.to_timestamp());
-    // if reports.is_empty() {
-    //     //     //println!("No reports found!");
-    // } else {
-    //    for report in reports {
-    //        //println!("{:?}", report);
-    //     }
-    //}
+    println!("{}", instant.to_timestamp());
+    if reports.is_empty() {
+        println!("No reports found!");
+    } else {
+        for report in reports {
+            println!("{:?}", report);
+        }
+    }
 
     beep();
 
-    // //println!("It works!");
+    println!("It works!");
 
     hcf();
 }
 
 #[panic_handler]
 fn panic_hnadler(info: &core::panic::PanicInfo) -> ! {
-    //println!("{:?}\n{:?}", info.message(), info.location());
+    println!("{:?}\n{:?}", info.message(), info.location());
     hcf();
 }

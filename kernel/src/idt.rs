@@ -43,9 +43,9 @@ extern "x86-interrupt" fn page_fault_handler(
     stack_frame: InterruptStackFrame,
     error_code: PageFaultErrorCode,
 ) {
-    //println!("PAGE FAULT!!");
-    //println!("Accesed_address: {:?}", Cr2::read());
-    //println!("Error Code: {:?}", error_code);
-    //println!("{:#?}", stack_frame);
+    println!("PAGE FAULT!!");
+    println!("Accesed_address: {:?}", Cr2::read());
+    println!("Error Code: {:?}", error_code);
+    println!("{:#?}", stack_frame);
     hcf();
 }

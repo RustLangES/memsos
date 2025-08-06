@@ -89,7 +89,7 @@ pub fn calibrate_tsc() {
 
     let ticks_per_ms = (end.wrapping_sub(start)) / 5000;
 
-    //println!("TSC ticks per ms: {}", ticks_per_ms);
+    println!("TSC ticks per ms: {}", ticks_per_ms);
 
     TSC_TICKS_PER_MS.call_once(|| ticks_per_ms);
 }
