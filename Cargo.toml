@@ -11,6 +11,7 @@ members = [
     "crates/modulo-n",
     "crates/arch",
     "crates/bit-fade",
+    "crates/ui",
 ]
 
 [workspace.dependencies]
@@ -29,6 +30,7 @@ x86_64 = { version = "0.15.2", default-features = false, features = [
     "abi_x86_interrupt",
     "asm_const",
 ] }
+ui.path = "./crates/ui"
 embedded-graphics = "0.8.1"
 
 [profile.dev]
