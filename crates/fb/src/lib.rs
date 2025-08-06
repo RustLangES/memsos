@@ -2,12 +2,16 @@
 #![no_std]
 #![feature(sync_unsafe_cell)]
 
+pub mod display;
+
 use boot::requests::FRAMEBUFFER_REQUEST;
 use core::{cell::SyncUnsafeCell, fmt};
 use limine::framebuffer::Framebuffer;
 use noto_sans_mono_bitmap::{
     FontWeight, RasterHeight, RasterizedChar, get_raster, get_raster_width,
 };
+
+use crate::display::FbDisplay;
 
 pub const LINE_SPACING: usize = 2;
 pub const LETTER_SPACING: usize = 0;
@@ -29,16 +33,15 @@ pub fn get_char_raster(c: char) -> RasterizedChar {
     get(c).unwrap_or_else(|| get(BACKUP_CHAR).expect("Should get raster of backup char."))
 }
 
-pub static WRITER: SyncUnsafeCell<Option<FrameBufferWriter<'static>>> = SyncUnsafeCell::new(None);
+pub static WRITER: SyncUnsafeCell<Option<FbDisplay>> = SyncUnsafeCell::new(None);
 
 pub fn init_writer() {
     if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response()
         && let Some(framebuffer) = framebuffer_response.framebuffers().next()
     {
-        let writer = FrameBufferWriter::new(framebuffer);
-        unsafe {
-            *WRITER.get() = Some(writer);
-        }
+        let writer = FbDisplay::new(framebuffer);
+
+        unsafe { *WRITER.get() = Some(writer) }
     }
 }
 
@@ -145,7 +148,7 @@ impl fmt::Write for FrameBufferWriter<'_> {
 /// # Panics
 ///
 ///  It may cause panic if this function is called before the writer is initialized.
-pub fn get_fb_writer() -> &'static mut FrameBufferWriter<'static> {
+pub fn get_fb_writer() -> &'static mut FbDisplay {
     unsafe { WRITER.get().as_mut().unwrap().as_mut().unwrap() }
 }
 

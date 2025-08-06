@@ -1,6 +1,17 @@
 [workspace]
 resolver = '2'
-members = [ "memsos", "kernel" , "crates/commons", "crates/sync", "crates/march-c", "crates/fb", "crates/boot", "crates/modulo-n", "crates/arch", "crates/bit-fade"]
+members = [
+    "memsos",
+    "kernel",
+    "crates/commons",
+    "crates/sync",
+    "crates/march-c",
+    "crates/fb",
+    "crates/boot",
+    "crates/modulo-n",
+    "crates/arch",
+    "crates/bit-fade",
+]
 
 [workspace.dependencies]
 commons.path = "./crates/commons"
@@ -12,7 +23,13 @@ modulo-n.path = "./crates/modulo-n"
 bit-fade.path = "./crates/bit-fade"
 arch.path = "./crates/arch"
 limine = "0.5.0"
-x86_64 = { version = "0.15.2", default-features = false, features = ["instructions", "const_fn", "abi_x86_interrupt", "asm_const"] }
+x86_64 = { version = "0.15.2", default-features = false, features = [
+    "instructions",
+    "const_fn",
+    "abi_x86_interrupt",
+    "asm_const",
+] }
+embedded-graphics = "0.8.1"
 
 [profile.dev]
 panic = "abort"
