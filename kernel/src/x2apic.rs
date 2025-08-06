@@ -13,6 +13,8 @@ pub const IA32_APIC_BASE: u32 = 0x1b;
 pub const IA32_X2APIC_SIVR: u32 = 0x80f;
 pub const IA32_X2APIC_LVT_LINT0: u32 = 0x835;
 pub const IA32_X2APIC_LVT_TIMER: u32 = 0x832;
+pub const IA32_X2APIC_VERSION: u32 = 0x803;
+pub const IA32_X2APIC_SELF_IPI: u32 = 0x83f;
 pub const IA32_TSC_DEADLINE: u32 = 0x6e0;
 pub const IA32_X2APIC_EOI: u32 = 0x80b;
 
@@ -44,6 +46,9 @@ impl X2Apic {
 
         Self { base }
     }
+    pub fn version(&self) -> u32 {
+        rdmsr(IA32_X2APIC_VERSION) as u32
+    }
     pub fn tsc_enable(&self, vector: u8) {
         wrmsr(IA32_TSC_DEADLINE, 0);
 
@@ -62,6 +67,9 @@ impl X2Apic {
     pub fn tsc_set(&self, value: u64) {
         mfence();
         wrmsr(IA32_TSC_DEADLINE, value);
+    }
+    pub fn self_ip(&self, vector: u8) {
+        wrmsr(IA32_X2APIC_SELF_IPI, vector as u64);
     }
     pub fn oneshot(&self, vector: u8, time: Duration) {
         self.tsc_enable(vector);

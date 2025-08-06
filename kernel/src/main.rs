@@ -76,6 +76,7 @@ extern "C" fn kmain() -> ! {
     restore_rtc();
 
     init_x2apic();
+    println!("X2apic version: {}", X2APIC.version());
 
     let cpuinfo = CpuInfo::default();
     println!("{:?}", cpuinfo);
