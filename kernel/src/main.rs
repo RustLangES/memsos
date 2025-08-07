@@ -5,6 +5,7 @@
 
 mod idt;
 mod mem;
+mod scheduler;
 mod x2apic;
 
 use alloc::vec::Vec;
@@ -30,10 +31,12 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
+use x86_64::VirtAddr;
 
 use crate::idt::{TIMER_VECTOR, init_idt};
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::init_page_map;
+use crate::scheduler::Process;
 use crate::x2apic::{X2APIC, X2Apic, init_x2apic};
 
 use boot::HIGHER_HALF_OFFSET;
@@ -92,28 +95,27 @@ extern "C" fn kmain() -> ! {
 
     init_mem_module(entries);
 
-    let mut reports: Vec<MemoryReport> = Vec::new();
+    let memtest_process = Process::new(VirtAddr::new(run_tests as u64));
+    memtest_process.run();
 
     let instant = Instant::now();
-
-    //load_memtest::<BitFade>(&mut reports);
-    load_memtest::<MarchC>(&mut reports);
-    //    load_memtest::<ModuloN>(&mut reports);
-
-    println!("{}", instant.to_timestamp());
-    if reports.is_empty() {
-        println!("No reports found!");
-    } else {
-        for report in reports {
-            println!("{:?}", report);
-        }
-    }
 
     beep();
 
     println!("It works!");
 
     hcf();
+}
+
+pub fn run_tests() -> ! {
+    let mut reports: Vec<MemoryReport> = Vec::new();
+
+    //load_memtest::<BitFade>(&mut reports);
+    load_memtest::<MarchC>(&mut reports);
+    //    load_memtest::<ModuloN>(&mut reports);
+
+    println!("Hello?");
+    loop {}
 }
 
 #[panic_handler]
