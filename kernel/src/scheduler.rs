@@ -18,7 +18,7 @@ pub struct Context {
     pub r14: u64,
     pub r15: u64,
 
-    pub rip: u64,
+    pub rip: VirtAddr,
     pub rflags: u64,
     pub cr3: u64,
 
@@ -27,6 +27,12 @@ pub struct Context {
 }
 
 impl Context {
+    pub fn with_rip(rip: VirtAddr) -> Self {
+        Self {
+            rip,
+            ..Default::default()
+        }
+    }
     pub fn load(&self) {
         let rax: u64;
         let rbx: u64;
@@ -72,7 +78,7 @@ impl Default for Context {
             r14: 0,
             r15: 0,
 
-            rip: 0,
+            rip: VirtAddr::zero(),
             rflags: 0,
             cr3: 0,
 
@@ -91,13 +97,13 @@ impl Process {
     pub fn new(start: VirtAddr) -> Self {
         Self {
             start,
-            context: Context::default(),
+            context: Context::with_rip(start),
         }
     }
     pub fn run(&self) {
         self.context.load();
         unsafe {
-            core::arch::asm!("jmp {0}", in(reg) self.start.as_u64(), options(noreturn));
+            core::arch::asm!("jmp {0}", in(reg) self.context.rip.as_u64(), options(noreturn));
         }
     }
     pub fn stop() {
