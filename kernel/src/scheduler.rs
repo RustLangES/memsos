@@ -125,6 +125,7 @@ impl Process {
         }
     }
     pub fn stop(&mut self, rip: VirtAddr) {
-        //self.context.rip = rip;
+        fill_context((&mut self.context) as *mut Context);
+        self.context.rip = rip.as_u64();
     }
 }
