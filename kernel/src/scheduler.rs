@@ -118,8 +118,11 @@ impl Process {
             context: ctx,
         }
     }
-    pub fn run(&self) {
+    pub fn run(&self) -> ! {
         write_context((&self.context) as *const Context);
+        unsafe {
+            core::hint::unreachable_unchecked();
+        }
     }
     pub fn stop(&mut self, rip: VirtAddr) {
         //self.context.rip = rip;
