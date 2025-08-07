@@ -1,5 +1,10 @@
+use core::arch::asm;
+use core::fmt::Write;
+use fb::println;
 use x86_64::VirtAddr;
 
+#[derive(Debug)]
+#[repr(C)]
 pub struct Context {
     pub rax: u64,
     pub rbx: u64,
@@ -18,44 +23,7 @@ pub struct Context {
     pub r14: u64,
     pub r15: u64,
 
-    pub rip: VirtAddr,
-    pub rflags: u64,
-    pub cr3: u64,
-
-    pub cs: u64,
-    pub ss: u64,
-}
-
-impl Context {
-    pub fn with_rip(rip: VirtAddr) -> Self {
-        Self {
-            rip,
-            ..Default::default()
-        }
-    }
-    pub fn load(&self) {
-        let rax: u64;
-        let rbx: u64;
-        let rcx: u64;
-        let rdx: u64;
-        let rsi: u64;
-        let rdi: u64;
-        let rbp: u64;
-        let rsp: u64;
-        let r8: u64;
-        let r9: u64;
-        let r10: u64;
-        let r11: u64;
-        let r12: u64;
-        let r13: u64;
-        let r14: u64;
-        let r15: u64;
-        let rip: u64;
-        let rflags: u64;
-        let cr3: u64;
-        let cs: u64;
-        let ss: u64;
-    }
+    pub rip: u64,
 }
 
 impl Default for Context {
@@ -77,13 +45,7 @@ impl Default for Context {
             r13: 0,
             r14: 0,
             r15: 0,
-
-            rip: VirtAddr::zero(),
-            rflags: 0,
-            cr3: 0,
-
-            cs: 0,
-            ss: 0,
+            rip: 0,
         }
     }
 }
@@ -93,20 +55,53 @@ pub struct Process {
     pub context: Context,
 }
 
+#[unsafe(naked)]
+pub extern "C" fn fill_context(ctx: *mut Context) {
+    core::arch::naked_asm!(
+        "mov [rdi + 0x00], rax",
+        "mov [rdi + 0x08], rbx",
+        "mov [rdi + 0x10], rcx",
+        "mov [rdi + 0x18], rdx",
+        "mov [rdi + 0x20], rsi",
+        "mov [rdi + 0x30], rbp",
+        "mov [rdi + 0x38], rsp",
+        "mov [rdi + 0x40], r8",
+        "mov [rdi + 0x48], r9",
+        "mov [rdi + 0x50], r10",
+        "mov [rdi + 0x58], r11",
+        "mov [rdi + 0x60], r12",
+        "mov [rdi + 0x68], r13",
+        "mov [rdi + 0x70], r14",
+        "mov [rdi + 0x78], r15",
+        "ret",
+    );
+}
+
 impl Process {
     pub fn new(start: VirtAddr) -> Self {
+        let mut ctx = Context::default();
+        let rdi: u64;
+
+        unsafe {
+            asm!("mov {}, rdi", out(reg) rdi);
+        }
+
+        fill_context((&mut ctx) as *mut Context);
+        ctx.rdi = rdi;
+        ctx.rip = start.as_u64();
+
+        println!("{:?}", ctx);
         Self {
             start,
-            context: Context::with_rip(start),
+            context: ctx,
         }
     }
     pub fn run(&self) {
-        self.context.load();
         unsafe {
-            core::arch::asm!("jmp {0}", in(reg) self.context.rip.as_u64(), options(noreturn));
+            asm!("jmp {}", in(reg) self.context.rip);
         }
     }
-    pub fn stop() {
-        todo!();
+    pub fn stop(&mut self, rip: VirtAddr) {
+        //self.context.rip = rip;
     }
 }
