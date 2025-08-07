@@ -14,7 +14,7 @@ use arch::rtc::restore_rtc;
 use arch::speaker::beep;
 use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc};
 use bit_fade::BitFade;
-use commons::mem::{MemoryError, init_mem_module, load_memtest};
+use commons::mem::{MemoryError, MemoryReport, init_mem_module, load_memtest};
 use core::fmt::Write;
 use core::time::Duration;
 use embedded_graphics::Drawable;
@@ -22,8 +22,9 @@ use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::mono_font::iso_8859_9::FONT_6X10;
 use embedded_graphics::pixelcolor::Rgb888;
 use embedded_graphics::prelude::{DrawTarget, Point, RgbColor};
+use embedded_graphics::primitives::{Circle, PrimitiveStyle, StyledDrawable};
 use embedded_graphics::text::Text;
-use fb::{get_fb_writer, println};
+use fb::{get_fb_writer, get_ui_writer, init_ui, println};
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
@@ -62,6 +63,7 @@ extern "C" fn kmain() -> ! {
 
     ALLOCATOR.init();
     init_writer();
+    init_ui();
 
     let hhdm = HHDM_REQUEST
         .get_response()
@@ -90,12 +92,12 @@ extern "C" fn kmain() -> ! {
 
     init_mem_module(entries);
 
-    let mut reports: Vec<MemoryError> = Vec::new();
+    let mut reports: Vec<MemoryReport> = Vec::new();
 
     let instant = Instant::now();
 
     //load_memtest::<BitFade>(&mut reports);
-    //  load_memtest::<MarchC>(&mut reports);
+    load_memtest::<MarchC>(&mut reports);
     //    load_memtest::<ModuloN>(&mut reports);
 
     println!("{}", instant.to_timestamp());

@@ -34,6 +34,7 @@ pub fn get_char_raster(c: char) -> RasterizedChar {
 }
 
 pub static WRITER: SyncUnsafeCell<Option<FrameBufferWriter>> = SyncUnsafeCell::new(None);
+pub static UI_WRITER: SyncUnsafeCell<Option<FbDisplay>> = SyncUnsafeCell::new(None);
 
 pub fn init_writer() {
     if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response()
@@ -42,6 +43,16 @@ pub fn init_writer() {
         let writer = FrameBufferWriter::new(framebuffer);
 
         unsafe { *WRITER.get() = Some(writer) }
+    }
+}
+
+pub fn init_ui() {
+    if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response()
+        && let Some(framebuffer) = framebuffer_response.framebuffers().next()
+    {
+        let writer = FbDisplay::new(framebuffer);
+
+        unsafe { *UI_WRITER.get() = Some(writer) }
     }
 }
 
@@ -150,6 +161,13 @@ impl fmt::Write for FrameBufferWriter<'_> {
 ///  It may cause panic if this function is called before the writer is initialized.
 pub fn get_fb_writer() -> &'static mut FrameBufferWriter<'static> {
     unsafe { WRITER.get().as_mut().unwrap().as_mut().unwrap() }
+}
+
+/// # Panics
+///
+///  It may cause panic if this function is called before the ui writer is initialized.
+pub fn get_ui_writer() -> &'static mut FbDisplay {
+    unsafe { UI_WRITER.get().as_mut().unwrap().as_mut().unwrap() }
 }
 
 #[macro_export]
