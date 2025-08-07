@@ -12,6 +12,7 @@ members = [
     "crates/arch",
     "crates/bit-fade",
     "crates/ui",
+    "crates/scheduler",
 ]
 
 [workspace.dependencies]
@@ -32,6 +33,7 @@ x86_64 = { version = "0.15.2", default-features = false, features = [
 ] }
 ui.path = "./crates/ui"
 embedded-graphics = "0.8.1"
+scheduler.path = "./crates/scheduler"
 
 [profile.dev]
 panic = "abort"

@@ -21,3 +21,4 @@ x86_64.workspace = true
 spin = "0.10.0"
 bit_field = "0.10.2"
 embedded-graphics.workspace = true
+scheduler.workspace = true

@@ -5,7 +5,6 @@
 
 mod idt;
 mod mem;
-mod scheduler;
 mod x2apic;
 
 use alloc::vec::Vec;
@@ -36,8 +35,8 @@ use x86_64::VirtAddr;
 use crate::idt::{TIMER_VECTOR, init_idt};
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::init_page_map;
-use crate::scheduler::Process;
 use crate::x2apic::{X2APIC, X2Apic, init_x2apic};
+use scheduler::process::Process;
 
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
@@ -96,7 +95,6 @@ extern "C" fn kmain() -> ! {
     init_mem_module(entries);
 
     let memtest_process = Process::new(VirtAddr::new(run_tests as u64));
-    memtest_process.run();
 
     let instant = Instant::now();
 

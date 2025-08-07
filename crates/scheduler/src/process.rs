@@ -1,6 +1,4 @@
 use core::arch::asm;
-use core::fmt::Write;
-use fb::println;
 use x86_64::VirtAddr;
 
 #[derive(Debug)]
@@ -112,7 +110,6 @@ impl Process {
         ctx.rdi = rdi;
         ctx.rip = start.as_u64();
 
-        println!("{:?}", ctx);
         Self {
             start,
             context: ctx,
