@@ -11,7 +11,7 @@ use x86_64::{
     structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode},
 };
 
-use crate::x2apic::X2APIC;
+use x2apic::X2APIC;
 
 pub const TIMER_VECTOR: u8 = 40;
 

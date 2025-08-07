@@ -117,7 +117,6 @@ version = "0.1.0"
 dependencies = [
  "arch",
  "bit-fade",
- "bit_field",
  "boot",
  "commons",
  "embedded-graphics",
@@ -130,6 +129,7 @@ dependencies = [
  "scheduler",
  "spin 0.10.0",
  "sync",
+ "x2apic",
  "x86_64",
 ]
 
@@ -225,6 +225,7 @@ checksum = "8a0d197bd2c9dc6e53b84da9556a69ba4cdfab8619eb41a8bd1cc2027a0f6b1d"
 name = "scheduler"
 version = "0.1.0"
 dependencies = [
+ "x2apic",
  "x86_64",
 ]
 
@@ -274,6 +275,15 @@ name = "volatile"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "442887c63f2c839b346c192d047a7c87e73d0689c9157b00b53dcc27dd5ea793"
+
+[[package]]
+name = "x2apic"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "bit_field",
+ "sync",
+]
 
 [[package]]
 name = "x86_64"
