@@ -14,6 +14,7 @@ use arch::speaker::beep;
 use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use bit_fade::BitFade;
 use commons::mem::{MemoryError, MemoryReport, init_mem_module, load_memtest};
+use core::f32;
 use core::fmt::Write;
 use core::time::Duration;
 use embedded_graphics::Drawable;
@@ -111,13 +112,16 @@ extern "C" fn kmain() -> ! {
 pub extern "C" fn tests_process() -> ! {
     let mut reports = Vec::new();
     load_memtest::<MarchC>(&mut reports);
+    println!("test completed");
 
     loop {}
 }
 
 pub extern "C" fn ui_process() -> ! {
-    println!("Ui stuff..");
-    loop {}
+    loop {
+        sleep(Duration::from_secs_f32(0.2));
+        println!("Ui stuff..");
+    }
 }
 
 #[panic_handler]

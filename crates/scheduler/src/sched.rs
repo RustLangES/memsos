@@ -1,7 +1,7 @@
 use x86_64::VirtAddr;
 use x86_64::structures::idt::InterruptStackFrame;
 
-use crate::process::Process;
+use crate::process::{Process, ProcessType};
 use core::cell::SyncUnsafeCell;
 use core::fmt::Write;
 use core::time::Duration;
@@ -49,6 +49,10 @@ impl Scheduler {
 
         self.current_process = (self.current_process + 1) % self.processes.len();
 
+        if self.running_critical_process {
+            return;
+        }
+
         let rip = self.processes[self.current_process].run();
 
         self.processes[self.current_process].context.rsp = stack_frame.stack_pointer.as_u64();
@@ -66,6 +70,9 @@ impl Scheduler {
 
         unsafe {
             self.processes[self.current_process].write_context();
+            if self.processes[self.current_process].ty == ProcessType::Critical {
+                self.running_critical_process = true;
+            }
             frame.iretq();
         }
     }
