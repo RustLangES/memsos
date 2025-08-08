@@ -80,8 +80,8 @@ extern "C" fn kmain() -> ! {
     init_frame_allocator(0x2000);
     init_page_map();
     init_scheduler([
-        Process::new(VirtAddr::new(run_tests as u64), ProcessType::Critical),
-        Process::new(VirtAddr::new(ui_test as u64), ProcessType::Regular),
+        Process::new(VirtAddr::new(tests_process as u64), ProcessType::Critical),
+        Process::new(VirtAddr::new(ui_process as u64), ProcessType::Regular),
     ]);
 
     init_idt();
@@ -108,14 +108,14 @@ extern "C" fn kmain() -> ! {
     hcf();
 }
 
-pub extern "C" fn run_tests() -> ! {
+pub extern "C" fn tests_process() -> ! {
     let mut reports = Vec::new();
     load_memtest::<MarchC>(&mut reports);
 
     loop {}
 }
 
-pub extern "C" fn ui_test() -> ! {
+pub extern "C" fn ui_process() -> ! {
     println!("Ui stuff..");
     loop {}
 }
