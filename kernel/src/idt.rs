@@ -5,6 +5,7 @@ use arch::{
 use core::fmt::Write;
 use fb::println;
 use lazy_static::lazy_static;
+use scheduler::sched::{PROCESS_DEADLINE, get_shed};
 
 use x86_64::{
     registers::control::Cr2,
@@ -20,6 +21,7 @@ lazy_static! {
         let mut idt = InterruptDescriptorTable::new();
         idt.page_fault.set_handler_fn(page_fault_handler);
         idt.invalid_opcode.set_handler_fn(invalid_opcode);
+        idt.double_fault.set_handler_fn(double_fault);
 
         idt[TIMER_VECTOR].set_handler_fn(x2apic_handle);
 
@@ -31,8 +33,15 @@ pub fn init_idt() {
     IDT.load();
 }
 
-extern "x86-interrupt" fn x2apic_handle(_stack_frame: InterruptStackFrame) {
+extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
     X2APIC.eoi();
+
+    X2APIC.oneshot(TIMER_VECTOR, PROCESS_DEADLINE);
+    get_shed().call_next(stack_frame.instruction_pointer, stack_frame);
+}
+
+extern "x86-interrupt" fn double_fault(stack_frame: InterruptStackFrame, code: u64) -> ! {
+    panic!("Double fault!\n{:?}\ncode: {code}", stack_frame);
 }
 
 extern "x86-interrupt" fn invalid_opcode(stack_frame: InterruptStackFrame) {

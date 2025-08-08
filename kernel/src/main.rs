@@ -11,7 +11,7 @@ use arch::cpuid::CpuInfo;
 use arch::hcf::hcf;
 use arch::rtc::restore_rtc;
 use arch::speaker::beep;
-use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc};
+use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use bit_fade::BitFade;
 use commons::mem::{MemoryError, MemoryReport, init_mem_module, load_memtest};
 use core::fmt::Write;
@@ -29,6 +29,7 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
+use scheduler::sched::{PROCESS_DEADLINE, init_scheduler};
 use x86_64::VirtAddr;
 
 use crate::idt::{TIMER_VECTOR, init_idt};
@@ -78,6 +79,11 @@ extern "C" fn kmain() -> ! {
 
     init_frame_allocator(0x2000);
     init_page_map();
+    init_scheduler([
+        Process::new(VirtAddr::new(run_tests as u64)),
+        Process::new(VirtAddr::new(ui_test as u64)),
+    ]);
+
     init_idt();
 
     println!("Starting memsos");
@@ -93,7 +99,7 @@ extern "C" fn kmain() -> ! {
 
     init_mem_module(entries);
 
-    let memtest_process = Process::new(VirtAddr::new(run_tests as u64));
+    X2APIC.self_ip(TIMER_VECTOR);
 
     let instant = Instant::now();
 
@@ -104,14 +110,15 @@ extern "C" fn kmain() -> ! {
     hcf();
 }
 
-pub fn run_tests() -> ! {
-    let mut reports: Vec<MemoryReport> = Vec::new();
+pub extern "C" fn run_tests() -> ! {
+    sleep(Duration::from_secs(2));
+    println!("Hey but 2 seconds late");
 
-    //load_memtest::<BitFade>(&mut reports);
-    load_memtest::<MarchC>(&mut reports);
-    //    load_memtest::<ModuloN>(&mut reports);
+    loop {}
+}
 
-    println!("Hello?");
+pub extern "C" fn ui_test() {
+    println!("Hey!");
     loop {}
 }
 

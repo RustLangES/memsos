@@ -1,7 +1,7 @@
 use core::arch::asm;
 use x86_64::VirtAddr;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct Context {
     pub rax: u64,
@@ -48,6 +48,7 @@ impl Default for Context {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Process {
     pub start: VirtAddr,
     pub context: Context,
@@ -61,6 +62,7 @@ pub extern "C" fn fill_context(ctx: *mut Context) {
         "mov [rdi + 0x10], rcx",
         "mov [rdi + 0x18], rdx",
         "mov [rdi + 0x20], rsi",
+        "mov [rdi + 0x28], rdi",
         "mov [rdi + 0x30], rbp",
         "mov [rdi + 0x38], rsp",
         "mov [rdi + 0x40], r8",
@@ -83,17 +85,15 @@ pub extern "C" fn write_context(ctx: *const Context) {
         "mov rcx, [rdi + 0x10]",
         "mov rdx, [rdi + 0x18]",
         "mov rsi, [rdi + 0x20]",
-        "mov rbp, [rdi + 0x30]",
-        "mov rsp, [rdi + 0x38]",
         "mov r8, [rdi + 0x40]",
         "mov r9, [rdi + 0x48]",
         "mov r10, [rdi + 0x50]",
-        "mov r10, [rdi + 0x58]",
+        "mov r11, [rdi + 0x58]",
         "mov r12, [rdi + 0x60]",
         "mov r13, [rdi + 0x68]",
         "mov r14, [rdi + 0x70]",
         "mov r15, [rdi + 0x78]",
-        "jmp [rdi + 0x80]",
+        "ret"
     );
 }
 
@@ -115,14 +115,17 @@ impl Process {
             context: ctx,
         }
     }
-    pub fn run(&self) -> ! {
+    pub fn write_context(&self) {
         write_context((&self.context) as *const Context);
-        unsafe {
-            core::hint::unreachable_unchecked();
-        }
+    }
+    pub fn fill_context(&mut self) {
+        fill_context((&mut self.context) as *mut Context);
+    }
+    pub fn run(&self) -> u64 {
+        self.context.rip
     }
     pub fn stop(&mut self, rip: VirtAddr) {
-        fill_context((&mut self.context) as *mut Context);
+        self.fill_context();
         self.context.rip = rip.as_u64();
     }
 }
