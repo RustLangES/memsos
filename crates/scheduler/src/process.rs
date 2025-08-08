@@ -48,10 +48,17 @@ impl Default for Context {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum ProcessType {
+    Critical,
+    Regular,
+}
+
 #[derive(Clone, Copy)]
 pub struct Process {
     pub start: VirtAddr,
     pub context: Context,
+    pub ty: ProcessType,
 }
 
 #[unsafe(naked)]
@@ -98,7 +105,7 @@ pub extern "C" fn write_context(ctx: *const Context) {
 }
 
 impl Process {
-    pub fn new(start: VirtAddr) -> Self {
+    pub fn new(start: VirtAddr, kind: ProcessType) -> Self {
         let mut ctx = Context::default();
         let rdi: u64;
 
@@ -113,6 +120,7 @@ impl Process {
         Self {
             start,
             context: ctx,
+            ty: kind,
         }
     }
     pub fn write_context(&self) {

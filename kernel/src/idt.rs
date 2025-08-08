@@ -35,6 +35,7 @@ pub fn init_idt() {
 
 extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
     X2APIC.eoi();
+    get_shed().save();
 
     X2APIC.oneshot(TIMER_VECTOR, PROCESS_DEADLINE);
     get_shed().call_next(stack_frame.instruction_pointer, stack_frame);

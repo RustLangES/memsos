@@ -7,7 +7,7 @@ use core::fmt::Write;
 use core::time::Duration;
 use fb::println;
 
-pub const PROCESS_DEADLINE: Duration = Duration::from_millis(1_000);
+pub const PROCESS_DEADLINE: Duration = Duration::from_millis(1_500);
 pub static SCHEDULER: SyncUnsafeCell<Option<Scheduler>> = SyncUnsafeCell::new(None);
 
 pub fn init_scheduler(processes: [Process; 2]) {
@@ -24,6 +24,7 @@ pub struct Scheduler {
     pub processes: [Process; 2],
     pub current_process: usize,
     pub first_run: bool,
+    pub running_critical_process: bool,
 }
 
 impl Scheduler {
@@ -32,7 +33,11 @@ impl Scheduler {
             processes,
             current_process: 0,
             first_run: true,
+            running_critical_process: false,
         }
+    }
+    pub fn save(&mut self) {
+        self.processes[self.current_process].fill_context();
     }
     pub fn call_next(&mut self, r: VirtAddr, stack_frame: InterruptStackFrame) {
         if self.first_run {
@@ -46,10 +51,9 @@ impl Scheduler {
 
         let rip = self.processes[self.current_process].run();
 
-        println!("{}", rip);
-
         self.processes[self.current_process].context.rsp = stack_frame.stack_pointer.as_u64();
 
+        println!("{}", stack_frame.instruction_pointer.as_u64());
         self.processes[self.current_process].context.rip = stack_frame.instruction_pointer.as_u64();
 
         let frame = InterruptStackFrame::new(

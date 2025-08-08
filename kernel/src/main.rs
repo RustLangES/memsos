@@ -35,7 +35,7 @@ use x86_64::VirtAddr;
 use crate::idt::{TIMER_VECTOR, init_idt};
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::init_page_map;
-use scheduler::process::Process;
+use scheduler::process::{Process, ProcessType};
 use x2apic::{X2APIC, X2Apic, init_x2apic};
 
 use boot::HIGHER_HALF_OFFSET;
@@ -80,8 +80,8 @@ extern "C" fn kmain() -> ! {
     init_frame_allocator(0x2000);
     init_page_map();
     init_scheduler([
-        Process::new(VirtAddr::new(run_tests as u64)),
-        Process::new(VirtAddr::new(ui_test as u64)),
+        Process::new(VirtAddr::new(run_tests as u64), ProcessType::Critical),
+        Process::new(VirtAddr::new(ui_test as u64), ProcessType::Regular),
     ]);
 
     init_idt();
@@ -90,14 +90,12 @@ extern "C" fn kmain() -> ! {
     println!("Calibrating tsc...");
     calibrate_tsc();
     restore_rtc();
-
+    init_mem_module(entries);
     init_x2apic();
     println!("X2apic version: {}", X2APIC.version());
 
     let cpuinfo = CpuInfo::default();
     println!("{:?}", cpuinfo);
-
-    init_mem_module(entries);
 
     X2APIC.self_ip(TIMER_VECTOR);
 
@@ -111,14 +109,14 @@ extern "C" fn kmain() -> ! {
 }
 
 pub extern "C" fn run_tests() -> ! {
-    sleep(Duration::from_secs(2));
-    println!("Hey but 2 seconds late");
+    let mut reports = Vec::new();
+    load_memtest::<MarchC>(&mut reports);
 
     loop {}
 }
 
-pub extern "C" fn ui_test() {
-    println!("Hey!");
+pub extern "C" fn ui_test() -> ! {
+    println!("Ui stuff..");
     loop {}
 }
 
