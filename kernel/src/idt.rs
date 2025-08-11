@@ -38,7 +38,7 @@ extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
     get_shed().save();
 
     X2APIC.oneshot(TIMER_VECTOR, PROCESS_DEADLINE);
-    get_shed().call_next(stack_frame.instruction_pointer, stack_frame);
+    get_shed().call_next(stack_frame);
 }
 
 extern "x86-interrupt" fn double_fault(stack_frame: InterruptStackFrame, code: u64) -> ! {

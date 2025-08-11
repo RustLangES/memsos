@@ -8,10 +8,10 @@ pub struct Context {
     pub rbx: u64,
     pub rcx: u64,
     pub rdx: u64,
-    pub rsi: u64,
-    pub rdi: u64,
-    pub rbp: u64,
-    pub rsp: u64,
+    pub rsi: u64, // 0x20
+    pub rdi: u64, // 0x28
+    pub rbp: u64, // 0x30
+    pub rsp: u64, // 0x38
     pub r8: u64,
     pub r9: u64,
     pub r10: u64,
@@ -69,10 +69,8 @@ pub extern "C" fn fill_context(ctx: *mut Context) {
         "mov [rdi + 0x10], rcx",
         "mov [rdi + 0x18], rdx",
         "mov [rdi + 0x20], rsi",
-        "mov [rdi + 0x28], rdi",
-        "mov [rdi + 0x30], rbp",
-        "mov [rdi + 0x38], rsp",
         "mov [rdi + 0x40], r8",
+        "mov [rdi + 0x30], rbp",
         "mov [rdi + 0x48], r9",
         "mov [rdi + 0x50], r10",
         "mov [rdi + 0x58], r11",
@@ -94,6 +92,8 @@ pub extern "C" fn write_context(ctx: *const Context) {
         "mov rsi, [rdi + 0x20]",
         "mov r8, [rdi + 0x40]",
         "mov r9, [rdi + 0x48]",
+        "mov rsp, [rdi + 0x38]",
+        "mov rbp, [rdi + 0x30]",
         "mov r10, [rdi + 0x50]",
         "mov r11, [rdi + 0x58]",
         "mov r12, [rdi + 0x60]",
@@ -107,14 +107,13 @@ pub extern "C" fn write_context(ctx: *const Context) {
 impl Process {
     pub fn new(start: VirtAddr, kind: ProcessType) -> Self {
         let mut ctx = Context::default();
-        let rdi: u64;
+        let rsp: u64;
 
         unsafe {
-            asm!("mov {}, rdi", out(reg) rdi);
+            asm!("mov {}, rsp", out(reg) rsp);
         }
 
-        fill_context((&mut ctx) as *mut Context);
-        ctx.rdi = rdi;
+        ctx.rsp = rsp;
         ctx.rip = start.as_u64();
 
         Self {

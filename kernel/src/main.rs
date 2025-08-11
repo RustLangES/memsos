@@ -30,7 +30,7 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
-use scheduler::sched::{PROCESS_DEADLINE, init_scheduler};
+use scheduler::sched::{PROCESS_DEADLINE, get_shed, init_scheduler};
 use x86_64::VirtAddr;
 
 use crate::idt::{TIMER_VECTOR, init_idt};
@@ -80,10 +80,6 @@ extern "C" fn kmain() -> ! {
 
     init_frame_allocator(0x2000);
     init_page_map();
-    init_scheduler([
-        Process::new(VirtAddr::new(tests_process as u64), ProcessType::Critical),
-        Process::new(VirtAddr::new(ui_process as u64), ProcessType::Regular),
-    ]);
 
     init_idt();
 
@@ -94,6 +90,10 @@ extern "C" fn kmain() -> ! {
     init_mem_module(entries);
     init_x2apic();
     println!("X2apic version: {}", X2APIC.version());
+    init_scheduler([
+        Process::new(VirtAddr::new(tests_process as u64), ProcessType::Regular),
+        Process::new(VirtAddr::new(ui_process as u64), ProcessType::Regular),
+    ]);
 
     let cpuinfo = CpuInfo::default();
     println!("{:?}", cpuinfo);
@@ -110,22 +110,16 @@ extern "C" fn kmain() -> ! {
 }
 
 pub extern "C" fn tests_process() -> ! {
-    let mut reports = Vec::new();
-    load_memtest::<MarchC>(&mut reports);
-    println!("test completed");
-
     loop {}
 }
 
 pub extern "C" fn ui_process() -> ! {
-    loop {
-        sleep(Duration::from_secs_f32(0.2));
-        println!("Ui stuff..");
-    }
+    loop {}
 }
 
 #[panic_handler]
 fn panic_hnadler(info: &core::panic::PanicInfo) -> ! {
+    get_shed().enabled = false;
     println!("{:?}\n{:?}", info.message(), info.location());
-    hcf();
+    loop {}
 }
