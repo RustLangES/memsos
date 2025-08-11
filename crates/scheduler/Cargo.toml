@@ -1,9 +1,0 @@
-[package]
-name = "scheduler"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-x86_64.workspace = true
-x2apic.workspace = true
-fb.workspace = true

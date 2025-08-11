@@ -20,5 +20,4 @@ linked_list_allocator = "0.10.5"
 x86_64.workspace = true
 spin = "0.10.0"
 embedded-graphics.workspace = true
-scheduler.workspace = true
 x2apic.workspace = true

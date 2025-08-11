@@ -5,7 +5,6 @@ use arch::{
 use core::fmt::Write;
 use fb::println;
 use lazy_static::lazy_static;
-use scheduler::sched::{PROCESS_DEADLINE, get_shed};
 
 use x86_64::{
     registers::control::Cr2,
@@ -35,10 +34,6 @@ pub fn init_idt() {
 
 extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
     X2APIC.eoi();
-    get_shed().save();
-
-    X2APIC.oneshot(TIMER_VECTOR, PROCESS_DEADLINE);
-    get_shed().call_next(stack_frame);
 }
 
 extern "x86-interrupt" fn double_fault(stack_frame: InterruptStackFrame, code: u64) -> ! {
