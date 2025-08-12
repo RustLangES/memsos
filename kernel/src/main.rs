@@ -100,6 +100,9 @@ extern "C" fn kmain() -> ! {
 
     let instant = Instant::now();
 
+    let val = heapless::format!("{}", 2);
+    println!("{}", val.get());
+
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);
 

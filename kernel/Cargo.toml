@@ -22,3 +22,4 @@ x86_64.workspace = true
 spin = "0.10.0"
 embedded-graphics.workspace = true
 x2apic.workspace = true
+heapless.workspace = true
