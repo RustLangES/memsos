@@ -13,6 +13,10 @@ impl FormattedValue {
         }
     }
     pub fn get(&self) -> &'static str {
+        if self.data == core::ptr::null() {
+            panic!("data cannot be a null ptr");
+        }
+
         unsafe { str::from_raw_parts(self.data, self.len) }
     }
 }
