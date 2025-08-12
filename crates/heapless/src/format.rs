@@ -1,20 +1,26 @@
 use core::{fmt::Write, str};
 
-pub struct FormatedValue(*const u8, usize);
+pub struct FormattedValue {
+    data: *const u8,
+    len: usize,
+}
 
-impl FormatedValue {
+impl FormattedValue {
     pub fn new() -> Self {
-        Self(core::ptr::null(), 0)
+        Self {
+            data: core::ptr::null(),
+            len: 0,
+        }
     }
     pub fn get(&self) -> &'static str {
-        unsafe { str::from_raw_parts(self.0, self.1) }
+        unsafe { str::from_raw_parts(self.data, self.len) }
     }
 }
 
-impl Write for FormatedValue {
+impl Write for FormattedValue {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        self.0 = s.as_ptr();
-        self.1 = s.len();
+        self.data = s.as_ptr();
+        self.len = s.len();
 
         Ok(())
     }
@@ -23,10 +29,10 @@ impl Write for FormatedValue {
 #[macro_export]
 macro_rules! format {
     ($($arg:tt)*) => {{
-        let mut val = $crate::format::FormatedValue::new();
+        let mut val = $crate::format::FormattedValue::new();
 
         write!(val, "{}", format_args!($($arg)*)).expect("Cannot format args");
 
-        val
+        val.get()
     }};
 }
