@@ -5,6 +5,7 @@ use core::fmt::Write;
 use fb::println;
 use limine::memory_map::{Entry, EntryType};
 use sync::Once;
+use ui::get_ui_state;
 
 pub type MemoryMap = &'static [&'static Entry];
 
@@ -40,7 +41,10 @@ pub fn init_mem_module(memory: MemoryMap) {
 }
 
 pub fn load_memtest<T: MemModule>(reports: &mut Vec<MemoryReport>) {
-    println!("Running test {}", T::NAME);
+    get_ui_state()
+        .test_info_section
+        .set_current_test(heapless::format!("Running test {}", T::NAME));
+
     let mut test = T::init(*MEMORY_MAP);
     test.run(reports);
 }

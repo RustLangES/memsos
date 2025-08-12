@@ -65,8 +65,10 @@ version = "0.1.0"
 dependencies = [
  "boot",
  "fb",
+ "heapless",
  "limine",
  "sync",
+ "ui",
 ]
 
 [[package]]

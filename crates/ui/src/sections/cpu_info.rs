@@ -6,5 +6,4 @@ impl Section for CpuInfoSection {
     fn render(&self, screen: &mut fb::display::FbDisplay) {
         todo!();
     }
-    fn clear(&self, screen: &mut fb::display::FbDisplay) {}
 }

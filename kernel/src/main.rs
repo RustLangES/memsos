@@ -30,7 +30,8 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
-use ui::{RenderSection, render_section};
+use ui::sections::test_info::TestInfoSection;
+use ui::{RenderSection, UiState, init_ui_state, render_section, render_ui_state};
 
 use x86_64::VirtAddr;
 
@@ -89,6 +90,9 @@ extern "C" fn kmain() -> ! {
     restore_rtc();
     init_mem_module(entries);
     init_x2apic();
+    init_ui_state(UiState {
+        test_info_section: TestInfoSection::new(FONT_6X10, Rgb888::WHITE, Point::new(0, 0)),
+    });
     println!("X2apic version: {}", X2APIC.version());
 
     let cpuinfo = CpuInfo::default();
@@ -100,8 +104,7 @@ extern "C" fn kmain() -> ! {
 
     let instant = Instant::now();
 
-    let val = heapless::format!("{}", 2);
-    println!("{}", val);
+    render_ui_state();
 
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);

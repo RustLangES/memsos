@@ -41,7 +41,8 @@ impl DrawTarget for FbDisplay {
         for Pixel(point, color) in pixels.into_iter() {
             let (x, y) = (point.x as u64, point.y as u64);
 
-            let pixel_offset = y * self.0.pitch() + x * 4;
+            let pixel_offset = y.wrapping_mul(self.0.pitch()) + x.wrapping_mul(4);
+
             let offset =
                 usize::try_from(pixel_offset).expect("Cannot convert the pixel offset to usize");
             unsafe {
