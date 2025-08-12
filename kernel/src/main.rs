@@ -30,6 +30,7 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
+
 use x86_64::VirtAddr;
 
 use crate::idt::{TIMER_VECTOR, init_idt};
@@ -90,11 +91,16 @@ extern "C" fn kmain() -> ! {
     println!("X2apic version: {}", X2APIC.version());
 
     let cpuinfo = CpuInfo::default();
+    let mut reports = Vec::new();
     println!("{:?}", cpuinfo);
 
-    X2APIC.self_ip(TIMER_VECTOR);
+    get_ui_writer().clear(Rgb888::BLACK).unwrap();
+    X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
 
     let instant = Instant::now();
+
+    load_memtest::<MarchC>(&mut reports);
+    load_memtest::<ModuloN>(&mut reports);
 
     beep();
 

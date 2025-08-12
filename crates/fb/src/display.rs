@@ -11,25 +11,13 @@ use limine::framebuffer::Framebuffer;
 
 pub struct Unsupported(());
 
-impl Unsupported {
-    fn new<T>(_: T) -> Self {
-        Unsupported(())
-    }
-}
+impl Unsupported {}
 
 pub struct FbDisplay(Framebuffer<'static>);
 
 impl FbDisplay {
     pub fn new(fb: Framebuffer<'static>) -> Self {
         Self(fb)
-    }
-    pub fn clear(&self, color: u8) {
-        #[allow(clippy::cast_ptr_alignment)]
-        let buffer = self.0.addr().cast::<u8>();
-
-        unsafe {
-            write_bytes(buffer, color, (self.0.width() * self.0.height()) as usize);
-        }
     }
 }
 

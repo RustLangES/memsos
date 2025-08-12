@@ -9,6 +9,7 @@ boot.workspace = true
 sync.workspace = true
 commons.workspace = true
 march-c.workspace = true
+ui.workspace = true
 modulo-n.workspace = true
 arch.workspace = true
 lazy_static = { version = "1.5.0", default-features = false, features = [

@@ -2,7 +2,7 @@ use arch::{
     hcf::hcf,
     tsc::{TSC_TICKS_PER_MS, rdtsc},
 };
-use core::fmt::Write;
+use core::{fmt::Write, time::Duration};
 use fb::println;
 use lazy_static::lazy_static;
 
@@ -34,6 +34,8 @@ pub fn init_idt() {
 
 extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
     X2APIC.eoi();
+
+    X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
 }
 
 extern "x86-interrupt" fn double_fault(stack_frame: InterruptStackFrame, code: u64) -> ! {
