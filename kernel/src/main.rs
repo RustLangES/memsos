@@ -30,6 +30,8 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
+use ui::sections::circle::CircleSection;
+use ui::{RenderSection, render_section};
 
 use x86_64::VirtAddr;
 
@@ -96,6 +98,9 @@ extern "C" fn kmain() -> ! {
 
     get_ui_writer().clear(Rgb888::BLACK).unwrap();
     X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
+
+    let circle_section = CircleSection::new(10);
+    render_section(circle_section, Point { x: 200, y: 200 });
 
     let instant = Instant::now();
 
