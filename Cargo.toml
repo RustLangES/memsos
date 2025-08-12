@@ -13,6 +13,7 @@ members = [
     "crates/bit-fade",
     "crates/ui",
     "crates/x2apic",
+    "crates/heapless",
 ]
 
 [workspace.dependencies]
@@ -34,6 +35,7 @@ x86_64 = { version = "0.15.2", default-features = false, features = [
 ui.path = "./crates/ui"
 embedded-graphics = "0.8.1"
 x2apic.path = "./crates/x2apic"
+heapless.path = "./crates/heapless"
 
 [profile.dev]
 panic = "abort"

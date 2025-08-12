@@ -112,6 +112,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "heapless"
+version = "0.1.0"
+
+[[package]]
 name = "kernel"
 version = "0.1.0"
 dependencies = [
@@ -261,6 +265,7 @@ version = "0.1.0"
 dependencies = [
  "embedded-graphics",
  "fb",
+ "heapless",
 ]
 
 [[package]]

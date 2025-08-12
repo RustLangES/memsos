@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 embedded-graphics.workspace = true
 fb.workspace = true
+heapless.workspace = true
