@@ -30,6 +30,7 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
+use sync::Once;
 use ui::sections::test_info::TestInfoSection;
 use ui::{RenderSection, UiState, init_ui_state, render_section, render_ui_state};
 
@@ -111,7 +112,7 @@ extern "C" fn kmain() -> ! {
 
     beep();
 
-    println!("It works!");
+    println!("It works! {}", reports.is_empty());
 
     hcf();
 }

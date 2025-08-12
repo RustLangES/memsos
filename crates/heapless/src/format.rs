@@ -37,6 +37,6 @@ macro_rules! format {
 
         write!(val, "{}", format_args!($($arg)*)).expect("Cannot format args");
 
-        val.get()
+        val
     }};
 }

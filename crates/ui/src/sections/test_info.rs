@@ -14,6 +14,7 @@ use crate::{
 
 pub struct TestInfoSection {
     pub current_test: UiText,
+    pub time: UiText,
     pub pos: Point,
 }
 
@@ -21,9 +22,11 @@ impl TestInfoSection {
     pub fn new(font: MonoFont<'static>, color: Rgb888, pos: Point) -> Self {
         Self {
             current_test: UiText {
-                color,
-                font,
                 pos: Point { x: 30, y: 30 },
+                text: "",
+            },
+            time: UiText {
+                pos: Point { x: 30, y: 50 },
                 text: "",
             },
             pos,
@@ -35,11 +38,18 @@ impl TestInfoSection {
         self.current_test.clear(get_ui_writer(), self.pos);
         self.current_test.render(get_ui_writer(), self.pos);
     }
+    pub fn update_time(&mut self, time: &'static str) {
+        self.time.text = time;
+        self.time.clear(get_ui_writer(), self.pos);
+        self.time.render(get_ui_writer(), self.pos);
+    }
 }
 
 impl Section for TestInfoSection {
-    fn render(&self, screen: &mut fb::display::FbDisplay) {
+    fn render(&mut self, screen: &mut fb::display::FbDisplay) {
         self.current_test
             .render(screen, self.current_test.pos + self.pos);
+
+        self.time.render(screen, self.time.pos + self.pos);
     }
 }

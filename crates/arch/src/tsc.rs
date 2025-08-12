@@ -96,5 +96,7 @@ pub fn calibrate_tsc() {
 
 #[must_use]
 pub fn rdtsc() -> u64 {
+    //asm!("rdtsc");
+
     unsafe { core::arch::x86_64::_rdtsc() }
 }

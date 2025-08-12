@@ -266,6 +266,7 @@ version = "0.1.0"
 name = "ui"
 version = "0.1.0"
 dependencies = [
+ "arch",
  "embedded-graphics",
  "fb",
  "heapless",

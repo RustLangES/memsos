@@ -58,8 +58,8 @@ pub fn init_ui() {
 
 pub struct FrameBufferWriter<'a> {
     buffer: Framebuffer<'a>,
-    x: usize,
-    y: usize,
+    pub x: usize,
+    pub y: usize,
 }
 
 impl<'a> FrameBufferWriter<'a> {

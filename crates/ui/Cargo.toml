@@ -7,3 +7,4 @@ edition = "2024"
 embedded-graphics.workspace = true
 fb.workspace = true
 heapless.workspace = true
+arch.workspace = true

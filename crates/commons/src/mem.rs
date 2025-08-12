@@ -43,7 +43,7 @@ pub fn init_mem_module(memory: MemoryMap) {
 pub fn load_memtest<T: MemModule>(reports: &mut Vec<MemoryReport>) {
     get_ui_state()
         .test_info_section
-        .set_current_test(heapless::format!("Running test {}", T::NAME));
+        .set_current_test(heapless::format!("Running test {}", T::NAME).get());
 
     let mut test = T::init(*MEMORY_MAP);
     test.run(reports);

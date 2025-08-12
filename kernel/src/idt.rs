@@ -3,8 +3,11 @@ use arch::{
     tsc::{TSC_TICKS_PER_MS, rdtsc},
 };
 use core::{fmt::Write, time::Duration};
-use fb::println;
+use embedded_graphics::prelude::Point;
+
+use fb::{get_fb_writer, get_ui_writer, println};
 use lazy_static::lazy_static;
+use ui::{components::placeholder::PlaceholderText, get_ui_state};
 
 use x86_64::{
     registers::control::Cr2,
@@ -33,6 +36,7 @@ pub fn init_idt() {
 }
 
 extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
+    //  get_ui_state().test_info_section.update_time();
     X2APIC.eoi();
 
     X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));

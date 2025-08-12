@@ -35,26 +35,26 @@ pub struct UiState {
 }
 
 impl UiState {
-    pub fn render_all(&self) {
+    pub fn render_all(&mut self) {
         self.test_info_section.render(get_ui_writer());
     }
 }
 
 pub trait Section {
-    fn render(&self, screen: &mut FbDisplay);
+    fn render(&mut self, screen: &mut FbDisplay);
 }
 
 pub trait RenderSection {
-    fn render_section<T: Section>(&mut self, section: T);
+    fn render_section<T: Section>(&mut self, section: &mut T);
 }
 
 impl RenderSection for FbDisplay {
-    fn render_section<T: Section>(&mut self, section: T) {
+    fn render_section<T: Section>(&mut self, section: &mut T) {
         section.render(self);
     }
 }
 
 #[inline]
-pub fn render_section<T: Section>(section: T) {
+pub fn render_section<T: Section>(section: &mut T) {
     get_ui_writer().render_section(section);
 }

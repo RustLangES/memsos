@@ -6,26 +6,25 @@ use embedded_graphics::{
     primitives::Rectangle,
     text::Text,
 };
+use fb::{CHAR_RASTER_HEIGHT, CHAR_RASTER_WIDTH};
 
-use crate::components::Component;
+use crate::components::{Component, placeholder::PlaceholderText};
 
+#[derive(Clone)]
 pub struct UiText {
     pub text: &'static str,
-    pub color: Rgb888,
-    pub font: MonoFont<'static>,
     pub pos: Point,
 }
 
 impl Component for UiText {
     fn render(
-        &self,
+        &mut self,
         screen: &mut fb::display::FbDisplay,
         space: embedded_graphics::prelude::Point,
     ) {
-        let style = MonoTextStyle::new(&self.font, self.color);
-        let text = Text::new(self.text, self.pos + space, style);
+        let placeholder = PlaceholderText::new(self.pos + space);
 
-        text.draw(screen).unwrap();
+        placeholder.render_text(self.text);
     }
     fn clear(&self, screen: &mut fb::display::FbDisplay, space: embedded_graphics::prelude::Point) {
         screen
@@ -33,12 +32,11 @@ impl Component for UiText {
                 &Rectangle::new(
                     Point {
                         x: self.pos.x + space.x,
-                        y: (self.pos.y + space.y - (self.font.character_size.height as i32) / 2)
-                            - 2,
+                        y: (self.pos.y + space.y - (CHAR_RASTER_HEIGHT.val() as i32) / 2) - 2,
                     },
                     Size::new(
-                        self.font.character_size.width * (self.text.len() as u32),
-                        self.font.character_size.height,
+                        (CHAR_RASTER_WIDTH as u32) * (self.text.len() as u32),
+                        CHAR_RASTER_HEIGHT.val() as u32,
                     ),
                 ),
                 Rgb888::BLACK,
