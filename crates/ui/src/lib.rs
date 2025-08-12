@@ -1,9 +1,20 @@
 #![no_std]
 
+pub mod sections;
+
+use embedded_graphics::prelude::Point;
 use fb::display::FbDisplay;
 
 pub trait Section {
-    const STATIC: bool;
+    fn render(&self, screen: &mut FbDisplay, point: Point);
+}
 
-    fn render(&self, screen: &mut FbDisplay);
+pub trait RenderSection {
+    fn render_section<T: Section>(&mut self, section: T, point: Point);
+}
+
+impl RenderSection for FbDisplay {
+    fn render_section<T: Section>(&mut self, section: T, point: Point) {
+        section.render(self, point);
+    }
 }
