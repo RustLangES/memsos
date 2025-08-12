@@ -32,7 +32,7 @@ use mem::allocator::Allocator;
 use modulo_n::ModuloN;
 use sync::Once;
 use ui::sections::test_info::TestInfoSection;
-use ui::{RenderSection, UiState, init_ui_state, render_section, render_ui_state};
+use ui::{RenderSection, UiState, get_ui_state, init_ui_state, render_section, render_ui_state};
 
 use x86_64::VirtAddr;
 
@@ -101,6 +101,7 @@ extern "C" fn kmain() -> ! {
     println!("{:?}", cpuinfo);
 
     get_ui_writer().clear(Rgb888::BLACK).unwrap();
+
     X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
 
     let instant = Instant::now();
@@ -109,6 +110,7 @@ extern "C" fn kmain() -> ! {
 
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);
+    get_ui_state().test_info_section.time.enabled = false;
 
     beep();
 

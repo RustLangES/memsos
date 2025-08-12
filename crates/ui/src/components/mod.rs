@@ -3,6 +3,7 @@ use fb::display::FbDisplay;
 
 pub mod placeholder;
 pub mod text;
+pub mod time;
 
 pub trait Component {
     fn render(&mut self, screen: &mut FbDisplay, space: Point);

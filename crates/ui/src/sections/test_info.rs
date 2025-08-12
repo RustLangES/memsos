@@ -9,12 +9,12 @@ use fb::get_ui_writer;
 
 use crate::{
     Section,
-    components::{Component, text::UiText},
+    components::{Component, text::UiText, time::UiTime},
 };
 
 pub struct TestInfoSection {
     pub current_test: UiText,
-    pub time: UiText,
+    pub time: UiTime,
     pub pos: Point,
 }
 
@@ -25,10 +25,7 @@ impl TestInfoSection {
                 pos: Point { x: 30, y: 30 },
                 text: "",
             },
-            time: UiText {
-                pos: Point { x: 30, y: 50 },
-                text: "",
-            },
+            time: UiTime::new(Point { x: 30, y: 50 }),
             pos,
         }
     }
@@ -38,9 +35,7 @@ impl TestInfoSection {
         self.current_test.clear(get_ui_writer(), self.pos);
         self.current_test.render(get_ui_writer(), self.pos);
     }
-    pub fn update_time(&mut self, time: &'static str) {
-        self.time.text = time;
-        self.time.clear(get_ui_writer(), self.pos);
+    pub fn update_time(&mut self) {
         self.time.render(get_ui_writer(), self.pos);
     }
 }
@@ -50,6 +45,6 @@ impl Section for TestInfoSection {
         self.current_test
             .render(screen, self.current_test.pos + self.pos);
 
-        self.time.render(screen, self.time.pos + self.pos);
+        self.time.render(screen, self.pos);
     }
 }

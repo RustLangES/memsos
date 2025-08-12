@@ -36,10 +36,11 @@ pub fn init_idt() {
 }
 
 extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
-    //  get_ui_state().test_info_section.update_time();
     X2APIC.eoi();
-
-    X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
+    get_ui_state().test_info_section.update_time();
+    if get_ui_state().test_info_section.time.enabled {
+        X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
+    }
 }
 
 extern "x86-interrupt" fn double_fault(stack_frame: InterruptStackFrame, code: u64) -> ! {
