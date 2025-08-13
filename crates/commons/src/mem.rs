@@ -2,7 +2,7 @@ use core::time::Duration;
 
 use alloc::vec::Vec;
 use core::fmt::Write;
-use fb::println;
+
 use limine::memory_map::{Entry, EntryType};
 use sync::Once;
 use ui::get_ui_state;

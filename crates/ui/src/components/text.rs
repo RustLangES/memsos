@@ -14,6 +14,7 @@ use crate::components::{Component, placeholder::PlaceholderText};
 pub struct UiText {
     pub text: &'static str,
     pub pos: Point,
+    pub color: Rgb888,
 }
 
 impl Component for UiText {
@@ -24,7 +25,7 @@ impl Component for UiText {
     ) {
         let placeholder = PlaceholderText::new(self.pos + space);
 
-        placeholder.render_text(self.text);
+        placeholder.render_text(self.text, self.color);
     }
     fn clear(&self, screen: &mut fb::display::FbDisplay, space: embedded_graphics::prelude::Point) {
         screen

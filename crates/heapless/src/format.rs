@@ -13,7 +13,7 @@ impl FormattedValue {
         }
     }
     pub fn get(&self) -> &'static str {
-        if self.data == core::ptr::null() {
+        if self.data.is_null() {
             panic!("data cannot be a null ptr");
         }
 

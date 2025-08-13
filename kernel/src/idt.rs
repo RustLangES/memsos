@@ -37,8 +37,9 @@ pub fn init_idt() {
 
 extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
     X2APIC.eoi();
-    get_ui_state().test_info_section.update_time();
-    if get_ui_state().test_info_section.time.enabled {
+    let state = get_ui_state();
+    state.test_info_section.update_time();
+    if state.test_info_section.time.enabled {
         X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
     }
 }

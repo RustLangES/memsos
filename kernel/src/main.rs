@@ -24,7 +24,7 @@ use embedded_graphics::pixelcolor::Rgb888;
 use embedded_graphics::prelude::{DrawTarget, Point, RgbColor};
 use embedded_graphics::primitives::{PrimitiveStyle, StyledDrawable};
 use embedded_graphics::text::Text;
-use fb::{get_fb_writer, get_ui_writer, init_ui, println};
+use fb::{color_print, get_fb_writer, get_ui_writer, init_ui, println};
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
@@ -94,17 +94,12 @@ extern "C" fn kmain() -> ! {
     init_ui_state(UiState {
         test_info_section: TestInfoSection::new(FONT_6X10, Rgb888::WHITE, Point::new(0, 0)),
     });
-    println!("X2apic version: {}", X2APIC.version());
 
-    let cpuinfo = CpuInfo::default();
     let mut reports = Vec::new();
-    println!("{:?}", cpuinfo);
 
     get_ui_writer().clear(Rgb888::BLACK).unwrap();
 
     X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
-
-    let instant = Instant::now();
 
     render_ui_state();
 
@@ -114,7 +109,8 @@ extern "C" fn kmain() -> ! {
 
     beep();
 
-    println!("It works! {}", reports.is_empty());
+    color_print!(Rgb888::CYAN, "It works! {}", reports.is_empty());
+    println!("asd");
 
     hcf();
 }

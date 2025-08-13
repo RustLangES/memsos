@@ -8,7 +8,6 @@ use embedded_graphics::{
 use limine::framebuffer::Framebuffer;
 
 #[derive(Debug)]
-
 pub struct Unsupported(());
 
 impl Unsupported {}
@@ -16,6 +15,7 @@ impl Unsupported {}
 pub struct FbDisplay(Framebuffer<'static>);
 
 impl FbDisplay {
+    #[must_use]
     pub fn new(fb: Framebuffer<'static>) -> Self {
         Self(fb)
     }
