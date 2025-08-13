@@ -8,5 +8,4 @@ fb.workspace = true
 commons.workspace = true
 limine.workspace = true
 boot.workspace = true
-ui.workspace = true
 heapless.workspace = true

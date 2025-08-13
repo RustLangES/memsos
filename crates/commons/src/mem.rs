@@ -5,7 +5,7 @@ use core::fmt::Write;
 
 use limine::memory_map::{Entry, EntryType};
 use sync::Once;
-use ui::get_ui_state;
+use ui::{get_ui_state, push_logs};
 
 pub type MemoryMap = &'static [&'static Entry];
 
@@ -49,7 +49,19 @@ pub fn load_memtest<T: MemModule>(reports: &mut Vec<MemoryReport>) {
     test.run(reports);
 }
 
+#[inline]
 #[must_use]
-pub fn is_usable_memory(entry: &Entry) -> bool {
-    entry.entry_type == EntryType::USABLE
+pub fn is_usable_memory(entry: &Entry, test_name: &'static str) -> bool {
+    let c = entry.entry_type == EntryType::USABLE;
+
+    if c {
+        push_logs!(
+            "Running test {} in entry {}-{}",
+            test_name,
+            entry.base,
+            entry.base + entry.length
+        );
+    }
+
+    c
 }

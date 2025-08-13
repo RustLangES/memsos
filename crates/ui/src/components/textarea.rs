@@ -1,12 +1,12 @@
 use core::fmt::Write;
 use embedded_graphics::{
     pixelcolor::Rgb888,
-    prelude::{Point, RgbColor, WebColors},
+    prelude::{Point, RgbColor},
 };
-use fb::{display::FbDisplay, get_fb_writer, get_ui_writer};
+use fb::get_fb_writer;
 
 use crate::{
-    components::{Component, placeholder::PlaceholderText, text::UiText},
+    components::{Component, placeholder::PlaceholderText},
     get_ui_state,
 };
 
@@ -24,19 +24,10 @@ impl UiTextArea {
             end_pos,
         }
     }
-    pub fn render_area<'a>(&mut self, screen: &mut FbDisplay, space: Point, s: &'a str) {}
 }
 
 impl Component for UiTextArea {
-    type ExtraArgs = &'static str;
-
-    fn render(
-        &mut self,
-        _screen: &mut fb::display::FbDisplay,
-        _space: Point,
-        _extra: Self::ExtraArgs,
-    ) {
-    }
+    fn render(&mut self, _screen: &mut fb::display::FbDisplay, _space: Point) {}
     fn clear(&self, _screen: &mut fb::display::FbDisplay, space: Point) {
         for x in self.start_pos.x..=self.end_pos.x {
             for y in self.start_pos.y..=self.end_pos.y {
@@ -48,7 +39,6 @@ impl Component for UiTextArea {
 
 impl Write for UiTextArea {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        let screen = get_ui_writer();
         let space = get_ui_state().test_info_section.pos;
         let text = PlaceholderText {
             pos: self.current_pos + space,
@@ -56,8 +46,8 @@ impl Write for UiTextArea {
 
         if self.current_pos.y >= self.end_pos.y {
             self.current_pos = self.start_pos;
-            self.clear(screen, space);
-            return Ok(());
+            //self.clear(screen, space);
+            //  return Ok(());
         }
         self.current_pos.y += 15;
 

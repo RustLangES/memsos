@@ -1,9 +1,6 @@
 use core::fmt::Write;
-use embedded_graphics::{
-    pixelcolor::Rgb888,
-    prelude::{Point, RgbColor},
-};
-use fb::{color_print, get_fb_writer, println};
+use embedded_graphics::{pixelcolor::Rgb888, prelude::Point};
+use fb::{color_print, get_fb_writer};
 
 pub struct PlaceholderText {
     pub pos: Point,

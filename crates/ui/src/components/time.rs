@@ -1,7 +1,7 @@
 use arch::tsc::Instant;
 use core::fmt::Write;
 use embedded_graphics::{pixelcolor::Rgb888, prelude::Point};
-use fb::{color_print, get_fb_writer, println};
+use fb::{color_print, get_fb_writer};
 
 use crate::components::Component;
 
@@ -24,13 +24,10 @@ impl UiTime {
 }
 
 impl Component for UiTime {
-    type ExtraArgs = ();
-
     fn render(
         &mut self,
         _screen: &mut fb::display::FbDisplay,
         space: embedded_graphics::prelude::Point,
-        _extra: Self::ExtraArgs,
     ) {
         let e = self.instant.to_timestamp();
         let p = self.pos + space;
@@ -39,6 +36,10 @@ impl Component for UiTime {
         fb.y = p.y as usize;
         color_print!(self.text_color, "{e}");
     }
-    fn clear(&self, screen: &mut fb::display::FbDisplay, space: embedded_graphics::prelude::Point) {
+    fn clear(
+        &self,
+        _screen: &mut fb::display::FbDisplay,
+        _space: embedded_graphics::prelude::Point,
+    ) {
     }
 }

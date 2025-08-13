@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(clippy::new_without_default)]
 
 use core::time::Duration;
 

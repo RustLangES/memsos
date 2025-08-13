@@ -1,5 +1,3 @@
-use core::ptr::write_bytes;
-
 use embedded_graphics::{
     Pixel,
     pixelcolor::Rgb888,

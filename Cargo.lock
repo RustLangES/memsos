@@ -186,7 +186,6 @@ dependencies = [
  "fb",
  "heapless",
  "limine",
- "ui",
 ]
 
 [[package]]

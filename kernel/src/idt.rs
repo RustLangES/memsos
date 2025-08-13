@@ -35,7 +35,7 @@ pub fn init_idt() {
     IDT.load();
 }
 
-extern "x86-interrupt" fn x2apic_handle(stack_frame: InterruptStackFrame) {
+extern "x86-interrupt" fn x2apic_handle(_stack_frame: InterruptStackFrame) {
     X2APIC.eoi();
     let state = get_ui_state();
     state.test_info_section.update_time();

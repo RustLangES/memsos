@@ -5,6 +5,12 @@ pub struct FormattedValue {
     len: usize,
 }
 
+impl Default for FormattedValue {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FormattedValue {
     pub fn new() -> Self {
         Self {

@@ -1,10 +1,7 @@
 use embedded_graphics::{
-    Drawable,
-    mono_font::{MonoFont, MonoTextStyle},
     pixelcolor::Rgb888,
     prelude::{DrawTarget, Point, RgbColor, Size},
     primitives::Rectangle,
-    text::Text,
 };
 use fb::{CHAR_RASTER_HEIGHT, CHAR_RASTER_WIDTH};
 
@@ -18,13 +15,10 @@ pub struct UiText {
 }
 
 impl Component for UiText {
-    type ExtraArgs = ();
-
     fn render(
         &mut self,
-        screen: &mut fb::display::FbDisplay,
+        _screen: &mut fb::display::FbDisplay,
         space: embedded_graphics::prelude::Point,
-        extra: Self::ExtraArgs,
     ) {
         let placeholder = PlaceholderText::new(self.pos + space);
 

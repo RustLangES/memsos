@@ -7,12 +7,10 @@ pub mod textarea;
 pub mod time;
 
 pub trait Component {
-    type ExtraArgs;
-
-    fn redraw(&mut self, screen: &mut FbDisplay, space: Point, extra_args: Self::ExtraArgs) {
+    fn redraw(&mut self, screen: &mut FbDisplay, space: Point) {
         self.clear(screen, space);
-        self.render(screen, space, extra_args);
+        self.render(screen, space);
     }
-    fn render(&mut self, screen: &mut FbDisplay, space: Point, extra_args: Self::ExtraArgs);
+    fn render(&mut self, screen: &mut FbDisplay, space: Point);
     fn clear(&self, screen: &mut FbDisplay, space: Point);
 }
