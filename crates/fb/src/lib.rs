@@ -2,12 +2,17 @@
 #![no_std]
 #![feature(sync_unsafe_cell)]
 
+pub mod display;
+
 use boot::requests::FRAMEBUFFER_REQUEST;
 use core::{cell::SyncUnsafeCell, fmt};
+use embedded_graphics::{pixelcolor::Rgb888, prelude::RgbColor};
 use limine::framebuffer::Framebuffer;
 use noto_sans_mono_bitmap::{
     FontWeight, RasterHeight, RasterizedChar, get_raster, get_raster_width,
 };
+
+use crate::display::FbDisplay;
 
 pub const LINE_SPACING: usize = 2;
 pub const LETTER_SPACING: usize = 0;
@@ -29,29 +34,45 @@ pub fn get_char_raster(c: char) -> RasterizedChar {
     get(c).unwrap_or_else(|| get(BACKUP_CHAR).expect("Should get raster of backup char."))
 }
 
-pub static WRITER: SyncUnsafeCell<Option<FrameBufferWriter<'static>>> = SyncUnsafeCell::new(None);
+pub static WRITER: SyncUnsafeCell<Option<FrameBufferWriter>> = SyncUnsafeCell::new(None);
+pub static UI_WRITER: SyncUnsafeCell<Option<FbDisplay>> = SyncUnsafeCell::new(None);
 
 pub fn init_writer() {
     if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response()
         && let Some(framebuffer) = framebuffer_response.framebuffers().next()
     {
         let writer = FrameBufferWriter::new(framebuffer);
-        unsafe {
-            *WRITER.get() = Some(writer);
-        }
+
+        unsafe { *WRITER.get() = Some(writer) }
+    }
+}
+
+pub fn init_ui() {
+    if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response()
+        && let Some(framebuffer) = framebuffer_response.framebuffers().next()
+    {
+        let writer = FbDisplay::new(framebuffer);
+
+        unsafe { *UI_WRITER.get() = Some(writer) }
     }
 }
 
 pub struct FrameBufferWriter<'a> {
     buffer: Framebuffer<'a>,
-    x: usize,
-    y: usize,
+    pub color: Rgb888,
+    pub x: usize,
+    pub y: usize,
 }
 
 impl<'a> FrameBufferWriter<'a> {
     #[must_use]
     pub fn new(buffer: Framebuffer<'a>) -> Self {
-        Self { buffer, x: 0, y: 0 }
+        Self {
+            buffer,
+            x: 0,
+            y: 0,
+            color: Rgb888::WHITE,
+        }
     }
     pub fn newline(&mut self) {
         self.y += CHAR_RASTER_HEIGHT.val() + LINE_SPACING;
@@ -114,7 +135,10 @@ impl<'a> FrameBufferWriter<'a> {
                 let pixel_x = (self.x + x) as u64;
                 let pixel_y = (self.y + y) as u64;
                 let intensity = u32::from(*byte);
-                let color = (intensity << 16) | (intensity << 8) | intensity;
+
+                let color = ((intensity & self.color.r() as u32) << 16)
+                    | ((intensity & self.color.g() as u32) << 8)
+                    | (intensity & self.color.b() as u32);
 
                 self.write_pixel(pixel_x, pixel_y, color);
             }
@@ -149,12 +173,34 @@ pub fn get_fb_writer() -> &'static mut FrameBufferWriter<'static> {
     unsafe { WRITER.get().as_mut().unwrap().as_mut().unwrap() }
 }
 
+/// # Panics
+///
+///  It may cause panic if this function is called before the ui writer is initialized.
+pub fn get_ui_writer() -> &'static mut FbDisplay {
+    unsafe { UI_WRITER.get().as_mut().unwrap().as_mut().unwrap() }
+}
+
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {{
         let writer = $crate::get_fb_writer();
 
         write!(writer, "{}", format_args!($($arg)*)).expect("Cannot format args");
+    }};
+
+}
+
+#[macro_export]
+macro_rules! color_print {
+    ($color: expr, $($arg:tt)*) => {{
+        let writer = $crate::get_fb_writer();
+        let c = writer.color;
+
+        writer.color = $color;
+
+        write!(writer, "{}\n", format_args!($($arg)*)).expect("Cannot format args");
+
+        writer.color = c;
     }};
 }
 
@@ -167,4 +213,5 @@ macro_rules! println {
         $crate::print!($($arg)*);
         $crate::print!("\n");
     }};
+
 }

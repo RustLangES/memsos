@@ -24,7 +24,7 @@ impl MemModule for ModuloN {
     }
     fn run(&mut self, reports: &mut Vec<MemoryReport>) {
         for entry in self.mem_map {
-            if is_usable_memory(entry) {
+            if is_usable_memory(entry, Self::NAME) {
                 for offset in 0..N {
                     run_modulo_n(offset, entry, reports);
                 }

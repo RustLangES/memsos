@@ -5,29 +5,41 @@
 
 mod idt;
 mod mem;
-mod x2apic;
 
 use alloc::vec::Vec;
 use arch::cpuid::CpuInfo;
 use arch::hcf::hcf;
 use arch::rtc::restore_rtc;
 use arch::speaker::beep;
-use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc};
+use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use bit_fade::BitFade;
-use commons::mem::{init_mem_module, load_memtest};
+use commons::mem::{MemoryError, MemoryReport, init_mem_module, load_memtest};
+use core::f32;
 use core::fmt::Write;
 use core::time::Duration;
-use fb::println;
+use embedded_graphics::Drawable;
+use embedded_graphics::mono_font::MonoTextStyle;
+use embedded_graphics::mono_font::iso_8859_9::FONT_6X10;
+use embedded_graphics::pixelcolor::Rgb888;
+use embedded_graphics::prelude::{DrawTarget, Point, RgbColor};
+use embedded_graphics::primitives::{PrimitiveStyle, StyledDrawable};
+use embedded_graphics::text::Text;
+use fb::{color_print, get_fb_writer, get_ui_writer, init_ui, println};
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
+use sync::Once;
+use ui::sections::test_info::TestInfoSection;
+use ui::{RenderSection, UiState, get_ui_state, init_ui_state, render_section, render_ui_state};
+
+use x86_64::VirtAddr;
 
 use crate::idt::{TIMER_VECTOR, init_idt};
 use crate::mem::frame::init_frame_allocator;
 use crate::mem::paging::init_page_map;
-use crate::x2apic::{X2APIC, X2Apic, init_x2apic};
+use x2apic::{X2APIC, X2Apic, init_x2apic};
 
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
@@ -56,6 +68,7 @@ extern "C" fn kmain() -> ! {
 
     ALLOCATOR.init();
     init_writer();
+    init_ui();
 
     let hhdm = HHDM_REQUEST
         .get_response()
@@ -69,47 +82,42 @@ extern "C" fn kmain() -> ! {
 
     init_frame_allocator(0x2000);
     init_page_map();
+
     init_idt();
 
+    println!("Starting memsos");
     println!("Calibrating tsc...");
     calibrate_tsc();
     restore_rtc();
-
-    init_x2apic();
-
-    let cpuinfo = CpuInfo::default();
-    println!("{:?}", cpuinfo);
-
     init_mem_module(entries);
-
-    X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
+    init_x2apic();
+    init_ui_state(UiState {
+        test_info_section: TestInfoSection::new(Point::new(0, 0)),
+    });
 
     let mut reports = Vec::new();
 
-    let instant = Instant::now();
+    get_ui_writer().clear(Rgb888::BLACK).unwrap();
 
-    //load_memtest::<BitFade>(&mut reports);
+    render_ui_state();
+
+    X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
+
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);
-
-    println!("{}", instant.to_timestamp());
-    if reports.is_empty() {
-        println!("No reports found!");
-    } else {
-        for report in reports {
-            println!("{:?}", report);
-        }
-    }
+    get_ui_state().test_info_section.time.enabled = false;
 
     beep();
 
-    println!("It works!");
+    color_print!(Rgb888::CYAN, "It works! {}", reports.is_empty());
+    println!("asd");
 
     hcf();
 }
 
+// TODO: improve panic handler
 #[panic_handler]
 fn panic_hnadler(info: &core::panic::PanicInfo) -> ! {
     println!("{:?}\n{:?}", info.message(), info.location());
-    hcf();
+    loop {}
 }

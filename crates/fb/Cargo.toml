@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 boot.workspace = true
 limine.workspace = true
-noto-sans-mono-bitmap = "0.3.1"
+noto-sans-mono-bitmap = { version = "0.3.1", features = ["size_20"] }
+embedded-graphics.workspace = true

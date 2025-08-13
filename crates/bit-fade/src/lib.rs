@@ -34,7 +34,7 @@ impl MemModule for BitFade {
 
     fn run(&mut self, reports: &mut Vec<MemoryReport>) {
         for entry in self.mem_map {
-            if is_usable_memory(entry) {
+            if is_usable_memory(entry, Self::NAME) {
                 run_bit_fade(entry, TIME_A, PATTERN_A, reports);
                 run_bit_fade(entry, TIME_B, PATTERN_B, reports);
                 run_bit_fade(entry, TIME_C, PATTERN_C, reports);

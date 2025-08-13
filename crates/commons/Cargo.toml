@@ -8,3 +8,5 @@ boot.workspace = true
 limine.workspace = true
 sync.workspace = true
 fb.workspace = true
+ui.workspace = true
+heapless.workspace = true

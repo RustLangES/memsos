@@ -9,6 +9,7 @@ boot.workspace = true
 sync.workspace = true
 commons.workspace = true
 march-c.workspace = true
+ui.workspace = true
 modulo-n.workspace = true
 arch.workspace = true
 lazy_static = { version = "1.5.0", default-features = false, features = [
@@ -19,4 +20,6 @@ bit-fade.workspace = true
 linked_list_allocator = "0.10.5"
 x86_64.workspace = true
 spin = "0.10.0"
-bit_field = "0.10.2"
+embedded-graphics.workspace = true
+x2apic.workspace = true
+heapless.workspace = true
