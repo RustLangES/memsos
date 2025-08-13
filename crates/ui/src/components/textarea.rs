@@ -56,12 +56,3 @@ impl Write for UiTextArea {
         Ok(())
     }
 }
-
-#[macro_export]
-macro_rules! push_logs {
-    ($($arg:tt)*) => {{
-        let mut val = &mut get_ui_state().test_info_section.logs;
-
-        write!(val, "{}", format_args!($($arg)*)).expect("Cannot format args");
-    }};
-}
