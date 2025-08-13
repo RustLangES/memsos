@@ -18,10 +18,13 @@ pub struct UiText {
 }
 
 impl Component for UiText {
+    type ExtraArgs = ();
+
     fn render(
         &mut self,
         screen: &mut fb::display::FbDisplay,
         space: embedded_graphics::prelude::Point,
+        extra: Self::ExtraArgs,
     ) {
         let placeholder = PlaceholderText::new(self.pos + space);
 

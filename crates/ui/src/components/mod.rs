@@ -3,13 +3,16 @@ use fb::display::FbDisplay;
 
 pub mod placeholder;
 pub mod text;
+pub mod textarea;
 pub mod time;
 
 pub trait Component {
-    fn redraw(&mut self, screen: &mut FbDisplay, space: Point) {
+    type ExtraArgs;
+
+    fn redraw(&mut self, screen: &mut FbDisplay, space: Point, extra_args: Self::ExtraArgs) {
         self.clear(screen, space);
-        self.render(screen, space);
+        self.render(screen, space, extra_args);
     }
-    fn render(&mut self, screen: &mut FbDisplay, space: Point);
+    fn render(&mut self, screen: &mut FbDisplay, space: Point, extra_args: Self::ExtraArgs);
     fn clear(&self, screen: &mut FbDisplay, space: Point);
 }

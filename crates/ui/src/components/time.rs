@@ -24,10 +24,13 @@ impl UiTime {
 }
 
 impl Component for UiTime {
+    type ExtraArgs = ();
+
     fn render(
         &mut self,
         _screen: &mut fb::display::FbDisplay,
         space: embedded_graphics::prelude::Point,
+        _extra: Self::ExtraArgs,
     ) {
         let e = self.instant.to_timestamp();
         let p = self.pos + space;

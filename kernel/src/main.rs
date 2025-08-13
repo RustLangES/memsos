@@ -92,16 +92,16 @@ extern "C" fn kmain() -> ! {
     init_mem_module(entries);
     init_x2apic();
     init_ui_state(UiState {
-        test_info_section: TestInfoSection::new(FONT_6X10, Rgb888::WHITE, Point::new(0, 0)),
+        test_info_section: TestInfoSection::new(Point::new(0, 0)),
     });
 
     let mut reports = Vec::new();
 
     get_ui_writer().clear(Rgb888::BLACK).unwrap();
 
-    X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
-
     render_ui_state();
+
+    X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
 
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);
@@ -115,6 +115,7 @@ extern "C" fn kmain() -> ! {
     hcf();
 }
 
+// TODO: improve panic handler
 #[panic_handler]
 fn panic_hnadler(info: &core::panic::PanicInfo) -> ! {
     println!("{:?}\n{:?}", info.message(), info.location());
