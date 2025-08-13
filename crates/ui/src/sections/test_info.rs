@@ -9,12 +9,13 @@ use fb::get_ui_writer;
 
 use crate::{
     Section,
-    components::{Component, text::UiText, time::UiTime},
+    components::{Component, text::UiText, textarea::UiTextArea, time::UiTime},
 };
 
 pub struct TestInfoSection {
     pub current_test: UiText,
     pub time: UiTime,
+    pub logs: UiTextArea,
     pub pos: Point,
 }
 
@@ -27,6 +28,7 @@ impl TestInfoSection {
                 color: Rgb888::WHITE,
             },
             time: UiTime::new(Point { x: 30, y: 50 }, Rgb888::WHITE),
+            logs: UiTextArea::new(Point { x: 100, y: 100 }, Point { x: 250, y: 250 }),
             pos,
         }
     }
