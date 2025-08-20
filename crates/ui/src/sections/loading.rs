@@ -1,5 +1,6 @@
 use embedded_graphics::prelude::{OriginDimensions, Point};
 use fb::get_ui_writer;
+use images::LOGO_CONTENT;
 
 use crate::{
     Section,
@@ -14,8 +15,7 @@ pub struct LoadingSection {
 impl LoadingSection {
     pub fn new(pos: Point) -> Self {
         let mut logo = UiImage::new(
-            // ??????? WTF IS THIS
-            include_bytes!("../../../../kernel/static/logo.tga"),
+            LOGO_CONTENT,
             Point::new(
                 get_ui_writer().size().width as i32,
                 get_ui_writer().size().height as i32,

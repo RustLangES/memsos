@@ -118,6 +118,10 @@ name = "heapless"
 version = "0.1.0"
 
 [[package]]
+name = "images"
+version = "0.1.0"
+
+[[package]]
 name = "kernel"
 version = "0.1.0"
 dependencies = [
@@ -303,6 +307,7 @@ dependencies = [
  "embedded-graphics",
  "fb",
  "heapless",
+ "images",
  "tinytga",
 ]
 

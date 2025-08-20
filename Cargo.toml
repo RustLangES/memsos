@@ -14,6 +14,7 @@ members = [
     "crates/ui",
     "crates/x2apic",
     "crates/heapless",
+    "crates/images",
 ]
 
 [workspace.dependencies]
@@ -36,6 +37,7 @@ ui.path = "./crates/ui"
 embedded-graphics = "0.8.1"
 x2apic.path = "./crates/x2apic"
 heapless.path = "./crates/heapless"
+images.path = "./crates/images"
 
 [profile.dev]
 panic = "abort"
