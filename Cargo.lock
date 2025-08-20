@@ -135,7 +135,6 @@ dependencies = [
  "modulo-n",
  "spin 0.10.0",
  "sync",
- "tinytga",
  "ui",
  "x2apic",
  "x86_64",
@@ -304,6 +303,7 @@ dependencies = [
  "embedded-graphics",
  "fb",
  "heapless",
+ "tinytga",
 ]
 
 [[package]]

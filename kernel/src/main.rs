@@ -4,7 +4,6 @@
 #![allow(unused_imports, dead_code)]
 
 mod idt;
-mod images;
 mod mem;
 
 use alloc::vec::Vec;
@@ -33,7 +32,8 @@ use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
 use sync::Once;
-use tinytga::Tga;
+use ui::components::image::UiImage;
+
 use ui::sections::test_info::TestInfoSection;
 use ui::{RenderSection, UiState, get_ui_state, init_ui_state, render_section, render_ui_state};
 
@@ -79,23 +79,6 @@ extern "C" fn kmain() -> ! {
         .offset();
 
     HIGHER_HALF_OFFSET.call_once(|| hhdm);
-
-    let a = include_bytes!("../static/logo.tga");
-    let tga: Tga<Rgb888> = Tga::from_slice(a).unwrap();
-
-    get_ui_writer().clear(Rgb888::new(11, 11, 10)).unwrap();
-
-    let size = get_ui_writer().size();
-    let image = Image::new(
-        &tga,
-        Point::new(
-            (size.width - tga.size().width) as i32 / 2,
-            (size.height - tga.size().height) as i32 / 2,
-        ),
-    );
-
-    image.draw(get_ui_writer()).unwrap();
-    loop {}
 
     let mem_map = &boot::requests::MEMORY_MAP_REQUEST;
     let entries = mem_map.get_response().unwrap().entries();

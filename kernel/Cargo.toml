@@ -23,4 +23,3 @@ spin = "0.10.0"
 embedded-graphics.workspace = true
 x2apic.workspace = true
 heapless.workspace = true
-tinytga = "0.5.0"
