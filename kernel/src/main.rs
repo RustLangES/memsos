@@ -32,10 +32,12 @@ use march_c::MarchC;
 use mem::allocator::Allocator;
 use modulo_n::ModuloN;
 use sync::Once;
-use ui::components::image::UiImage;
+use ui::sections::loading::LoadingSection;
 
 use ui::sections::test_info::TestInfoSection;
-use ui::{RenderSection, UiState, get_ui_state, init_ui_state, render_section, render_ui_state};
+use ui::{
+    RenderSection, Section, UiState, get_ui_state, init_ui_state, render_section, render_ui_state,
+};
 
 use x86_64::VirtAddr;
 
@@ -80,6 +82,8 @@ extern "C" fn kmain() -> ! {
 
     HIGHER_HALF_OFFSET.call_once(|| hhdm);
 
+    get_ui_writer().clear(Rgb888::new(11, 11, 10)).unwrap();
+
     let mem_map = &boot::requests::MEMORY_MAP_REQUEST;
     let entries = mem_map.get_response().unwrap().entries();
 
@@ -88,8 +92,9 @@ extern "C" fn kmain() -> ! {
 
     init_idt();
 
-    println!("Starting memsos");
-    println!("Calibrating tsc...");
+    let mut loading = LoadingSection::new(Point::zero());
+    loading.render(get_ui_writer());
+
     calibrate_tsc();
     restore_rtc();
     init_mem_module(entries);
@@ -113,7 +118,6 @@ extern "C" fn kmain() -> ! {
     beep();
 
     color_print!(Rgb888::CYAN, "It works! {}", reports.is_empty());
-    println!("asd");
 
     hcf();
 }

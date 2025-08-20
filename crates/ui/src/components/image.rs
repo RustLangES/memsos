@@ -16,21 +16,21 @@ pub struct UiImage {
 
 impl UiImage {
     pub fn new(content: &'static [u8], pos: Point) -> Self {
-        Self { content, pos }
+        let tga: Tga<Rgb888> = Tga::from_slice(content).unwrap();
+        let size = tga.size();
+
+        Self {
+            content,
+            pos: Point::new(pos.x - size.width as i32, pos.y - size.height as i32),
+        }
     }
 }
 
 impl Component for UiImage {
     fn render(&mut self, screen: &mut fb::display::FbDisplay, space: Point) {
         let tga: Tga<Rgb888> = Tga::from_slice(self.content).unwrap();
-        let size = tga.size();
-        let image = Image::new(
-            &tga,
-            Point::new(
-                (size.width - self.pos.x as u32 + space.x as u32) as i32 / 2,
-                (size.height - self.pos.y as u32 + space.y as u32) as i32 / 2,
-            ),
-        );
+
+        let image = Image::new(&tga, self.pos + space);
 
         image.draw(screen).unwrap();
     }
@@ -39,16 +39,7 @@ impl Component for UiImage {
         let size = tga.size();
 
         screen
-            .fill_solid(
-                &Rectangle::new(
-                    Point::new(
-                        (size.width - self.pos.x as u32 + space.x as u32) as i32 / 2,
-                        (size.height - self.pos.y as u32 + space.y as u32) as i32 / 2,
-                    ),
-                    size,
-                ),
-                Rgb888::BLACK,
-            )
+            .fill_solid(&Rectangle::new(self.pos + space, size), Rgb888::BLACK)
             .unwrap();
     }
 }
