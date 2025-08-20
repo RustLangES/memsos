@@ -59,7 +59,7 @@
           ...
         }:
           (craneLib target).devShell {
-            packages = with pkgs; [qemu just libisoburn];
+            packages = with pkgs; [qemu just libisoburn imagemagick gdb];
             buildInputs = hook.enabledPackages;
             shellHook = ''
               echo "DevShell for ${name} (${target})"

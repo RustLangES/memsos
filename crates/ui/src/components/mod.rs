@@ -1,6 +1,7 @@
 use embedded_graphics::prelude::Point;
 use fb::display::FbDisplay;
 
+pub mod image;
 pub mod placeholder;
 pub mod text;
 pub mod textarea;
