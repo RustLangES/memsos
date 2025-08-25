@@ -15,6 +15,7 @@ members = [
     "crates/x2apic",
     "crates/heapless",
     "crates/images",
+    "crates/acpi",
 ]
 
 [workspace.dependencies]
@@ -38,6 +39,7 @@ embedded-graphics = "0.8.1"
 x2apic.path = "./crates/x2apic"
 heapless.path = "./crates/heapless"
 images.path = "./crates/images"
+acpi.path = "./crates/acpi"
 
 [profile.dev]
 panic = "abort"

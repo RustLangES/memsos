@@ -3,6 +3,10 @@
 version = 4
 
 [[package]]
+name = "acpi"
+version = "0.1.0"
+
+[[package]]
 name = "arch"
 version = "0.1.0"
 dependencies = [
