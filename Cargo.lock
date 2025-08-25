@@ -9,6 +9,7 @@ dependencies = [
  "arch",
  "boot",
  "fb",
+ "x86_64",
 ]
 
 [[package]]
