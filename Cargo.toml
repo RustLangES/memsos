@@ -16,6 +16,7 @@ members = [
     "crates/heapless",
     "crates/images",
     "crates/acpi",
+    "crates/allocators",
 ]
 
 [workspace.dependencies]
@@ -40,6 +41,7 @@ x2apic.path = "./crates/x2apic"
 heapless.path = "./crates/heapless"
 images.path = "./crates/images"
 acpi.path = "./crates/acpi"
+allocators.path = "./crates/allocators"
 
 [profile.dev]
 panic = "abort"

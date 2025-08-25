@@ -1,9 +1,10 @@
 // https://github.com/anubis-rs/xernel/blob/main/kernel/src/mem/paging.rs
 
-use crate::mem::{KERNEL_OFFSET, frame::get_frame_allocator};
+pub const KERNEL_OFFSET: u64 = 0xffff_ffff_8000_0000;
+
+use allocators::frame::get_frame_allocator;
 use boot::HIGHER_HALF_OFFSET;
-use boot::requests::KERNEL_ADDRESS;
-use fb::println;
+
 use x86_64::{
     PhysAddr, VirtAddr, align_down,
     registers::control::Cr3,
@@ -13,7 +14,7 @@ use x86_64::{
     },
 };
 
-use core::{cell::SyncUnsafeCell, fmt::Write};
+use core::cell::SyncUnsafeCell;
 
 pub static KERNEL_MAP: SyncUnsafeCell<Option<OffsetPageTable<'static>>> = SyncUnsafeCell::new(None);
 
