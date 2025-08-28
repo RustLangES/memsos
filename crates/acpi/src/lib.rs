@@ -12,7 +12,7 @@ use x86_64::{
     structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
 };
 
-use crate::table::{AcpiTables, RsdpHeader, get_tables_v1};
+use crate::table::{AcpiTables, RsdpHeader};
 
 pub fn init_acpi() {
     let a = RSDP_REQUEST.get_response().unwrap().address() as u64;
@@ -30,5 +30,9 @@ pub fn init_acpi() {
 
     let acpi = unsafe { AcpiTables::new(b) };
 
-    println!("{:?}", acpi.rsdp.signature);
+    for entry in acpi.get_tables() {
+        println!("{entry}");
+    }
+
+    println!("{:?}", acpi.rsdt);
 }

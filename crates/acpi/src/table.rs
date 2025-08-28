@@ -29,6 +29,31 @@ impl AcpiTables {
 
         Self { rsdp, rsdt }
     }
+    pub fn get_tables(&self) -> impl Iterator<Item = usize> {
+        let entry_size = if self.rsdp.revision == 0 { 4 } else { 8 };
+        let mut table_entries_ptr = unsafe {
+            ((self.rsdp.rsdt_adddress as *mut u32).byte_add(size_of::<SdtHeader>())).cast::<u8>()
+        };
+        let mut num_entries = (self.rsdt.len as usize - size_of::<SdtHeader>()) / entry_size;
+
+        core::iter::from_fn(move || {
+            if num_entries > 0 {
+                unsafe {
+                    let entry = if entry_size == 4 {
+                        table_entries_ptr.cast::<u32>() as usize
+                    } else {
+                        table_entries_ptr.cast::<u64>() as usize
+                    };
+                    table_entries_ptr = table_entries_ptr.byte_add(entry_size);
+                    num_entries -= 1;
+
+                    Some(entry)
+                }
+            } else {
+                None
+            }
+        })
+    }
 }
 
 #[derive(Debug)]
@@ -68,21 +93,6 @@ impl SdtHeader {
             }
         }
     }
-}
-
-pub fn get_tables_v1(rsdt: &SdtHeader) -> &[u32] {
-    let size = (rsdt.len - size_of::<SdtHeader>() as u32) / 4;
-
-    unsafe {
-        core::slice::from_raw_parts(
-            (rsdt as *const SdtHeader as *const u8).add(size_of::<SdtHeader>()) as *const u32,
-            size as usize,
-        )
-    }
-}
-
-pub fn get_tables_v2() {
-    todo!();
 }
 
 impl RsdpHeader {
