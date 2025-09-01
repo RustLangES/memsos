@@ -117,6 +117,7 @@
               filter = path: type:
                 (pkgs.lib.hasSuffix ".json" path)
                 || (pkgs.lib.hasSuffix ".ld" path)
+                || (pkgs.lib.hasInfix "static" path)
                 || ((craneLib target).filterCargoSources path type);
             };
             doCheck = false;
