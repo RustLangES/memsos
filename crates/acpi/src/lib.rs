@@ -12,7 +12,7 @@ use x86_64::{
     structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
 };
 
-use crate::table::{AcpiTables, RsdpHeader};
+use crate::table::{AcpiTables, RsdpHeader, SdtHeader};
 
 pub fn init_acpi() {
     let a = RSDP_REQUEST.get_response().unwrap().address() as u64;
@@ -26,12 +26,20 @@ pub fn init_acpi() {
         PhysFrame::from_start_address(PhysAddr::new(a_aligned)).unwrap(),
         PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
         true,
-    );
+    )
+    .unwrap();
 
     let acpi = unsafe { AcpiTables::new(b) };
 
+    let ptr = &acpi.rsdt as *const SdtHeader;
+    let ptr = (ptr as u64) as *mut [u8; 70];
+
+    println!("{:?}", unsafe { ptr.read_unaligned() });
+
     for entry in acpi.get_tables() {
-        println!("{entry}");
+        let a = (entry as u64 + *HIGHER_HALF_OFFSET) as *mut [u8; 4];
+        let b = unsafe { (a).read_volatile() };
+        println!("{:?}", b);
     }
 
     println!("{:?}", acpi.rsdt);

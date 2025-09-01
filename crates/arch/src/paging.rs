@@ -10,7 +10,7 @@ use x86_64::{
     registers::control::Cr3,
     structures::paging::{
         Mapper, OffsetPageTable, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size2MiB,
-        Size4KiB,
+        Size4KiB, mapper::MapToError,
     },
 };
 
@@ -37,23 +37,28 @@ pub fn map<P: PageSize + core::fmt::Debug>(
     frame: PhysFrame<P>,
     flags: PageTableFlags,
     flush_tlb: bool,
-) where
+) -> Result<(), MapToError<P>>
+where
     OffsetPageTable<'static>: Mapper<P>,
 {
     let frame_allocator = get_frame_allocator();
 
     unsafe {
         let mapper = get_kernel_map();
-        let map = mapper
-            .map_to(page, frame, flags, frame_allocator)
-            .expect("Cannot map page");
+        let map = match mapper.map_to(page, frame, flags, frame_allocator) {
+            Ok(a) => a,
+            Err(e) => {
+                return Err(e);
+            }
+        };
 
         if flush_tlb {
             map.flush();
-            return;
+            return Ok(());
         }
 
         map.ignore();
+        Ok(())
     }
 }
 
