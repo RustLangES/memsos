@@ -46,23 +46,23 @@ impl AcpiTables {
     pub fn get_tables(&self) -> impl Iterator<Item = usize> {
         let entry_size = if self.rsdp.revision == 0 { 4 } else { 8 };
 
-        let mut table_entries_ptr = (self.rsdt_addr) as *mut u8;
-
-        let mut num_entries = (self.rsdt.len as usize - size_of::<SdtHeader>() + 1) / entry_size;
+        let mut table_entries_ptr = (self.rsdt_addr + size_of::<SdtHeader>() as u64) as *mut u8;
+        println!("{:x}", table_entries_ptr as u64);
+        let mut num_entries = (self.rsdt.len as usize - size_of::<SdtHeader>()) / entry_size;
 
         core::iter::from_fn(move || {
             if num_entries > 0 {
                 unsafe {
                     let entry = if entry_size == 4 {
-                        table_entries_ptr.cast::<u32>() as usize
+                        *table_entries_ptr.cast::<u32>() as usize
                     } else {
-                        table_entries_ptr.cast::<u64>() as usize
+                        *table_entries_ptr.cast::<u64>() as usize
                     };
 
                     table_entries_ptr = table_entries_ptr.byte_add(entry_size);
                     num_entries -= 1;
 
-                    Some(entry)
+                    Some(entry as usize)
                 }
             } else {
                 None
