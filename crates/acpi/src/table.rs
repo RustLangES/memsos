@@ -15,26 +15,40 @@ pub enum AcpiVersion {
     V2,
 }
 
-#[repr(C, packed(1))]
 pub struct AcpiTables {
     pub rsdp: RsdpHeader,
     pub rsdt: SdtHeader,
+    pub rsdt_addr: u64,
 }
 
 impl AcpiTables {
-    // NOTE: THIS FUNCTION EXPECTS RSDP_ADDRESS IS MAPPED
+    /// # Safety
+    /// It rsdp_address is not valid or not mapped it can cause a page fault
     pub unsafe fn new(rsdp_address: *mut RsdpHeader) -> Self {
         let rsdp = unsafe { rsdp_address.read_unaligned() };
-        let rsdt = unsafe { rsdp.get_rsdt_address().read_unaligned() };
+        let (raw_rsdt, rsdt_addr) = rsdp.get_rsdt_address();
+        let rsdt = unsafe { raw_rsdt.read_volatile() };
 
-        Self { rsdp, rsdt }
+        rsdp.check_signature();
+        rsdt.check_signature();
+
+        assert!(
+            unsafe { rsdt_checksum(rsdt_addr as *mut u8, rsdt.len as usize) },
+            "Invalid rsdt: checksum is not 0"
+        );
+
+        Self {
+            rsdp,
+            rsdt,
+            rsdt_addr,
+        }
     }
     pub fn get_tables(&self) -> impl Iterator<Item = usize> {
         let entry_size = if self.rsdp.revision == 0 { 4 } else { 8 };
-        let mut table_entries_ptr = unsafe {
-            ((self.rsdp.rsdt_adddress as *mut u32).byte_add(size_of::<SdtHeader>())).cast::<u8>()
-        };
-        let mut num_entries = (self.rsdt.len as usize - size_of::<SdtHeader>()) / entry_size;
+
+        let mut table_entries_ptr = (self.rsdt_addr) as *mut u8;
+
+        let mut num_entries = (self.rsdt.len as usize - size_of::<SdtHeader>() + 1) / entry_size;
 
         core::iter::from_fn(move || {
             if num_entries > 0 {
@@ -44,32 +58,30 @@ impl AcpiTables {
                     } else {
                         table_entries_ptr.cast::<u64>() as usize
                     };
+
                     table_entries_ptr = table_entries_ptr.byte_add(entry_size);
                     num_entries -= 1;
 
-                    let b = (entry as u64).wrapping_add(*HIGHER_HALF_OFFSET) & !0xfff;
-
-                    let a_aligned = entry as u64 & !0xfff;
-
-                    match map::<Size4KiB>(
-                        Page::from_start_address(VirtAddr::new(b as u64)).unwrap(),
-                        PhysFrame::from_start_address(PhysAddr::new(a_aligned)).unwrap(),
-                        PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-                        false,
-                    ) {
-                        Ok(_) => {
-                            return Some(b as usize);
-                        }
-                        Err(_) => {
-                            return Some(entry);
-                        }
-                    };
+                    Some(entry)
                 }
             } else {
                 None
             }
         })
     }
+}
+
+/// # Safety
+/// If rsdt_addr is not valid or not mapped it can cause a page fault
+pub unsafe fn rsdt_checksum(rsdt_addr: *mut u8, rsdt_len: usize) -> bool {
+    let mut sum: u8 = 0;
+
+    for i in 0..rsdt_len {
+        let byte = unsafe { *rsdt_addr.add(i) };
+        sum = sum.wrapping_add(byte);
+    }
+
+    sum == 0
 }
 
 #[derive(Debug)]
@@ -210,7 +222,7 @@ impl RsdpHeader {
             _ => AcpiVersion::V2,
         }
     }
-    pub fn get_rsdt_address(&self) -> *mut SdtHeader {
+    pub fn get_rsdt_address(&self) -> (*mut SdtHeader, u64) {
         let b = ((self.rsdt_adddress as u64).wrapping_add(*HIGHER_HALF_OFFSET) & !0xfff)
             as *mut SdtHeader;
 
@@ -224,7 +236,7 @@ impl RsdpHeader {
         )
         .unwrap();
 
-        b
+        (b, b as u64)
     }
     pub fn get_xsdt_address() -> *mut () {
         todo!();
