@@ -37,7 +37,10 @@ pub fn init_acpi() {
     println!("{:?}", unsafe { ptr.read_unaligned() });
 
     for entry in acpi.get_tables() {
-        println!("asd {:?}", entry);
+        let a = entry as *mut SdtHeader;
+        println!("{:x}", entry);
+        let b = unsafe { a.read_volatile() };
+        println!("{:?}", b);
     }
 
     println!("{:?}", acpi.rsdp);

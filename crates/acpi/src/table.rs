@@ -6,7 +6,7 @@ use fb::println;
 
 use x86_64::{
     PhysAddr, VirtAddr,
-    structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
+    structures::paging::{Page, PageTableFlags, PhysFrame, Size2MiB, Size4KiB},
 };
 
 #[derive(Debug)]
@@ -47,8 +47,16 @@ impl AcpiTables {
         let entry_size = if self.rsdp.revision == 0 { 4 } else { 8 };
 
         let mut table_entries_ptr = (self.rsdt_addr + size_of::<SdtHeader>() as u64) as *mut u8;
-        println!("{:x}", table_entries_ptr as u64);
+
         let mut num_entries = (self.rsdt.len as usize - size_of::<SdtHeader>()) / entry_size;
+
+        unsafe {
+            let entry = if entry_size == 4 {
+                *table_entries_ptr.cast::<u32>() as u64
+            } else {
+                *table_entries_ptr.cast::<u64>() as u64
+            };
+        }
 
         core::iter::from_fn(move || {
             if num_entries > 0 {
@@ -59,10 +67,19 @@ impl AcpiTables {
                         *table_entries_ptr.cast::<u64>() as usize
                     };
 
+                    // who cares?
+                    let _ = map::<Size4KiB>(
+                        Page::from_start_address(VirtAddr::new(entry as u64 + *HIGHER_HALF_OFFSET))
+                            .unwrap(),
+                        PhysFrame::from_start_address(PhysAddr::new(entry as u64)).unwrap(),
+                        PageTableFlags::WRITABLE | PageTableFlags::PRESENT,
+                        true,
+                    );
+
                     table_entries_ptr = table_entries_ptr.byte_add(entry_size);
                     num_entries -= 1;
 
-                    Some(entry as usize)
+                    Some(entry + *HIGHER_HALF_OFFSET as usize)
                 }
             } else {
                 None
