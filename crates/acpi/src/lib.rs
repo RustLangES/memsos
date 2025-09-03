@@ -5,8 +5,7 @@ pub mod table;
 
 use arch::paging::map;
 use boot::{HIGHER_HALF_OFFSET, requests::RSDP_REQUEST};
-use core::{fmt::Write, str};
-use fb::println;
+use core::str;
 use x86_64::{
     PhysAddr, VirtAddr,
     structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
@@ -14,7 +13,7 @@ use x86_64::{
 
 use crate::table::{AcpiTables, FadtHeader, RsdpHeader, SdtHeader};
 
-pub fn init_acpi() {
+pub fn init_acpi() -> (u8, [u8; 6]) {
     let a = RSDP_REQUEST.get_response().unwrap().address() as u64;
 
     let b = (a.wrapping_add(*HIGHER_HALF_OFFSET) & !0xfff) as *mut RsdpHeader;
@@ -29,16 +28,13 @@ pub fn init_acpi() {
     )
     .unwrap();
 
+    let mut power_profile: u8 = 0;
+
     let acpi = unsafe { AcpiTables::new(b) };
-
-    let ptr = &acpi.rsdt as *const SdtHeader;
-    let ptr = (ptr as u64) as *mut [u8; 70];
-
-    println!("{:?}", unsafe { ptr.read_unaligned() });
 
     for entry in acpi.get_tables() {
         let a = entry as *mut SdtHeader;
-        println!("{:x}", entry);
+
         let b = unsafe { a.read_volatile() };
 
         match unsafe { str::from_raw_parts(b.signature.as_ptr(), b.signature.len()) } {
@@ -47,7 +43,7 @@ pub fn init_acpi() {
 
                 let b = unsafe { a.read_volatile() };
 
-                println!("{:?}", b);
+                power_profile = b.prefered_power_management_profile;
             }
             _ => {
                 continue;
@@ -55,5 +51,5 @@ pub fn init_acpi() {
         }
     }
 
-    println!("{:?}", acpi.rsdp);
+    (power_profile, acpi.rsdp.oem_id)
 }

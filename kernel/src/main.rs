@@ -34,6 +34,7 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use modulo_n::ModuloN;
 use sync::Once;
+use ui::sections::cpu_info::CpuInfoSection;
 use ui::sections::loading::LoadingSection;
 
 use ui::sections::test_info::TestInfoSection;
@@ -97,21 +98,20 @@ extern "C" fn kmain() -> ! {
     init_mem_module(entries);
     init_x2apic();
 
-    init_acpi();
-
-    loop {}
+    let (_power_profile, oem_id) = init_acpi();
 
     init_ui_state(UiState {
         test_info_section: TestInfoSection::new(Point::new(0, 0)),
+        cpu_info_section: CpuInfoSection::new(oem_id, Point { x: 0, y: 0 }),
     });
-
-    let mut reports = Vec::new();
 
     get_ui_writer().clear(Rgb888::BLACK).unwrap();
 
     render_ui_state();
 
     X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
+
+    let mut reports = Vec::new();
 
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);

@@ -3,6 +3,7 @@ use fb::display::FbDisplay;
 
 pub mod image;
 pub mod placeholder;
+pub mod raw_text;
 pub mod text;
 pub mod textarea;
 pub mod time;
