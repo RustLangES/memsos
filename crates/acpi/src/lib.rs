@@ -5,14 +5,14 @@ pub mod table;
 
 use arch::paging::map;
 use boot::{HIGHER_HALF_OFFSET, requests::RSDP_REQUEST};
-use core::fmt::Write;
+use core::{fmt::Write, str};
 use fb::println;
 use x86_64::{
     PhysAddr, VirtAddr,
     structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
 };
 
-use crate::table::{AcpiTables, RsdpHeader, SdtHeader};
+use crate::table::{AcpiTables, FadtHeader, RsdpHeader, SdtHeader};
 
 pub fn init_acpi() {
     let a = RSDP_REQUEST.get_response().unwrap().address() as u64;
@@ -40,7 +40,19 @@ pub fn init_acpi() {
         let a = entry as *mut SdtHeader;
         println!("{:x}", entry);
         let b = unsafe { a.read_volatile() };
-        println!("{:?}", b);
+
+        match unsafe { str::from_raw_parts(b.signature.as_ptr(), b.signature.len()) } {
+            "FACP" => {
+                let a = entry as *mut FadtHeader;
+
+                let b = unsafe { a.read_volatile() };
+
+                println!("{:?}", b);
+            }
+            _ => {
+                continue;
+            }
+        }
     }
 
     println!("{:?}", acpi.rsdp);
