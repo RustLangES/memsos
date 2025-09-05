@@ -5,9 +5,7 @@ pub mod table;
 
 use arch::paging::map;
 use boot::{HIGHER_HALF_OFFSET, requests::RSDP_REQUEST};
-use core::fmt::Write;
 use core::str;
-use fb::println;
 use x86_64::{
     PhysAddr, VirtAddr,
     structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},

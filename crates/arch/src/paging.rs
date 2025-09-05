@@ -90,7 +90,8 @@ pub fn map_range(
             PhysFrame::from_start_address(phys + offset).unwrap(),
             flags,
             flush_tlb,
-        );
+        )
+        .unwrap();
 
         offset += Size4KiB::SIZE;
     }
@@ -103,7 +104,8 @@ pub fn map_range(
             PhysFrame::from_start_address(phys + offset).unwrap(),
             flags,
             flush_tlb,
-        );
+        )
+        .unwrap();
 
         offset += Size2MiB::SIZE;
     }
@@ -116,7 +118,8 @@ pub fn map_range(
             PhysFrame::from_start_address(phys + offset).unwrap(),
             flags,
             flush_tlb,
-        );
+        )
+        .unwrap();
 
         offset += Size4KiB::SIZE;
     }

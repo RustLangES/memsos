@@ -101,7 +101,7 @@ extern "C" fn kmain() -> ! {
     let (_power_profile, oem_id) = init_acpi();
 
     init_ui_state(UiState {
-        test_info_section: TestInfoSection::new(Point::new(0, 0)),
+        test_info_section: TestInfoSection::new(Point::new(30, 30)),
         cpu_info_section: CpuInfoSection::new(oem_id, Point { x: 0, y: 0 }),
     });
 

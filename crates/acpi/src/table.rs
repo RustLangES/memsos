@@ -47,14 +47,6 @@ impl AcpiTables {
 
         let mut num_entries = (self.sdt.len as usize - size_of::<SdtHeader>()) / entry_size;
 
-        unsafe {
-            let entry = if entry_size == 4 {
-                *table_entries_ptr.cast::<u32>() as u64
-            } else {
-                *table_entries_ptr.cast::<u64>() as u64
-            };
-        }
-
         core::iter::from_fn(move || {
             if num_entries > 0 {
                 unsafe {
@@ -263,10 +255,9 @@ impl RsdpHeader {
         (b, b as u64)
     }
     pub fn get_xsdt_address(&self) -> (*mut SdtHeader, u64) {
-        let b = ((self.xsdt_address as u64).wrapping_add(*HIGHER_HALF_OFFSET) & !0xfff)
-            as *mut SdtHeader;
+        let b = (self.xsdt_address.wrapping_add(*HIGHER_HALF_OFFSET) & !0xfff) as *mut SdtHeader;
 
-        let a_aligned = self.xsdt_address as u64 & !0xfff;
+        let a_aligned = self.xsdt_address & !0xfff;
 
         map::<Size4KiB>(
             Page::from_start_address(VirtAddr::new(b as u64)).unwrap(),
