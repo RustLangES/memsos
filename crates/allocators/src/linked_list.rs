@@ -10,6 +10,7 @@ pub struct Allocator {
 
 static mut TEMP_ARRAY: [MaybeUninit<u8>; HEAP_SIZE] = [MaybeUninit::uninit(); HEAP_SIZE];
 
+#[allow(clippy::new_without_default)]
 impl Allocator {
     pub const fn new() -> Self {
         let heap = Heap::empty();

@@ -1,19 +1,20 @@
 // https://github.com/anubis-rs/xernel/blob/main/kernel/src/mem/paging.rs
 
-use crate::mem::{KERNEL_OFFSET, frame::get_frame_allocator};
+pub const KERNEL_OFFSET: u64 = 0xffff_ffff_8000_0000;
+
+use allocators::frame::get_frame_allocator;
 use boot::HIGHER_HALF_OFFSET;
-use boot::requests::KERNEL_ADDRESS;
-use fb::println;
+
 use x86_64::{
     PhysAddr, VirtAddr, align_down,
     registers::control::Cr3,
     structures::paging::{
         Mapper, OffsetPageTable, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size2MiB,
-        Size4KiB,
+        Size4KiB, mapper::MapToError,
     },
 };
 
-use core::{cell::SyncUnsafeCell, fmt::Write};
+use core::cell::SyncUnsafeCell;
 
 pub static KERNEL_MAP: SyncUnsafeCell<Option<OffsetPageTable<'static>>> = SyncUnsafeCell::new(None);
 
@@ -36,23 +37,28 @@ pub fn map<P: PageSize + core::fmt::Debug>(
     frame: PhysFrame<P>,
     flags: PageTableFlags,
     flush_tlb: bool,
-) where
+) -> Result<(), MapToError<P>>
+where
     OffsetPageTable<'static>: Mapper<P>,
 {
     let frame_allocator = get_frame_allocator();
 
     unsafe {
         let mapper = get_kernel_map();
-        let map = mapper
-            .map_to(page, frame, flags, frame_allocator)
-            .expect("Cannot map page");
+        let map = match mapper.map_to(page, frame, flags, frame_allocator) {
+            Ok(a) => a,
+            Err(e) => {
+                return Err(e);
+            }
+        };
 
         if flush_tlb {
             map.flush();
-            return;
+            return Ok(());
         }
 
         map.ignore();
+        Ok(())
     }
 }
 
@@ -84,7 +90,8 @@ pub fn map_range(
             PhysFrame::from_start_address(phys + offset).unwrap(),
             flags,
             flush_tlb,
-        );
+        )
+        .unwrap();
 
         offset += Size4KiB::SIZE;
     }
@@ -97,7 +104,8 @@ pub fn map_range(
             PhysFrame::from_start_address(phys + offset).unwrap(),
             flags,
             flush_tlb,
-        );
+        )
+        .unwrap();
 
         offset += Size2MiB::SIZE;
     }
@@ -110,7 +118,8 @@ pub fn map_range(
             PhysFrame::from_start_address(phys + offset).unwrap(),
             flags,
             flush_tlb,
-        );
+        )
+        .unwrap();
 
         offset += Size4KiB::SIZE;
     }

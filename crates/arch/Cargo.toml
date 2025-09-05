@@ -7,3 +7,5 @@ edition = "2024"
 x86_64.workspace = true
 sync.workspace = true
 fb.workspace = true
+boot.workspace = true
+allocators.workspace = true

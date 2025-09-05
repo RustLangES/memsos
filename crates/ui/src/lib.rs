@@ -8,7 +8,7 @@ use core::cell::SyncUnsafeCell;
 
 use fb::{display::FbDisplay, get_ui_writer};
 
-use crate::sections::test_info::TestInfoSection;
+use crate::sections::{cpu_info::CpuInfoSection, test_info::TestInfoSection};
 
 pub static UI_STATE: SyncUnsafeCell<Option<UiState>> = SyncUnsafeCell::new(None);
 
@@ -32,11 +32,13 @@ pub fn render_ui_state() {
 
 pub struct UiState {
     pub test_info_section: TestInfoSection,
+    pub cpu_info_section: CpuInfoSection,
 }
 
 impl UiState {
     pub fn render_all(&mut self) {
         self.test_info_section.render(get_ui_writer());
+        self.cpu_info_section.render(get_ui_writer());
     }
 }
 

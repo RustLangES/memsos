@@ -3,10 +3,13 @@
 #![feature(sync_unsafe_cell, fn_traits, abi_x86_interrupt)]
 #![allow(unused_imports, dead_code)]
 
-mod idt;
-mod mem;
+extern crate alloc;
 
+mod idt;
+
+use acpi::init_acpi;
 use alloc::vec::Vec;
+use allocators::ALLOCATOR;
 use arch::cpuid::CpuInfo;
 use arch::hcf::hcf;
 use arch::rtc::restore_rtc;
@@ -29,9 +32,9 @@ use fb::{color_print, get_fb_writer, get_ui_writer, init_ui, println};
 use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
-use mem::allocator::Allocator;
 use modulo_n::ModuloN;
 use sync::Once;
+use ui::sections::cpu_info::CpuInfoSection;
 use ui::sections::loading::LoadingSection;
 
 use ui::sections::test_info::TestInfoSection;
@@ -42,18 +45,13 @@ use ui::{
 use x86_64::VirtAddr;
 
 use crate::idt::{TIMER_VECTOR, init_idt};
-use crate::mem::frame::init_frame_allocator;
-use crate::mem::paging::init_page_map;
+use allocators::frame::init_frame_allocator;
+use arch::paging::init_page_map;
 use x2apic::{X2APIC, X2Apic, init_x2apic};
 
 use boot::HIGHER_HALF_OFFSET;
 use boot::requests::HHDM_REQUEST;
 use fb::init_writer;
-
-#[global_allocator]
-static ALLOCATOR: Allocator = Allocator::new();
-
-extern crate alloc;
 
 #[used]
 #[unsafe(link_section = ".requests")]
@@ -99,17 +97,21 @@ extern "C" fn kmain() -> ! {
     restore_rtc();
     init_mem_module(entries);
     init_x2apic();
-    init_ui_state(UiState {
-        test_info_section: TestInfoSection::new(Point::new(0, 0)),
-    });
 
-    let mut reports = Vec::new();
+    let (_power_profile, oem_id) = init_acpi();
+
+    init_ui_state(UiState {
+        test_info_section: TestInfoSection::new(Point::new(30, 30)),
+        cpu_info_section: CpuInfoSection::new(oem_id, Point { x: 0, y: 0 }),
+    });
 
     get_ui_writer().clear(Rgb888::BLACK).unwrap();
 
     render_ui_state();
 
     X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
+
+    let mut reports = Vec::new();
 
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);

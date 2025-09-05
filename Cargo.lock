@@ -3,9 +3,29 @@
 version = 4
 
 [[package]]
+name = "acpi"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "boot",
+ "fb",
+ "x86_64",
+]
+
+[[package]]
+name = "allocators"
+version = "0.1.0"
+dependencies = [
+ "linked_list_allocator",
+ "x86_64",
+]
+
+[[package]]
 name = "arch"
 version = "0.1.0"
 dependencies = [
+ "allocators",
+ "boot",
  "fb",
  "sync",
  "x86_64",
@@ -125,19 +145,18 @@ version = "0.1.0"
 name = "kernel"
 version = "0.1.0"
 dependencies = [
+ "acpi",
+ "allocators",
  "arch",
  "bit-fade",
  "boot",
  "commons",
  "embedded-graphics",
  "fb",
- "heapless",
  "lazy_static",
  "limine",
- "linked_list_allocator",
  "march-c",
  "modulo-n",
- "spin 0.10.0",
  "sync",
  "ui",
  "x2apic",
@@ -150,7 +169,7 @@ version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 dependencies = [
- "spin 0.9.8",
+ "spin",
 ]
 
 [[package]]
@@ -266,15 +285,6 @@ name = "spin"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
-
-[[package]]
-name = "spin"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5fe4ccb98d9c292d56fec89a5e07da7fc4cf0dc11e156b41793132775d3e591"
-dependencies = [
- "lock_api",
-]
 
 [[package]]
 name = "spinning_top"

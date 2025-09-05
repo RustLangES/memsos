@@ -1,0 +1,10 @@
+[package]
+name = "acpi"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+boot.workspace = true
+fb.workspace = true
+arch.workspace = true
+x86_64.workspace = true
