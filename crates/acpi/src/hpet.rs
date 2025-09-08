@@ -1,10 +1,28 @@
+use arch::paging::map;
 use bit_field::BitField;
+use boot::HIGHER_HALF_OFFSET;
 use core::fmt::Write;
 use core::str;
 use fb::println;
+use sync::Once;
+use x86_64::{
+    PhysAddr, VirtAddr,
+    structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
+};
 
 use crate::table::{GenericAddress, SdtHeader};
 
+const HPET_CONFIGURATION_REGISTER: u64 = 0x10;
+const HPET_MAIN_COUNTER_REGISTER: u64 = 0xF0;
+
+static HPET_STATE: Once<HpetState> = Once::new();
+static HPET_ADDR: Once<u64> = Once::new();
+
+pub struct HpetState {
+    pub frequency: u64,
+    pub period: u64,
+    pub clock_tick_unit: u16,
+}
 // inspired by: https://docs.rs/acpi/latest/src/acpi/sdt/hpet.rs.html#37-67
 
 #[repr(C, packed)]
@@ -37,7 +55,7 @@ pub struct HpetInfo {
     pub main_counter_is_64bits: bool,
     pub legacy_irq_capable: bool,
     pub pci_vendor_id: u16,
-    pub base_address: usize,
+    pub base_address: u64,
     pub hpet_number: u8,
     pub clock_tick_unit: u16,
     pub page_protection: PageProtection,
@@ -74,7 +92,7 @@ impl TryFrom<HpetHeader> for HpetInfo {
             main_counter_is_64bits: event_timer_block_id.get_bit(13),
             legacy_irq_capable: event_timer_block_id.get_bit(15),
             pci_vendor_id: event_timer_block_id.get_bits(16..32) as u16,
-            base_address: header.base_address.address as usize,
+            base_address: header.base_address.address,
             hpet_number: header.hpet_number,
             clock_tick_unit: header.clock_tick_unit,
             page_protection: match header.page_protection_and_oem.get_bits(0..4) {
@@ -86,4 +104,55 @@ impl TryFrom<HpetHeader> for HpetInfo {
             },
         })
     }
+}
+
+pub fn init_hpet(hpet_header: HpetHeader) -> Result<(), HpetInfoError> {
+    let info = HpetInfo::try_from(hpet_header)?;
+
+    HPET_ADDR.call_once(|| info.base_address + *HIGHER_HALF_OFFSET);
+
+    map::<Size4KiB>(
+        Page::from_start_address(VirtAddr::new(info.base_address + *HIGHER_HALF_OFFSET)).unwrap(),
+        PhysFrame::from_start_address(PhysAddr::new(info.base_address)).unwrap(),
+        PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_EXECUTE,
+        true,
+    )
+    .unwrap();
+
+    let period = (read_hpet(0) >> 32) & u64::MAX;
+
+    assert!(period != 0);
+    assert!(period <= 0x05F5E100);
+
+    let f = (u64::pow(10, 15) as f64 / period as f64) as u64;
+
+    println!("Hpet Period: {}", period);
+    println!("Hpet Frequency {}", f);
+
+    write_hpet(
+        HPET_CONFIGURATION_REGISTER,
+        read_hpet(HPET_CONFIGURATION_REGISTER) | 1,
+    );
+
+    HPET_STATE.call_once(|| HpetState {
+        frequency: f,
+        period,
+        clock_tick_unit: info.clock_tick_unit,
+    });
+
+    Ok(())
+}
+
+pub fn write_hpet(offset: u64, value: u64) {
+    let ptr = *HPET_ADDR as *mut u64;
+
+    unsafe {
+        ptr.byte_add(offset as usize).write_volatile(value);
+    }
+}
+
+pub fn read_hpet(offset: u64) -> u64 {
+    let ptr = *HPET_ADDR as *mut u64;
+
+    unsafe { ptr.byte_add(offset as usize).read_volatile() }
 }

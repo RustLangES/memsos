@@ -14,7 +14,7 @@ use x86_64::{
 };
 
 use crate::{
-    hpet::{HpetHeader, HpetInfo},
+    hpet::{HpetHeader, HpetInfo, init_hpet},
     table::{AcpiTables, FadtHeader, RsdpHeader, SdtHeader},
 };
 
@@ -57,11 +57,8 @@ pub fn init_acpi() -> (u8, [u8; 6]) {
                 let a = entry as *mut HpetHeader;
 
                 let b = unsafe { a.read_volatile() };
-                let info = HpetInfo::try_from(b).unwrap();
 
-                use core::fmt::Write;
-                use fb::println;
-                println!("{:?}", info);
+                init_hpet(b).unwrap();
 
                 hpet = Some(b);
             }
