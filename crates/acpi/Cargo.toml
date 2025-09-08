@@ -8,3 +8,4 @@ boot.workspace = true
 fb.workspace = true
 arch.workspace = true
 x86_64.workspace = true
+sync.workspace = true

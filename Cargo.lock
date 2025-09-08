@@ -9,6 +9,7 @@ dependencies = [
  "arch",
  "boot",
  "fb",
+ "sync",
  "x86_64",
 ]
 

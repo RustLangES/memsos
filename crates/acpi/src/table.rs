@@ -7,6 +7,8 @@ use x86_64::{
     structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
 };
 
+use crate::hpet::HpetHeader;
+
 #[derive(Debug)]
 pub enum AcpiVersion {
     V1,
@@ -17,6 +19,8 @@ pub struct AcpiTables {
     pub rsdp: RsdpHeader,
     pub sdt: SdtHeader,
     pub sdt_addr: u64,
+
+    pub hpet: Option<HpetHeader>,
 }
 
 impl AcpiTables {
@@ -38,6 +42,7 @@ impl AcpiTables {
             rsdp,
             sdt,
             sdt_addr,
+            hpet: None,
         }
     }
     pub fn get_tables(&self) -> impl Iterator<Item = usize> {
