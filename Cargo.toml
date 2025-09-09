@@ -16,7 +16,7 @@ members = [
     "crates/heapless",
     "crates/images",
     "crates/acpi",
-    "crates/allocators",
+    "crates/allocators", "crates/timers", "crates/paging",
 ]
 
 [workspace.dependencies]
@@ -42,6 +42,8 @@ heapless.path = "./crates/heapless"
 images.path = "./crates/images"
 acpi.path = "./crates/acpi"
 allocators.path = "./crates/allocators"
+timers.path = "./crates/timers"
+paging.path = "./crates/paging"
 
 [profile.dev]
 panic = "abort"

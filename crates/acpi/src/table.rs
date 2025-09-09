@@ -1,11 +1,13 @@
-use arch::paging::map;
 use boot::HIGHER_HALF_OFFSET;
 use core::str;
+use paging::map;
 
 use x86_64::{
     PhysAddr, VirtAddr,
     structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
 };
+
+use crate::hpet::HpetHeader;
 
 #[derive(Debug)]
 pub enum AcpiVersion {
@@ -17,6 +19,8 @@ pub struct AcpiTables {
     pub rsdp: RsdpHeader,
     pub sdt: SdtHeader,
     pub sdt_addr: u64,
+
+    pub hpet: Option<HpetHeader>,
 }
 
 impl AcpiTables {
@@ -38,6 +42,7 @@ impl AcpiTables {
             rsdp,
             sdt,
             sdt_addr,
+            hpet: None,
         }
     }
     pub fn get_tables(&self) -> impl Iterator<Item = usize> {

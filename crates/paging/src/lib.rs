@@ -1,3 +1,6 @@
+#![no_std]
+#![feature(sync_unsafe_cell)]
+
 // https://github.com/anubis-rs/xernel/blob/main/kernel/src/mem/paging.rs
 
 pub const KERNEL_OFFSET: u64 = 0xffff_ffff_8000_0000;

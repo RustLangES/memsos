@@ -1,7 +1,6 @@
-use arch::{
-    hcf::hcf,
-    tsc::{TSC_TICKS_PER_MS, rdtsc},
-};
+use arch::hcf::hcf;
+use timers::tsc::{TSC_TICKS_PER_MS, rdtsc};
+
 use core::{fmt::Write, time::Duration};
 use embedded_graphics::prelude::Point;
 

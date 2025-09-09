@@ -5,10 +5,10 @@ extern crate alloc;
 use core::{ptr::write_bytes, time::Duration};
 
 use alloc::vec::Vec;
-use arch::tsc::sleep;
 use boot::HIGHER_HALF_OFFSET;
 use commons::mem::{MemModule, MemoryError, MemoryMap, MemoryReport, is_usable_memory};
 use limine::memory_map::Entry;
+use timers::tsc::sleep;
 
 const PATTERN_A: u8 = 0b000_101_011;
 const TIME_A: Duration = Duration::from_secs(90);
