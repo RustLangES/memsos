@@ -2,7 +2,7 @@ use core::time::Duration;
 
 use x86_64::instructions::port::Port;
 
-use crate::tsc::sleep;
+use timers::tsc::sleep;
 
 #[allow(clippy::cast_possible_truncation)]
 pub fn play_sound(frequence: u32) {

@@ -12,9 +12,7 @@ use alloc::vec::Vec;
 use allocators::ALLOCATOR;
 use arch::cpuid::CpuInfo;
 use arch::hcf::hcf;
-use arch::rtc::restore_rtc;
 use arch::speaker::beep;
-use arch::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use bit_fade::BitFade;
 use commons::mem::{MemoryError, MemoryReport, init_mem_module, load_memtest};
 use core::f32;
@@ -34,6 +32,8 @@ use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use modulo_n::ModuloN;
 use sync::Once;
+use timers::rtc::restore_rtc;
+use timers::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use ui::sections::cpu_info::CpuInfoSection;
 use ui::sections::loading::LoadingSection;
 
@@ -46,7 +46,7 @@ use x86_64::VirtAddr;
 
 use crate::idt::{TIMER_VECTOR, init_idt};
 use allocators::frame::init_frame_allocator;
-use arch::paging::init_page_map;
+use paging::init_page_map;
 use x2apic::{X2APIC, X2Apic, init_x2apic};
 
 use boot::HIGHER_HALF_OFFSET;
@@ -93,12 +93,12 @@ extern "C" fn kmain() -> ! {
     let mut loading = LoadingSection::new(Point::zero());
     loading.render(get_ui_writer());
 
+    let (_power_profile, oem_id) = init_acpi();
+
     calibrate_tsc();
     restore_rtc();
     init_mem_module(entries);
     init_x2apic();
-
-    let (_power_profile, oem_id) = init_acpi();
 
     init_ui_state(UiState {
         test_info_section: TestInfoSection::new(Point::new(30, 30)),

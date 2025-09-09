@@ -1,10 +1,10 @@
 [package]
-name = "x2apic"
+name = "timers"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bit_field = "0.10.2"
-arch.workspace = true
+acpi.workspace = true
+fb.workspace = true
 sync.workspace = true
-timers.workspace = true
+x86_64.workspace = true

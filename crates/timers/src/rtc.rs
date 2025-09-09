@@ -1,16 +1,37 @@
 use core::ops::Sub;
 use sync::Once;
 
+use x86_64::instructions::interrupts::{disable, enable};
 use x86_64::instructions::port::Port;
-
-use crate::{
-    interrupt::{cli, sti},
-    nmi::{disable_nmi, enable_nmi},
-};
 
 pub const CMOS_SECOND_REGISTER: u8 = 0x0;
 pub const CMOS_MINUTE_REGISTER: u8 = 0x02;
 pub const CMOS_HOUR_REGISTER: u8 = 0x04;
+
+const CMOS_DISABLE_NMI: u8 = 1 << 7;
+
+pub fn enable_nmi() {
+    let mut cmos_port: Port<u8> = Port::new(0x70);
+
+    unsafe {
+        let tmp = cmos_port.read();
+        cmos_port.write(tmp & 0x7F);
+
+        let mut tmp_port: Port<u8> = Port::new(0x71);
+        tmp_port.read();
+    }
+}
+
+pub fn disable_nmi(register: u8) {
+    let mut cmos_port: Port<u8> = Port::new(0x70);
+
+    unsafe {
+        cmos_port.write(CMOS_DISABLE_NMI | register);
+
+        let mut tmp_port: Port<u8> = Port::new(0x71);
+        tmp_port.read();
+    }
+}
 
 //const CMOS_COMMAND_PORT: u16 = 0x70;
 const CMOS_STATUS_REGISTER_A: u8 = 0x0A;
@@ -131,13 +152,13 @@ pub fn read_datetime_reg(reg: u8) -> u8 {
 #[must_use]
 pub fn read_cmos_register(register: u8) -> u8 {
     unsafe {
-        cli();
+        disable();
         disable_nmi(register);
 
         #[allow(static_mut_refs)]
         let port = &mut DATA_PORT.read();
         enable_nmi();
-        sti();
+        enable();
 
         *port
     }
@@ -145,14 +166,14 @@ pub fn read_cmos_register(register: u8) -> u8 {
 
 pub fn write_cmos_register(register: u8, value: u8) {
     unsafe {
-        cli();
+        disable();
         disable_nmi(register);
 
         #[allow(static_mut_refs)]
         let () = &mut DATA_PORT.write(value);
 
         enable_nmi();
-        sti();
+        enable();
     }
 }
 

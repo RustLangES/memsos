@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 boot.workspace = true
 fb.workspace = true
-arch.workspace = true
+paging.workspace = true
 x86_64.workspace = true
 sync.workspace = true
 bit_field = "0.10.3"

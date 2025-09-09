@@ -7,6 +7,6 @@ edition = "2024"
 embedded-graphics.workspace = true
 fb.workspace = true
 heapless.workspace = true
-arch.workspace = true
+timers.workspace = true
 tinytga = "0.5.0"
 images.workspace = true

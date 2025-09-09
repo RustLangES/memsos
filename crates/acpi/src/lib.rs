@@ -4,9 +4,9 @@
 pub mod hpet;
 pub mod table;
 
-use arch::paging::map;
 use boot::{HIGHER_HALF_OFFSET, requests::RSDP_REQUEST};
 use core::str;
+use paging::map;
 use sync::Once;
 use x86_64::{
     PhysAddr, VirtAddr,
@@ -71,7 +71,6 @@ pub fn init_acpi() -> (u8, [u8; 6]) {
     acpi.hpet = hpet;
 
     ACPI_TABLE.call_once(|| acpi);
-    loop {}
 
     (power_profile, ACPI_TABLE.rsdp.oem_id)
 }

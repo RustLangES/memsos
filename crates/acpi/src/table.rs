@@ -1,6 +1,6 @@
-use arch::paging::map;
 use boot::HIGHER_HALF_OFFSET;
 use core::str;
+use paging::map;
 
 use x86_64::{
     PhysAddr, VirtAddr,

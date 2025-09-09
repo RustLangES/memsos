@@ -4,13 +4,10 @@
 use core::time::Duration;
 
 // Based from https://docs.rs/x86/0.52.0/src/x86/apic/x2apic.rs.html
-use arch::{
-    msr::wrmsr,
-    rdmsr,
-    tsc::{duration_to_ticks, rdtsc},
-};
+use arch::{msr::wrmsr, rdmsr};
 use bit_field::BitField;
 use sync::Once;
+use timers::tsc::{duration_to_ticks, rdtsc};
 
 pub const IA32_APIC_BASE: u32 = 0x1b;
 pub const IA32_X2APIC_SIVR: u32 = 0x80f;

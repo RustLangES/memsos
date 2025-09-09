@@ -1,7 +1,7 @@
-use arch::tsc::Instant;
 use core::fmt::Write;
 use embedded_graphics::{pixelcolor::Rgb888, prelude::Point};
 use fb::{color_print, get_fb_writer};
+use timers::tsc::Instant;
 
 use crate::components::Component;
 
