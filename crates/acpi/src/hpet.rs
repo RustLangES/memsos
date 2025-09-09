@@ -1,8 +1,9 @@
 use arch::paging::map;
 use bit_field::BitField;
 use boot::HIGHER_HALF_OFFSET;
-use core::fmt::Write;
+use core::hint::spin_loop;
 use core::str;
+use core::{fmt::Write, time::Duration};
 use fb::println;
 use sync::Once;
 use x86_64::{
@@ -141,6 +142,23 @@ pub fn init_hpet(hpet_header: HpetHeader) -> Result<(), HpetInfoError> {
     });
 
     Ok(())
+}
+
+pub fn read_main_counter() -> u64 {
+    read_hpet(HPET_MAIN_COUNTER_REGISTER)
+}
+
+pub fn frequency() -> u64 {
+    HPET_STATE.frequency
+}
+
+pub fn sleep_hpet(duration: Duration) {
+    let nanos = duration.as_nanos() as u64;
+    let ticks = read_main_counter() + ((nanos * 1_000_000) / HPET_STATE.period);
+
+    while read_main_counter() < ticks {
+        spin_loop();
+    }
 }
 
 pub fn write_hpet(offset: u64, value: u64) {
