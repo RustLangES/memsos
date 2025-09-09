@@ -1,4 +1,6 @@
+use crate::hpet::sleep_hpet;
 use crate::rtc::{reset_rtc, sleep_rtc};
+use acpi::ACPI_TABLE;
 use core::fmt::Write;
 use core::time::Duration;
 use fb::println;
@@ -82,12 +84,19 @@ pub fn sleep(time: Duration) {
 
 pub fn calibrate_tsc() {
     reset_rtc();
+    let mut time = 0;
 
     let start = rdtsc();
-    sleep_rtc(5);
+    if ACPI_TABLE.hpet.is_some() {
+        sleep_hpet(Duration::from_millis(10));
+        time = 10;
+    } else {
+        sleep_rtc(5);
+        time = 5000;
+    }
     let end = rdtsc();
 
-    let ticks_per_ms = (end.wrapping_sub(start)) / 5000;
+    let ticks_per_ms = (end.wrapping_sub(start)) / time;
 
     println!("TSC ticks per ms: {}", ticks_per_ms);
 
