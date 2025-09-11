@@ -26,6 +26,13 @@ pub fn pci_read(info: PciInfo, offset: u8) -> u32 {
 
 }
 
+pub fn check_func(info: PciInfo) -> bool {
+    assert!(device < 32);
+    assert!(function < 8);
+
+    get_ids(info).1 != 0xFFFF
+}
+
 pub fn get_ids(info: PciInfo) -> (u16, u16) {
     assert!(device < 32);
     assert!(function < 8);
