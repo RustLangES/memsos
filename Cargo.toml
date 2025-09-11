@@ -16,7 +16,7 @@ members = [
     "crates/heapless",
     "crates/images",
     "crates/acpi",
-    "crates/allocators", "crates/timers", "crates/paging",
+    "crates/allocators", "crates/timers", "crates/paging", "crates/pci",
 ]
 
 [workspace.dependencies]
