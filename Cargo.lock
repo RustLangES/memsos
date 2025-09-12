@@ -161,6 +161,7 @@ dependencies = [
  "march-c",
  "modulo-n",
  "paging",
+ "pci",
  "sync",
  "timers",
  "ui",
@@ -279,6 +280,13 @@ version = "0.1.0"
 dependencies = [
  "allocators",
  "boot",
+ "x86_64",
+]
+
+[[package]]
+name = "pci"
+version = "0.1.0"
+dependencies = [
  "x86_64",
 ]
 
