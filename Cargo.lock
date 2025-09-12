@@ -161,6 +161,7 @@ dependencies = [
  "march-c",
  "modulo-n",
  "paging",
+ "pci",
  "sync",
  "timers",
  "ui",

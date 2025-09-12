@@ -31,6 +31,7 @@ use limine::BaseRevision;
 use limine::request::{RequestsEndMarker, RequestsStartMarker};
 use march_c::MarchC;
 use modulo_n::ModuloN;
+use pci::io::xhci_scan;
 use sync::Once;
 use timers::rtc::restore_rtc;
 use timers::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
@@ -94,6 +95,8 @@ extern "C" fn kmain() -> ! {
     loading.render(get_ui_writer());
 
     let (_power_profile, oem_id) = init_acpi();
+
+    println!("{:#?}", xhci_scan());
 
     calibrate_tsc();
     restore_rtc();

@@ -12,6 +12,7 @@ run-uefi: build ovmf
     -no-reboot \
     -no-shutdown \
     --enable-kvm \
+    -device qemu-xhci \
     -cpu host \
     -d int \
     -rtc base=localtime,clock=host \
