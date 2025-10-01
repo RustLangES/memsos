@@ -121,14 +121,20 @@ extern "C" fn kmain() -> ! {
 
     let mut reports = Vec::new();
 
-    let flags = entry.flags();
+    let flags = entry.flags().clone();
     entry.set_flags(PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::NO_CACHE);
+    unsafe {
+        core::arch::asm!("invlpg [{0}]", in(reg) *HIGHER_HALF_OFFSET);
+    }
 
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);
     get_ui_state().test_info_section.time.enabled = false;
 
     entry.set_flags(flags);
+    unsafe {
+        core::arch::asm!("invlpg [{0}]", in(reg) *HIGHER_HALF_OFFSET);
+    }
 
     beep();
 
