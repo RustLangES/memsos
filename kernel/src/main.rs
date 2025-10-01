@@ -37,17 +37,18 @@ use timers::rtc::restore_rtc;
 use timers::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use ui::sections::cpu_info::CpuInfoSection;
 use ui::sections::loading::LoadingSection;
+use x86_64::structures::paging::{PageTableFlags, PageTableIndex};
 
 use ui::sections::test_info::TestInfoSection;
 use ui::{
     RenderSection, Section, UiState, get_ui_state, init_ui_state, render_section, render_ui_state,
 };
 
-use x86_64::VirtAddr;
+use x86_64::{PhysAddr, VirtAddr};
 
 use crate::idt::{TIMER_VECTOR, init_idt};
 use allocators::frame::init_frame_allocator;
-use paging::init_page_map;
+use paging::{get_page_table, init_page_map, map_range, umap_range};
 use x2apic::{X2APIC, X2Apic, init_x2apic};
 
 use boot::HIGHER_HALF_OFFSET;
@@ -112,13 +113,22 @@ extern "C" fn kmain() -> ! {
 
     render_ui_state();
 
+    let mut table = get_page_table(VirtAddr::new(*HIGHER_HALF_OFFSET));
+    let index = PageTableIndex::new(((*HIGHER_HALF_OFFSET >> 39) as u16) & 0x1FF);
+    let entry = &mut table[index];
+
     X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
 
     let mut reports = Vec::new();
 
+    let flags = entry.flags();
+    entry.set_flags(PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::NO_CACHE);
+
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);
     get_ui_state().test_info_section.time.enabled = false;
+
+    entry.set_flags(flags);
 
     beep();
 
