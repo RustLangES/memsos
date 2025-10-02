@@ -37,6 +37,7 @@ use timers::rtc::restore_rtc;
 use timers::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use ui::sections::cpu_info::CpuInfoSection;
 use ui::sections::loading::LoadingSection;
+use x86_64::structures::paging::page_table::PageTableEntry;
 use x86_64::structures::paging::{PageTableFlags, PageTableIndex};
 
 use ui::sections::test_info::TestInfoSection;
@@ -115,14 +116,37 @@ extern "C" fn kmain() -> ! {
 
     let mut table = get_page_table(VirtAddr::new(*HIGHER_HALF_OFFSET));
     let index = PageTableIndex::new(((*HIGHER_HALF_OFFSET >> 39) as u16) & 0x1FF);
-    let entry = &mut table[index];
+    let entry_pml4 = &mut table[index];
 
     X2APIC.oneshot(TIMER_VECTOR, Duration::from_secs(1));
 
     let mut reports = Vec::new();
 
-    let flags = entry.flags().clone();
-    entry.set_flags(PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::NO_CACHE);
+    let flags_pml4 = entry_pml4.flags().clone();
+
+    let entry_pdpt = unsafe {
+        &mut *((entry_pml4.addr().as_u64() + *HIGHER_HALF_OFFSET) as *mut PageTableEntry)
+    };
+
+    let flags_pdpt = entry_pdpt.flags().clone();
+
+    let entry_pd = unsafe {
+        &mut *((entry_pdpt.addr().as_u64() + *HIGHER_HALF_OFFSET) as *mut PageTableEntry)
+    };
+
+    let flags_pd = entry_pd.flags().clone();
+
+    let entry_pt =
+        unsafe { &mut *((entry_pd.addr().as_u64() + *HIGHER_HALF_OFFSET) as *mut PageTableEntry) };
+
+    let flags_pt = entry_pt.flags().clone();
+
+    let flags = PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::NO_CACHE;
+    entry_pml4.set_flags(flags);
+    entry_pdpt.set_flags(flags);
+    entry_pd.set_flags(flags);
+    entry_pt.set_flags(flags);
+
     unsafe {
         core::arch::asm!("invlpg [{0}]", in(reg) *HIGHER_HALF_OFFSET);
     }
@@ -131,7 +155,11 @@ extern "C" fn kmain() -> ! {
     load_memtest::<ModuloN>(&mut reports);
     get_ui_state().test_info_section.time.enabled = false;
 
-    entry.set_flags(flags);
+    entry_pml4.set_flags(flags_pml4);
+    entry_pdpt.set_flags(flags_pdpt);
+    entry_pd.set_flags(flags_pd);
+    entry_pt.set_flags(flags_pt);
+
     unsafe {
         core::arch::asm!("invlpg [{0}]", in(reg) *HIGHER_HALF_OFFSET);
     }
