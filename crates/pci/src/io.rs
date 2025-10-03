@@ -15,10 +15,10 @@ pub struct PciInfo {
 pub fn xhci_scan() -> PciDevice {
     for bus in 0u8..=255 {
         for device in 0u8..32 {
-            if let Some(info) = check_device(bus, device) {
-                if info.class == 3075 {
-                    return info;
-                }
+            if let Some(info) = check_device(bus, device)
+                && info.class == 3075
+            {
+                return info;
             }
         }
     }
@@ -44,10 +44,8 @@ pub fn check_device(bus: u8, device: u8) -> Option<PciDevice> {
     let mut supported_fns = [true, false, false, false, false, false, false, false];
     if (header_type & 0x80) != 0 {
         for function in 0u8..8 {
-            if get_ids(info, 0).1 != 0xFFFF {
-                if check_func(info, function) {
-                    supported_fns[function as usize] = true;
-                }
+            if get_ids(info, 0).1 != 0xFFFF && check_func(info, function) {
+                supported_fns[function as usize] = true;
             }
         }
     }
@@ -83,8 +81,7 @@ pub fn pci_read(info: PciInfo, func: u8, offset: u8) -> u32 {
     let func = func as u32;
     let offset = offset as u32;
 
-    let address =
-        ((bus << 16) | (device << 11) | (func << 8) | (offset & 0xfc) | 0x80000000) as u32;
+    let address = (bus << 16) | (device << 11) | (func << 8) | (offset & 0xfc) | 0x80000000;
 
     unsafe {
         Port::<u32>::new(CONFIG_ADDRESS).write(address);

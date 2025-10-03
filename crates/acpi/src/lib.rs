@@ -14,7 +14,7 @@ use x86_64::{
 };
 
 use crate::{
-    hpet::{HpetHeader, HpetInfo, init_hpet},
+    hpet::{HpetHeader, init_hpet},
     table::{AcpiTables, FadtHeader, RsdpHeader, SdtHeader},
 };
 

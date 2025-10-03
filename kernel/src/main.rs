@@ -114,7 +114,7 @@ extern "C" fn kmain() -> ! {
 
     render_ui_state();
 
-    let mut table = get_page_table(VirtAddr::new(*HIGHER_HALF_OFFSET));
+    let table = get_page_table(VirtAddr::new(*HIGHER_HALF_OFFSET));
     let index = PageTableIndex::new(((*HIGHER_HALF_OFFSET >> 39) as u16) & 0x1FF);
     let entry_pml4 = &mut table[index];
 
@@ -122,24 +122,24 @@ extern "C" fn kmain() -> ! {
 
     let mut reports = Vec::new();
 
-    let flags_pml4 = entry_pml4.flags().clone();
+    let flags_pml4 = entry_pml4.flags();
 
     let entry_pdpt = unsafe {
         &mut *((entry_pml4.addr().as_u64() + *HIGHER_HALF_OFFSET) as *mut PageTableEntry)
     };
 
-    let flags_pdpt = entry_pdpt.flags().clone();
+    let flags_pdpt = entry_pdpt.flags();
 
     let entry_pd = unsafe {
         &mut *((entry_pdpt.addr().as_u64() + *HIGHER_HALF_OFFSET) as *mut PageTableEntry)
     };
 
-    let flags_pd = entry_pd.flags().clone();
+    let flags_pd = entry_pd.flags();
 
     let entry_pt =
         unsafe { &mut *((entry_pd.addr().as_u64() + *HIGHER_HALF_OFFSET) as *mut PageTableEntry) };
 
-    let flags_pt = entry_pt.flags().clone();
+    let flags_pt = entry_pt.flags();
 
     let flags = PageTableFlags::WRITABLE | PageTableFlags::PRESENT | PageTableFlags::NO_CACHE;
     entry_pml4.set_flags(flags);

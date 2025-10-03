@@ -83,17 +83,18 @@ pub fn sleep(time: Duration) {
 }
 
 pub fn calibrate_tsc() {
-    reset_rtc();
-    let mut time = 0;
-
     let start = rdtsc();
-    if ACPI_TABLE.hpet.is_some() {
-        sleep_hpet(Duration::from_millis(10));
-        time = 10;
-    } else {
-        sleep_rtc(5);
-        time = 5000;
-    }
+    let time = {
+        if ACPI_TABLE.hpet.is_some() {
+            sleep_hpet(Duration::from_millis(10));
+            10
+        } else {
+            reset_rtc();
+
+            sleep_rtc(5);
+            5000
+        }
+    };
     let end = rdtsc();
 
     let ticks_per_ms = (end.wrapping_sub(start)) / time;
