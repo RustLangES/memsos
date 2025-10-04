@@ -13,7 +13,8 @@ use x86_64::{
     registers::control::Cr3,
     structures::paging::{
         Mapper, OffsetPageTable, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size2MiB,
-        Size4KiB, mapper::MapToError,
+        Size4KiB,
+        mapper::{MapToError, UnmapError},
     },
 };
 
@@ -62,6 +63,56 @@ where
 
         map.ignore();
         Ok(())
+    }
+}
+
+pub fn umap<P: PageSize + core::fmt::Debug>(page: Page<P>) -> Result<(), UnmapError>
+where
+    OffsetPageTable<'static>: Mapper<P>,
+{
+    let mapper = get_kernel_map();
+
+    let a = mapper.unmap(page)?;
+
+    a.1.flush();
+
+    Ok(())
+}
+
+#[allow(clippy::similar_names)]
+pub fn umap_range(virt: VirtAddr, amount: usize) {
+    assert!(u16::from(virt.page_offset()) == 0);
+    let size = usize::try_from(Size4KiB::SIZE).unwrap();
+
+    let aligned_amount = align_up(amount, size);
+    let mut offset = 0;
+
+    let pages_4kb = (virt.align_up(Size2MiB::SIZE).as_u64() - virt.as_u64()) / Size4KiB::SIZE;
+
+    for _ in 0..pages_4kb {
+        if offset >= aligned_amount as u64 {
+            break;
+        }
+
+        umap::<Size4KiB>(Page::from_start_address(virt + offset).unwrap()).unwrap();
+
+        offset += Size4KiB::SIZE;
+    }
+
+    let pages_2mb = align_down(aligned_amount as u64 - offset, Size2MiB::SIZE) / Size2MiB::SIZE;
+
+    for _ in 0..pages_2mb {
+        umap::<Size2MiB>(Page::from_start_address(virt + offset).unwrap()).unwrap();
+
+        offset += Size2MiB::SIZE;
+    }
+
+    let pages_4kb = align_up(aligned_amount - usize::try_from(offset).unwrap(), size) / size;
+
+    for _ in 0..pages_4kb {
+        umap::<Size4KiB>(Page::from_start_address(virt + offset).unwrap()).unwrap();
+
+        offset += Size4KiB::SIZE;
     }
 }
 
@@ -133,7 +184,7 @@ fn get_mapper() -> OffsetPageTable<'static> {
     unsafe { OffsetPageTable::new(get_page_table(addr), addr) }
 }
 
-fn get_page_table(virt_addr: VirtAddr) -> &'static mut PageTable {
+pub fn get_page_table(virt_addr: VirtAddr) -> &'static mut PageTable {
     let (frame, _) = Cr3::read();
     let phys_addr = frame.start_address().as_u64();
     let virt = virt_addr.as_u64() + phys_addr;

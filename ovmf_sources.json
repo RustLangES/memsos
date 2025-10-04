@@ -4,7 +4,7 @@
       "version": "nightly-2025-10-04",
       "sha256": {
         "vars": "sha256-btmHrzo8FVvnFmX1EOrj4Aftqbi5Sv1Z1F6RxKEVZcw=",
-        "code": "sha256-VqTC0QTBF/GPn8vEsGH/9iEo40TqLdaATPduaXA3W8w="
+        "code": "sha256-85hnVSdErdnG/2bO7mrLKDoiMcD5xqmhfcSH21QPgHc="
       },
       "url": [
         "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-10-04/ovmf-vars-x86_64.fd",
@@ -15,7 +15,7 @@
       "version": "nightly-2025-10-04",
       "sha256": {
         "vars": "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=",
-        "code": "sha256-ivWvHCYNwa0oA5+YJFIGxrjdZ183V2ziuTbpcGBhOQk="
+        "code": "sha256-DIotwGIqPLkjTi9x5I4LGjJako4sFUeHJUJ2oBi6RIM="
       },
       "url": [
         "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-10-04/ovmf-vars-aarch64.fd",
@@ -26,7 +26,7 @@
       "version": "nightly-2025-10-04",
       "sha256": {
         "vars": "sha256-i2NMHmvRFgeFC2kRH2xNvRWD270UYNrHLbrL3BpKEwo=",
-        "code": "sha256-li06gc7/ujv9By/AriwSgcWayoJ+XYun9Lvmtl05mlM="
+        "code": "sha256-QITx9ek7B10lFswi6Ee7R8e08rMYqLdPwXHTLTYWozc="
       },
       "url": [
         "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-2025-10-04/ovmf-vars-riscv64.fd",

@@ -22,17 +22,18 @@ run-uefi: build ovmf
     {{QEMU_FLAGS}}
 
 run-bios: build
-  qemu-system-{{ARCH}} \
-    -M q35 \
-    -cdrom {{IMAGE_NAME}}.iso \
-    -d int \
-    -no-reboot \
-    -rtc base=localtime,clock=host \
-    -no-shutdown \
-    -boot d \
-    --enable-kvm \
-    -cpu host \
-    {{QEMU_FLAGS}}
+    qemu-system-{{ARCH}} \
+      -M q35 \
+      -no-reboot \
+      -no-shutdown \
+      --enable-kvm \
+      -device qemu-xhci \
+      -cpu host \
+      -d int \
+      -rtc base=localtime,clock=host \
+      -cdrom {{IMAGE_NAME}}.iso \
+      {{QEMU_FLAGS}}
+
 
 run-sound:
   QEMU_FLAGS="-audiodev pa,id=snd0 -machine pcspk-audiodev=snd0" just
