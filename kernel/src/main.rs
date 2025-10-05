@@ -7,7 +7,7 @@ extern crate alloc;
 
 mod idt;
 
-use acpi::init_acpi;
+use acpi::{ACPI_TABLE, init_acpi};
 use alloc::vec::Vec;
 use allocators::ALLOCATOR;
 use arch::cpuid::CpuInfo;
@@ -96,14 +96,23 @@ extern "C" fn kmain() -> ! {
     let mut loading = LoadingSection::new(Point::zero());
     loading.render(get_ui_writer());
 
-    let (_power_profile, oem_id) = init_acpi();
+    let acpi_result = init_acpi();
+    if let Err(ref e) = acpi_result {
+        println!("Acpi Error: {e}");
+    }
+
+    let (_power_profile, oem_id) =
+        acpi_result.unwrap_or((0, "NOACPI".as_bytes().try_into().unwrap()));
+
+    println!("{}", ACPI_TABLE.has_value());
 
     println!("{:#?}", xhci_scan());
 
     calibrate_tsc();
-    restore_rtc();
     init_mem_module(entries);
     init_x2apic();
+
+    println!("{}", TSC_TICKS_PER_MS.has_value());
 
     init_ui_state(UiState {
         test_info_section: TestInfoSection::new(Point::new(30, 30)),

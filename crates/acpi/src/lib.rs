@@ -20,8 +20,50 @@ use crate::{
 
 pub static ACPI_TABLE: Once<AcpiTables> = Once::new();
 
-pub fn init_acpi() -> (u8, [u8; 6]) {
-    let a = RSDP_REQUEST.get_response().unwrap().address() as u64;
+macro_rules! thaterror {
+    (pub enum $s_name:ident { $( #[error($msg:expr)] $name: ident ),* }) => {
+        #[derive(Debug)]
+        pub enum $s_name {
+            $(
+                $name,
+            )*
+        }
+
+        impl ::core::fmt::Display for $s_name {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                match self {
+                    $(
+                        $s_name::$name => f.write_str($msg),
+                    )*
+                }
+            }
+        }
+
+        impl ::core::error::Error for $s_name {}
+    }
+}
+
+thaterror! {
+    pub enum AcpiError {
+        #[error("No acpi tables")]
+        NoAcpiTables,
+
+        #[error("Invalid Checksum")]
+        InvalidChecksum,
+
+        #[error("Invalid SDT")]
+        InvalidSdt,
+
+        #[error("Invalid Rsdp")]
+        InvalidRsdp
+    }
+}
+
+pub fn init_acpi() -> Result<(u8, [u8; 6]), AcpiError> {
+    let a = RSDP_REQUEST
+        .get_response()
+        .ok_or(AcpiError::NoAcpiTables)?
+        .address() as u64;
 
     let b = (a.wrapping_add(*HIGHER_HALF_OFFSET) & !0xfff) as *mut RsdpHeader;
 
@@ -37,7 +79,7 @@ pub fn init_acpi() -> (u8, [u8; 6]) {
 
     let mut power_profile: u8 = 0;
 
-    let mut acpi = unsafe { AcpiTables::new(b) };
+    let mut acpi = unsafe { AcpiTables::new(b)? };
     let mut hpet = None;
 
     for entry in acpi.get_tables() {
@@ -72,5 +114,5 @@ pub fn init_acpi() -> (u8, [u8; 6]) {
 
     ACPI_TABLE.call_once(|| acpi);
 
-    (power_profile, ACPI_TABLE.rsdp.oem_id)
+    Ok((power_profile, ACPI_TABLE.rsdp.oem_id))
 }

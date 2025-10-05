@@ -85,7 +85,7 @@ pub fn sleep(time: Duration) {
 pub fn calibrate_tsc() {
     let start = rdtsc();
     let time = {
-        if ACPI_TABLE.hpet.is_some() {
+        if ACPI_TABLE.has_value() && ACPI_TABLE.hpet.is_some() {
             sleep_hpet(Duration::from_millis(10));
             10
         } else {
