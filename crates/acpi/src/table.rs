@@ -7,7 +7,7 @@ use x86_64::{
     structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB},
 };
 
-use crate::hpet::HpetHeader;
+use crate::{AcpiError, hpet::HpetHeader};
 
 #[derive(Debug)]
 pub enum AcpiVersion {
@@ -26,24 +26,23 @@ pub struct AcpiTables {
 impl AcpiTables {
     /// # Safety
     /// It rsdp_address is not valid or not mapped it can cause a page fault
-    pub unsafe fn new(rsdp_address: *mut RsdpHeader) -> Self {
+    pub unsafe fn new(rsdp_address: *mut RsdpHeader) -> Result<Self, AcpiError> {
         let rsdp = unsafe { rsdp_address.read_unaligned() };
         let (raw_sdt, sdt_addr) = rsdp.get_sdt_header();
         let sdt = unsafe { raw_sdt.read_volatile() };
 
-        sdt.check_signature(rsdp.get_version());
+        sdt.check_signature(rsdp.get_version())?;
 
-        assert!(
-            unsafe { sdt_checksum(sdt_addr as *mut u8, sdt.len as usize) },
-            "Invalid rsdt: checksum is not 0"
-        );
+        if unsafe { !sdt_checksum(sdt_addr as *mut u8, sdt.len as usize) } {
+            return Err(AcpiError::InvalidChecksum);
+        }
 
-        Self {
+        Ok(Self {
             rsdp,
             sdt,
             sdt_addr,
             hpet: None,
-        }
+        })
     }
     pub fn get_tables(&self) -> impl Iterator<Item = usize> {
         let entry_size = if self.rsdp.revision == 0 { 4 } else { 8 };
@@ -210,26 +209,30 @@ pub struct GenericAddress {
 }
 
 impl SdtHeader {
-    pub fn check_signature(&self, rsdp_version: AcpiVersion) {
+    pub fn check_signature(&self, rsdp_version: AcpiVersion) -> Result<(), AcpiError> {
         unsafe {
             let signature = match rsdp_version {
                 AcpiVersion::V1 => "RSDT",
                 AcpiVersion::V2 => "XSDT",
             };
             if str::from_raw_parts(self.signature.as_ptr(), self.signature.len()) != signature {
-                panic!("Invalid SDT")
+                return Err(AcpiError::InvalidSdt);
             }
         }
+
+        Ok(())
     }
 }
 
 impl RsdpHeader {
-    pub fn check_signature(&self) {
+    pub fn check_signature(&self) -> Result<(), AcpiError> {
         unsafe {
             if str::from_raw_parts(self.signature.as_ptr(), self.signature.len()) != "RSD PTR " {
-                panic!("Invalid RSDP")
+                return Err(AcpiError::InvalidRsdp);
             }
         }
+
+        Ok(())
     }
     pub fn get_version(&self) -> AcpiVersion {
         match self.revision {
