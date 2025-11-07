@@ -156,6 +156,7 @@ dependencies = [
  "commons",
  "embedded-graphics",
  "fb",
+ "heapless",
  "lazy_static",
  "limine",
  "march-c",

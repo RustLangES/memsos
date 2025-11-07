@@ -37,12 +37,14 @@ use timers::rtc::restore_rtc;
 use timers::tsc::{Instant, TSC_TICKS_PER_MS, calibrate_tsc, rdtsc, sleep};
 use ui::sections::cpu_info::CpuInfoSection;
 use ui::sections::loading::LoadingSection;
+use x86_64::instructions::port::Port;
 use x86_64::structures::paging::page_table::PageTableEntry;
 use x86_64::structures::paging::{PageTableFlags, PageTableIndex};
 
 use ui::sections::test_info::TestInfoSection;
 use ui::{
-    RenderSection, Section, UiState, get_ui_state, init_ui_state, render_section, render_ui_state,
+    RenderSection, Section, UiState, get_ui_state, init_ui_state, push_logs, render_section,
+    render_ui_state,
 };
 
 use x86_64::{PhysAddr, VirtAddr};
@@ -160,6 +162,51 @@ extern "C" fn kmain() -> ! {
         core::arch::asm!("invlpg [{0}]", in(reg) *HIGHER_HALF_OFFSET);
     }
 
+    unsafe {
+        Port::<u32>::new(0x60).write(0xF5);
+
+        Port::<u32>::new(0x64).write(0xD4);
+
+        Port::<u32>::new(0x60).write(0xF4);
+
+        let mut mouse_x: u64 = 0;
+        let mut mouse_y: u64 = 0;
+
+        loop {
+            Port::<u32>::new(0x64).write(0xD4);
+            let status = Port::<u32>::new(0x64).read();
+            if (status & 1) != 0 {
+                let writer = crate::get_fb_writer();
+                //writer.clear();
+                let data = Port::<u32>::new(0x60).read();
+
+                let first_byte = data & 0xFF;
+                let second_byte = ((data >> 8) & 0xFF) as u8;
+                let third_byte = ((data >> 16) & 0xFF) as u8;
+
+                let state = first_byte as u16;
+
+                let rel_x: i64 = i64::from(second_byte.cast_signed());
+
+                let rel_y: i64 = i64::from(third_byte.cast_signed());
+
+                mouse_x = mouse_x.saturating_add_signed(rel_x);
+                mouse_y = mouse_y.saturating_sub_signed(rel_y);
+
+                if mouse_x < writer.width() as u64 && mouse_y < writer.height() as u64 {
+                    writer.write_pixel(mouse_x, mouse_y, 0xffff_ffff);
+                }
+
+                writer.x = 0;
+                writer.y = 0;
+                write!(writer, "{}\n", mouse_x);
+                write!(writer, "{}\n", mouse_y);
+            }
+        }
+    }
+
+    panic!("no");
+
     load_memtest::<MarchC>(&mut reports);
     load_memtest::<ModuloN>(&mut reports);
     get_ui_state().test_info_section.time.enabled = false;
@@ -182,7 +229,7 @@ extern "C" fn kmain() -> ! {
 
 // TODO: improve panic handler
 #[panic_handler]
-fn panic_hnadler(info: &core::panic::PanicInfo) -> ! {
+fn panic_handler(info: &core::panic::PanicInfo) -> ! {
     println!("{:?}\n{:?}", info.message(), info.location());
     loop {}
 }

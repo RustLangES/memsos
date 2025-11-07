@@ -25,3 +25,4 @@ x2apic.workspace = true
 allocators.workspace = true
 paging.workspace = true
 pci.workspace = true
+heapless.workspace = true

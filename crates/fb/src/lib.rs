@@ -145,10 +145,10 @@ impl<'a> FrameBufferWriter<'a> {
         }
         self.x += rendered_char.width() + LETTER_SPACING;
     }
-    fn width(&self) -> usize {
+    pub fn width(&self) -> usize {
         usize::try_from(self.buffer.width()).expect("Cannot convert u64 to usize")
     }
-    fn height(&self) -> usize {
+    pub fn height(&self) -> usize {
         usize::try_from(self.buffer.height()).expect("Cannot convert u64 to usize")
     }
     fn carriage_return(&mut self) {
