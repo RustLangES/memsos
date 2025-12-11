@@ -12,35 +12,44 @@ if echo "$@" | grep -qoE '(--ci)'; then
     ci=true
 fi
 
-download_update() {
-    declare -A urls
-    echo -e "${GREEN}ovmf-$1-$arch$RESET: $download_url"
-    for name in $(jq -r '.Nightly.[].sha256 | keys[]' ovmf_sources.json | sort -u); do
-        download_url="$url/releases/latest/download/ovmf-$name-$1.fd"
-        sha256=$(nix hash convert --hash-algo sha256 "$(nix-prefetch-url $download_url)")
-        real_uri=$(echo $download_url | sed "s/download/$version/; s/latest/download/")
-        jq --arg arch "$1" --arg name "$name" --arg version "$version" --arg sha256 "$sha256" \
-            '(.["Nightly"][$arch]["sha256"][$name] = $sha256) | (.["Nightly"][$arch]["version"] = $version) ' \
-            <ovmf_sources.json >ovmf_sources.json.tmp && mv ovmf_sources.json.tmp ovmf_sources.json
-        urls["$real_uri"]=1
+temp_dir=$(mktemp -d)
+download_url="$url/releases/latest/download/edk2-ovmf.tar.gz"
+real_uri=$(echo $download_url | sed "s/download/$version/; s/latest/download/")
+
+echo -e "${GREEN}Descargando archivo comprimido${RESET}"
+wget -q -O "$temp_dir/edk2-ovmf.tar.gz" "$download_url"
+tar -xzf "$temp_dir/edk2-ovmf.tar.gz" -C "$temp_dir"
+
+process_arch() {
+    for file in "$temp_dir"/ovmf-*-"$1".fd; do
+        if [ -f "$file" ]; then
+            name=$(basename "$file" | sed "s/^ovmf-//; s/-$1\.fd$//")
+            sha256=$(sha256sum "$file" | cut -d' ' -f1)
+            
+            jq --arg arch "$1" --arg name "$name" --arg version "$version" --arg sha256 "$sha256" \
+                '(.["Nightly"][$arch]["sha256"][$name] = $sha256) | (.["Nightly"][$arch]["version"] = $version)' \
+                <ovmf_sources.json >ovmf_sources.json.tmp && mv ovmf_sources.json.tmp ovmf_sources.json
+        fi
     done
-    unique_urls_json=$(printf '"%s"\n' "${!urls[@]}" | jq -s '.')
-    jq --arg arch "$1" --argjson url "$unique_urls_json" '(.["Nightly"][$arch]["url"] = $url)' <ovmf_sources.json >ovmf_sources.json.tmp && mv ovmf_sources.json.tmp ovmf_sources.json
-    if $ci; then
-        if [ "$(echo $version | cut -d'-' -f1)" = "nightly" ]; then
-            if [ "$commit_nightly" = "" ]; then
-                commit_nightly="$1"
-            else
-                commit_nightly="$commit_nightly && $1"
-            fi
+    
+    unique_urls_json=$(echo "[\"$real_uri\"]" | jq -s '.[0]')
+    jq --arg arch "$1" --argjson url "$unique_urls_json" '(.["Nightly"][$arch]["url"] = $url)' \
+        <ovmf_sources.json >ovmf_sources.json.tmp && mv ovmf_sources.json.tmp ovmf_sources.json
+    
+    if $ci && [ "$(echo $version | cut -d'-' -f1)" = "nightly" ]; then
+        if [ "$commit_nightly" = "" ]; then
+            commit_nightly="$1"
+        else
+            commit_nightly="$commit_nightly && $1"
         fi
     fi
 }
 
 try() {
     for arch in $(jq -r '.Nightly | keys[]' ovmf_sources.json); do
-        download_update $arch
+        process_arch $arch
     done
+    rm -rf "$temp_dir"
 }
 
 set -e
