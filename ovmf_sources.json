@@ -7,7 +7,7 @@
         "code": "sha256-k6rLoxkL036TzYihAe9c0Xd+QZJXZA7VFn2E4uXW6Dk="
       },
       "url": [
-        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-20260107T012923Z/edk2-ovmf.tar.gz"
+        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-20260108T013029Z/edk2-ovmf.tar.gz"
       ]
     },
     "aarch64": {
@@ -17,7 +17,7 @@
         "code": "sha256-oLYuuaBu6uk594pDrWosGmPZIghpnp7sSo4BvrH2B0g="
       },
       "url": [
-        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-20260107T012923Z/edk2-ovmf.tar.gz"
+        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-20260108T013029Z/edk2-ovmf.tar.gz"
       ]
     },
     "riscv64": {
@@ -27,7 +27,7 @@
         "code": "sha256-E7c9kCV0iv0R7f9GJ5kZf1vPycQHGdZBohY47iegTPA="
       },
       "url": [
-        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-20260107T012923Z/edk2-ovmf.tar.gz"
+        "https://github.com/osdev0/edk2-ovmf-nightly/releases/download/nightly-20260108T013029Z/edk2-ovmf.tar.gz"
       ]
     }
   }
