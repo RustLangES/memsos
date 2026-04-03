@@ -48,7 +48,7 @@ run-debug-bios: build
 # OVMF build
 
 ovmf:
-    test -d {{OVMF_DIR}} || (mkdir -p {{OVMF_DIR}} && curl -Lo {{OVMF_DIR}}/ovmf-code-{{ARCH}}.fd https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-code-{{ARCH}}.fd &&  curl -Lo {{OVMF_DIR}}/ovmf-vars-{{ARCH}}.fd https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/ovmf-vars-{{ARCH}}.fd)
+    test -d {{OVMF_DIR}} || (mkdir -p {{OVMF_DIR}} && curl -Lo {{OVMF_DIR}}/ovmf.tar.gz https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/edk2-ovmf.tar.gz && tar -xvzf {{OVMF_DIR}}/ovmf.tar.gz -C {{OVMF_DIR}} --strip-components=1 && rm {{OVMF_DIR}}/ovmf.tar.gz)
 
 # Limine (bootloader) build
 
