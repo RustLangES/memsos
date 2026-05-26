@@ -38,6 +38,13 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
+      - name: Setup Attic cache
+        uses: ryanccn/attic-action@v0
+        with:
+          endpoint: https://cache.rustlang-es.org/
+          cache: main
+          token: ${{ secrets.ATTIC_TOKEN }}
+
       - name: Detect modified language files (PR only)
         if: github.event_name == 'pull_request'
         id: detect-modified-langs
@@ -107,6 +114,13 @@ jobs:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: |
             experimental-features = nix-command flakes
+
+      - name: Setup Attic cache
+        uses: ryanccn/attic-action@v0
+        with:
+          endpoint: https://cache.rustlang-es.org/
+          cache: main
+          token: ${{ secrets.ATTIC_TOKEN }}
 
       - name: Normalize IMAGE_NAME
         run: |
